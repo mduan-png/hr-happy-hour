@@ -1,0 +1,2685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>China HR Happy Hour</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --green:       #9cdc00;
+    --green-dark:  #78b900;
+    --green-deeper:#5a9b00;
+    --gray-text:   #222629;
+    --gray-mid:    #717372;
+    --gray-600:    #b7b9b8;
+    --gray-400:    #d4d5d5;
+    --gray-200:    #f1f1f1;
+    --gray-100:    #f8f8f8;
+    --bg:          #fcfcfc;
+    --purple:      #942366;
+    --pink:        #e5167b;
+    --radius-sm:   6px;
+    --radius-md:   10px;
+    --radius-lg:   14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--gray-200);
+    color: var(--gray-text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--gray-text);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    height: 56px;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-dot {
+    width: 28px;
+    height: 28px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-dot svg { width: 16px; height: 16px; }
+  .header-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.2px;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--gray-600);
+    margin-left: 4px;
+    font-weight: 400;
+  }
+  .header-pill {
+    margin-left: auto;
+    background: rgba(156,220,0,0.15);
+    border: 1px solid rgba(156,220,0,0.3);
+    color: var(--green);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; min-height: calc(100vh - 56px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: #fff;
+    border-right: 1px solid var(--gray-400);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sidebar-section {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gray-600);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 12px 20px 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-mid);
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--gray-100); color: var(--gray-text); }
+  .nav-item.active {
+    background: #f0fae0;
+    color: var(--green-deeper);
+    border-left-color: var(--green);
+    font-weight: 600;
+  }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--green);
+    color: var(--gray-text);
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 1px 6px;
+    min-width: 18px;
+    text-align: center;
+    pointer-events: none;
+  }
+  .nav-divider { height: 1px; background: var(--gray-200); margin: 8px 16px; }
+
+  /* ── MAIN CONTENT ── */
+  .main { flex: 1; padding: 28px 32px; min-width: 0; }
+  .page-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-text);
+    margin-bottom: 4px;
+  }
+  .page-sub {
+    font-size: 12px;
+    color: var(--gray-mid);
+    margin-bottom: 24px;
+  }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-400);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-mid);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* ── UPLOAD ── */
+  .upload-area {
+    border: 2px dashed var(--gray-400);
+    border-radius: var(--radius-lg);
+    padding: 48px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+    display: block;
+  }
+  .upload-area:hover { border-color: var(--green); background: #f7fde6; }
+  .upload-icon-wrap {
+    width: 64px; height: 64px;
+    background: #f0fae0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+  }
+  .upload-icon-wrap svg { width: 28px; height: 28px; color: var(--green-deeper); }
+  .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .upload-hint { font-size: 12px; color: var(--gray-mid); }
+
+  /* ── STATS ── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat {
+    background: #fff;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-num { font-size: 28px; font-weight: 700; line-height: 1; color: var(--gray-text); }
+  .stat-num.alert { color: var(--green-deeper); }
+  .stat-label { font-size: 11px; color: var(--gray-mid); margin-top: 4px; font-weight: 500; }
+
+  /* ── EMP ROWS ── */
+  .emp-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .emp-row:last-child { border-bottom: none; }
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #f0fae0;
+    border: 1.5px solid var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    color: var(--green-deeper);
+    flex-shrink: 0;
+  }
+  .avatar-pink {
+    background: #fce8f2;
+    border-color: var(--pink);
+    color: var(--pink);
+  }
+  .emp-name { font-weight: 600; font-size: 14px; color: var(--gray-text); }
+  .emp-en { font-size: 12px; color: var(--gray-mid); margin-top: 1px; }
+  .emp-info { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+
+  /* ── BADGES ── */
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
+  .badge {
+    display: inline-block; font-size: 11px;
+    padding: 3px 10px; border-radius: 20px;
+    font-weight: 600; white-space: nowrap;
+    font-family: 'Poppins', sans-serif;
+  }
+  .b-reg  { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
+  .b-3y   { background: #eef4ff; color: #1a56c9; border: 1px solid #93b4f5; }
+  .b-5y   { background: #f3efff; color: #5b21b6; border: 1px solid #c4b5fd; }
+  .b-10y  { background: #fff8ed; color: #92400e; border: 1px solid #fbbf24; }
+  .b-bday { background: #fce8f2; color: var(--pink); border: 1px solid #f9a8d4; }
+
+  /* ── DATE BADGE ── */
+  .date-badge {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 3px 10px;
+    font-size: 12px;
+    color: var(--gray-mid);
+    font-weight: 500;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+
+  /* ── BUTTONS ── */
+  button.btn {
+    background: #fff;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--gray-text);
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.15s;
+  }
+  button.btn:hover { background: var(--gray-100); border-color: var(--gray-mid); }
+  button.btn-green {
+    background: var(--green);
+    color: var(--gray-text);
+    border-color: var(--green);
+    font-weight: 600;
+  }
+  button.btn-green:hover { background: var(--green-dark); border-color: var(--green-dark); }
+  button.btn-dark {
+    background: var(--gray-text);
+    color: #fff;
+    border-color: var(--gray-text);
+    font-weight: 600;
+  }
+  button.btn-dark:hover { background: #444; }
+  button.btn-pink {
+    background: var(--pink);
+    color: #fff;
+    border-color: var(--pink);
+    font-weight: 600;
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .controls input[type=date],
+  .controls input[type=number] {
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    font-size: 13px;
+    color: var(--gray-text);
+    background: #fff;
+    font-family: 'Poppins', sans-serif;
+  }
+  .controls label { font-size: 13px; color: var(--gray-mid); font-weight: 500; }
+
+  /* ── MONTH NAV ── */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .month-nav-arrow {
+    width: 32px; height: 32px;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: var(--gray-mid);
+    transition: all 0.15s;
+  }
+  .month-nav-arrow:hover { border-color: var(--green); color: var(--green-deeper); }
+  .month-display {
+    font-size: 15px;
+    font-weight: 700;
+    min-width: 120px;
+    text-align: center;
+    color: var(--gray-text);
+  }
+
+  /* ── NOTICE ── */
+  .notice {
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .notice-green { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
+  .notice-info  { background: #eef4ff; color: #1a56c9; border: 1px solid #93b4f5; }
+  .notice-bday  { background: #fce8f2; color: var(--pink); border: 1px solid #f9a8d4; }
+  .notice-success { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
+
+  /* ── SETTING ROW ── */
+  .setting-row { margin-bottom: 14px; }
+  .setting-row label { display: block; font-size: 11px; color: var(--gray-mid); margin-bottom: 4px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+  .setting-row input {
+    width: 100%;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--gray-text);
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* ── EMPTY ── */
+  .empty { text-align: center; padding: 48px; color: var(--gray-600); font-size: 13px; }
+  .empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--gray-text);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    font-size: 11.5px;
+    font-family: 'Courier New', monospace;
+    color: #d4f5a0;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(34,38,41,0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    width: 560px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .modal-title { font-size: 15px; font-weight: 700; color: var(--gray-text); }
+  .modal-close {
+    width: 30px; height: 30px;
+    border: none; background: none; cursor: pointer;
+    font-size: 18px; color: var(--gray-mid);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: var(--gray-200); }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer {
+    padding: 14px 24px;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .msg-target {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .msg-target-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    min-width: 52px;
+  }
+  .msg-target-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-text);
+    background: var(--gray-100);
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 5px 12px;
+  }
+  .msg-textarea {
+    width: 100%;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--gray-text);
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.6;
+    transition: border-color 0.15s;
+  }
+  .msg-textarea:focus { outline: none; border-color: var(--green); }
+  .char-hint { font-size: 11px; color: var(--gray-mid); margin-top: 6px; text-align: right; }
+  .slack-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--gray-400);
+    background: #fff;
+    cursor: pointer;
+    color: var(--gray-mid);
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .slack-btn:hover { border-color: var(--green); color: var(--green-deeper); background: #f7fde6; }
+  .slack-btn.manager { border-color: #b7b9b8; }
+  .slack-btn.manager:hover { border-color: #717372; color: #222629; background: var(--gray-100); }
+  .slack-icon { font-size: 13px; }
+  .tab-btns { display: flex; gap: 4px; margin-bottom: 16px; }
+  .tab-btn {
+    flex: 1; padding: 8px; text-align: center;
+    font-size: 12px; font-weight: 600;
+    border: 1.5px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    cursor: pointer; background: #fff;
+    color: var(--gray-mid);
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.15s;
+  }
+  .tab-btn.active { border-color: var(--green); background: #f0fae0; color: var(--green-deeper); }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <div class="logo-dot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#222629" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+      </svg>
+    </div>
+    <span class="header-title">Conviva HR</span>
+    <span class="header-sub">员工提醒工具</span>
+  </div>
+  <button id="lang-toggle" onclick="toggleLang()" style="
+    background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.4);
+    color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;
+    cursor:pointer;margin-right:10px;letter-spacing:0.5px;transition:all 0.2s">
+    中/EN
+  </button>
+  <div class="header-pill">China Office</div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">会议</div>
+    <button class="nav-item active" onclick="showTab('meeting')" id="nav-meeting">
+      <span class="nav-icon">📋</span> 会议记录
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="sidebar-section">主功能</div>
+    <button class="nav-item" onclick="showTab('today')" id="nav-today">
+      <span class="nav-icon">🔔</span> 今日提醒
+      <span class="nav-badge" id="today-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showTab('weekly')" id="nav-weekly">
+      <span class="nav-icon">📅</span> 本周提醒
+      <span class="nav-badge" id="weekly-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showTab('monthly')" id="nav-monthly">
+      <span class="nav-icon">🎂</span> 本月生日
+      <span class="nav-badge" id="monthly-count-badge" style="display:none">0</span>
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="sidebar-section">里程碑</div>
+
+    <button class="nav-item" onclick="showTab('birthday')" id="nav-birthday">
+      <span class="nav-icon">🎂</span> 本年生日
+      <span class="nav-badge" id="bday-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('reg')" id="nav-reg">
+      <span class="nav-icon">✅</span> 本年转正
+      <span class="nav-badge" id="reg-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('3y')" id="nav-3y">
+      <span class="nav-icon">🥉</span> 本年3周年
+      <span class="nav-badge" id="3y-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('5y')" id="nav-5y">
+      <span class="nav-icon">🥈</span> 本年5周年
+      <span class="nav-badge" id="5y-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('10y')" id="nav-10y">
+      <span class="nav-icon">🏆</span> 本年10周年
+      <span class="nav-badge" id="10y-count-badge" style="display:none">0</span>
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="sidebar-section">设置</div>
+    <button class="nav-item" onclick="showTab('upload')" id="nav-upload">
+      <span class="nav-icon">📂</span> 上传表格
+    </button>
+    <button class="nav-item" onclick="showTab('export')" id="nav-export">
+      <span class="nav-icon">📤</span> 导出小程序
+    </button>
+    <button class="nav-item" onclick="showTab('email')" id="nav-email">
+      <span class="nav-icon">💬</span> Slack 设置
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- UPLOAD -->
+    <div id="tab-upload" class="panel">
+      <div class="page-title">上传员工表格</div>
+      <div class="page-sub">支持 Employee_information_list_xxxx.xlsx 格式</div>
+
+      <label class="upload-area" for="fileInput" id="upload-label">
+        <div class="upload-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="upload-title" id="upload-title-text">点击选择员工 Excel 表格</div>
+        <div class="upload-hint" id="upload-hint-text">拖放或点击上传 · .xlsx / .xls</div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(event)">
+      </label>
+
+      <div id="upload-msg"></div>
+      <div id="preview-area"></div>
+    </div>
+
+    <!-- TODAY -->
+    <div id="tab-today" class="panel">
+      <div class="page-title">今日提醒</div>
+      <div class="page-sub">里程碑 + 生日</div>
+      <div class="controls" style="margin-bottom:16px">
+        <label>查看日期：</label>
+        <input type="date" id="checkDate" onchange="renderToday()">
+        <button class="btn" onclick="goToday()">今天</button>
+      </div>
+      <div id="stats-area"></div>
+      <div id="today-list"></div>
+    </div>
+
+    <!-- BIRTHDAY -->
+    <div id="tab-birthday" class="panel">
+      <div class="page-title">本年生日</div>
+      <div class="page-sub">按月份查看今年所有员工生日</div>
+      <div class="month-nav">
+        <button class="month-nav-arrow" onclick="changeBdayYear(-1)">◀</button>
+        <div class="month-display" id="month-display"></div>
+        <button class="month-nav-arrow" onclick="changeBdayYear(1)">▶</button>
+        <button class="btn" onclick="goCurrentBdayYear()" style="margin-left:8px">今年</button>
+  
+      </div>
+      <div id="week2-notice"></div>
+      <div id="birthday-list"></div>
+    </div>
+
+    <!-- MILESTONE MONTH -->
+    <div id="tab-milestone" class="panel">
+      <div class="page-title" id="milestone-page-title">本年里程碑</div>
+      <div class="page-sub" id="milestone-page-sub"></div>
+      <div class="month-nav">
+        <button class="month-nav-arrow" onclick="changeMilestoneYear(-1)">◀</button>
+        <div class="month-display" id="milestone-month-display"></div>
+        <button class="month-nav-arrow" onclick="changeMilestoneYear(1)">▶</button>
+        <button class="btn" onclick="goCurrentMilestoneYear()" style="margin-left:8px">今年</button>
+  
+      </div>
+      <div id="milestone-month-list"></div>
+    </div>
+
+    <!-- WEEKLY PANEL -->
+    <div id="tab-weekly" class="panel">
+      <div class="page-title">本周提醒</div>
+      <div class="page-sub">本周转正和周年纪念（不含生日）</div>
+      <div class="month-nav" style="margin-bottom:16px">
+        <button class="month-nav-arrow" onclick="changeWeek(-1)">◀</button>
+        <div id="week-range-label" style="font-size:14px;font-weight:700;min-width:200px;text-align:center;color:var(--gray-text)"></div>
+        <button class="month-nav-arrow" onclick="changeWeek(1)">▶</button>
+        <button class="btn" onclick="goThisWeek()" style="margin-left:8px">本周</button>
+      </div>
+      <div id="week-stats-area"></div>
+      <div id="week-list"></div>
+    </div>
+
+    <!-- MONTHLY OVERVIEW -->
+    <div id="tab-monthly" class="panel">
+      <div class="page-title">本月生日</div>
+      <div class="page-sub">本月过生日的员工</div>
+      <div class="month-nav">
+        <button class="month-nav-arrow" onclick="changeMonthlyMonth(-1)">◀</button>
+        <div class="month-display" id="monthly-month-display"></div>
+        <button class="month-nav-arrow" onclick="changeMonthlyMonth(1)">▶</button>
+        <button class="btn" onclick="goCurrentMonthlyMonth()" style="margin-left:8px">本月</button>
+      </div>
+      <div id="monthly-stats-area"></div>
+      <div id="monthly-notice"></div>
+      <div id="monthly-list"></div>
+    </div>
+
+    <!-- EXPORT PANEL -->
+    <div id="tab-export" class="panel">
+      <div class="page-title">导出小程序</div>
+      <div class="page-sub">生成包含员工数据的版本发给同事</div>
+      <div id="export-area" class="card" style="border-color:var(--green)">
+        <div style="text-align:center;padding:12px 0">
+          <div style="font-size:48px;margin-bottom:12px">📤</div>
+          <div style="font-size:15px;font-weight:600;color:var(--gray-text);margin-bottom:8px">尚未上传数据</div>
+          <div style="font-size:13px;color:var(--gray-mid)">请先在「上传表格」中上传员工 Excel，<br>再回来导出。</div>
+        </div>
+      </div>
+      <div id="export-ready" style="display:none">
+        <div class="card" style="border-color:var(--green);background:#f7fde6">
+          <div style="text-align:center;padding:8px 0 16px">
+            <div style="font-size:48px;margin-bottom:12px">✅</div>
+            <div style="font-size:15px;font-weight:600;color:var(--gray-text);margin-bottom:6px">数据已就绪</div>
+            <div style="font-size:13px;color:var(--gray-mid);margin-bottom:6px" id="export-file-info"></div>
+            <div style="font-size:13px;color:var(--gray-mid);margin-bottom:20px">
+              点击下方按钮生成一个新的 HTML 文件。<br>
+              把这个文件发给同事，他们用浏览器打开就能<br>
+              直接看到所有数据，<strong>无需重新上传</strong>。
+            </div>
+            <button class="btn btn-green" style="font-size:14px;padding:10px 24px" onclick="exportWithData()">⬇️ 下载含数据的小程序</button>
+            <div id="export-hint" style="font-size:12px;color:var(--green-deeper);margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+        <!-- MEETING NOTES -->
+    <div id="tab-meeting" class="panel active">
+      <div class="page-title" id="meeting-page-title">📋 会议记录</div>
+      <div class="page-sub" id="meeting-page-sub">每周五例会议题 · 所有人均可编辑，内容保存在本地浏览器</div>
+
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn" onclick="meetingPrevWeek()">◀</button>
+        <div id="meeting-week-label" style="font-size:14px;font-weight:700;min-width:120px;text-align:center"></div>
+        <button class="btn" onclick="meetingNextWeek()">▶</button>
+        <button class="btn" onclick="meetingGoThisWeek()" id="btn-this-week-el" style="margin-left:4px">本周</button>
+        <button class="btn btn-green" onclick="meetingAutoFill()" id="btn-autofill-el" style="margin-left:auto">🔄 自动填入本周转正&周年</button>
+        <button class="btn" onclick="meetingNewWeek()" id="btn-new-week-el" style="background:#fff;border:1.5px solid var(--green);color:var(--green-deeper)">➕ 新建本周</button>
+      </div>
+
+      <div id="meeting-content">
+        <div class="empty">选择周次或新建本周会议记录</div>
+      </div>
+    </div>
+
+    <!-- SLACK SETTINGS -->
+    <div id="tab-email" class="panel">
+      <div class="page-title">Slack 设置</div>
+      <div class="page-sub">配置消息模板和自动提醒</div>
+
+      <div class="card">
+        <div class="card-title">使用说明</div>
+        <div style="font-size:13px;color:var(--gray-mid);line-height:1.8">
+          在「今日提醒」或「本周提醒」页面，每位员工旁边都有：<br>
+          <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
+            <button class="slack-btn" style="pointer-events:none">💬 祝贺/祝福本人</button>
+          </span> — 点击预览并编辑消息，发送给员工本人<br>
+          <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
+            <button class="slack-btn manager" style="pointer-events:none">👔 通知领导</button>
+          </span> — 点击预览并编辑消息，通知其直属领导
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">自定义消息模板</div>
+        <div style="font-size:13px;color:var(--gray-mid);margin-bottom:14px">
+          点击任意模板可修改默认消息内容，修改后对本次会话有效。
+        </div>
+        <div id="template-editor">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+            <button class="btn" onclick="editTemplate('birthday')" >🎂 生日祝福</button>
+            <button class="btn" onclick="editTemplate('reg')"     >🎉 转正祝贺</button>
+            <button class="btn" onclick="editTemplate('3y')"      >🥉 3周年祝贺</button>
+            <button class="btn" onclick="editTemplate('5y')"      >🥈 5周年祝贺</button>
+            <button class="btn" onclick="editTemplate('10y')"     >🏆 10周年祝贺</button>
+          </div>
+          <div id="template-edit-area" style="display:none">
+            <div style="font-size:12px;font-weight:600;color:var(--gray-mid);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px" id="template-edit-label"></div>
+            <textarea class="msg-textarea" id="templateTextArea" style="min-height:100px"></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn btn-green" onclick="saveTemplate()">保存模板</button>
+              <button class="btn" onclick="resetTemplate()">恢复默认</button>
+              <button class="btn" onclick="document.getElementById('template-edit-area').style.display='none'">取消</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">自动提醒脚本</div>
+        <p style="font-size:13px;color:var(--gray-mid);margin-bottom:12px">
+          每天自动发 Slack 消息给本人和领导，需要联系 <strong style="color:var(--gray-text)">Santhosh（IT）</strong> 配置 Slack Bot Token。
+        </p>
+        <button class="btn btn-dark" onclick="showSlackAutoGuide()">⚙️ 查看自动化脚本</button>
+        <div id="slack-auto-guide" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+  </main>
+
+<!-- SLACK MODAL -->
+<div class="modal-overlay" id="slackModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">💬 发送 Slack 消息</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tab-btns" id="modalTabs" style="display:none">
+        <button class="tab-btn active" id="tabEmployee" onclick="switchMsgTab('employee')">👤 发给本人</button>
+        <button class="tab-btn" id="tabManager" onclick="switchMsgTab('manager')">👔 通知领导</button>
+      </div>
+      <div class="msg-target">
+        <span class="msg-target-label">发送给</span>
+        <span class="msg-target-val" id="modalRecipient">—</span>
+      </div>
+      <div class="msg-target" id="modalManagerRow" style="display:none">
+        <span class="msg-target-label">直属领导</span>
+        <span class="msg-target-val" id="modalManagerName">—</span>
+      </div>
+      <textarea class="msg-textarea" id="msgText" oninput="updateCharCount(this)" placeholder="输入消息内容..."></textarea>
+      <div class="char-hint"><span id="charCount">0</span> 字</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">取消</button>
+      <button class="btn btn-green" onclick="openInSlack()">
+        <span style="font-size:14px">💬</span> 在 Slack 中打开
+      </button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+
+let employees = [{cnName:"胡宁宁",enName:"Ningning Hu",dept:"Conviva",title:"总经理",email:"nhu@conviva.com",manager:"",onboard:new Date("2017-07-24T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-01-24T00:00:00.000Z"),"3y":new Date("2020-07-24T00:00:00.000Z"),"5y":new Date("2022-07-24T00:00:00.000Z"),"10y":new Date("2027-07-24T00:00:00.000Z")},dobMonth:3,dobDay:27},{cnName:"李大超",enName:"Dachao Li",dept:"China Frondend team",title:"IOS高级前端开发工程师",email:"dli@conviva.com",manager:"Dylan",onboard:new Date("2017-09-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-03-11T00:00:00.000Z"),"3y":new Date("2020-09-11T00:00:00.000Z"),"5y":new Date("2022-09-11T00:00:00.000Z"),"10y":new Date("2027-09-11T00:00:00.000Z")},dobMonth:6,dobDay:13},{cnName:"杨展",enName:"Zhan Yang",dept:"China Frondend team",title:"高级前端开发工程师",email:"zyang@conviva.com",manager:"许文龙",onboard:new Date("2017-11-27T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-05-27T00:00:00.000Z"),"3y":new Date("2020-11-27T00:00:00.000Z"),"5y":new Date("2022-11-27T00:00:00.000Z"),"10y":new Date("2027-11-27T00:00:00.000Z")},dobMonth:8,dobDay:13},{cnName:"朱天明",enName:"Tianming Zhu",dept:"EMP",title:"高级软件测试工程师",email:"tzhu@conviva.com",manager:"胡宁宁",onboard:new Date("2018-10-22T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-04-22T00:00:00.000Z"),"3y":new Date("2021-10-22T00:00:00.000Z"),"5y":new Date("2023-10-22T00:00:00.000Z"),"10y":new Date("2028-10-22T00:00:00.000Z")},dobMonth:2,dobDay:13},{cnName:"王超",enName:"Chao Wang",dept:"China Frondend team",title:"前端工程师",email:"cwang@conviva.com",manager:"许文龙",onboard:new Date("2018-12-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-06-13T00:00:00.000Z"),"3y":new Date("2021-12-13T00:00:00.000Z"),"5y":new Date("2023-12-13T00:00:00.000Z"),"10y":new Date("2028-12-13T00:00:00.000Z")},dobMonth:9,dobDay:8},{cnName:"郭江",enName:"Jiang Guo",dept:"China Frondend team",title:"高级前端工程师",email:"jguo@conviva.com",manager:"许文龙",onboard:new Date("2019-01-02T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-07-02T00:00:00.000Z"),"3y":new Date("2022-01-02T00:00:00.000Z"),"5y":new Date("2024-01-02T00:00:00.000Z"),"10y":new Date("2029-01-02T00:00:00.000Z")},dobMonth:11,dobDay:9},{cnName:"杨懿",enName:"Yi Yang",dept:"Product",title:"产品设计师",email:"yyang@conviva.com",manager:"Goldfoot, Matthew（）",onboard:new Date("2019-01-14T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-07-14T00:00:00.000Z"),"3y":new Date("2022-01-14T00:00:00.000Z"),"5y":new Date("2024-01-14T00:00:00.000Z"),"10y":new Date("2029-01-14T00:00:00.000Z")},dobMonth:10,dobDay:10},{cnName:"徐仙子",enName:"Sarah Xu",dept:"Product",title:"产品经理",email:"sxu@conviva.com",manager:"Caldeira De Jesus, Jose（）",onboard:new Date("2019-03-25T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-09-25T00:00:00.000Z"),"3y":new Date("2022-03-25T00:00:00.000Z"),"5y":new Date("2024-03-25T00:00:00.000Z"),"10y":new Date("2029-03-25T00:00:00.000Z")},dobMonth:11,dobDay:29},{cnName:"林博",enName:"Bo Lin",dept:"Backend  Engineering",title:"软件开发工程师（全栈）",email:"blin@conviva.com",manager:"尉顶",onboard:new Date("2019-04-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-10-23T00:00:00.000Z"),"3y":new Date("2022-04-23T00:00:00.000Z"),"5y":new Date("2024-04-23T00:00:00.000Z"),"10y":new Date("2029-04-23T00:00:00.000Z")},dobMonth:0,dobDay:18},{cnName:"杨东晓",enName:"Dongxiao Yang",dept:"Platform",title:"高级大数据开发",email:"dyang@conviva.com",manager:"谢林",onboard:new Date("2019-06-10T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-12-10T00:00:00.000Z"),"3y":new Date("2022-06-10T00:00:00.000Z"),"5y":new Date("2024-06-10T00:00:00.000Z"),"10y":new Date("2029-06-10T00:00:00.000Z")},dobMonth:9,dobDay:3},{cnName:"王巍",enName:"Wei Wang",dept:"EMP",title:"高级后端开发工程师",email:"wwang@conviva.com",manager:"Dylan",onboard:new Date("2019-08-05T00:00:00.000Z"),milestoneDates:{reg:new Date("2020-02-05T00:00:00.000Z"),"3y":new Date("2022-08-05T00:00:00.000Z"),"5y":new Date("2024-08-05T00:00:00.000Z"),"10y":new Date("2029-08-05T00:00:00.000Z")},dobMonth:1,dobDay:15},{cnName:"马晓睿",enName:"Xiaorui Ma",dept:"Product-TPM",title:"高级项目经理",email:"xima@conviva.com",manager:"Aditya（胡宁宁）",onboard:new Date("2019-10-21T00:00:00.000Z"),milestoneDates:{reg:new Date("2020-04-21T00:00:00.000Z"),"3y":new Date("2022-10-21T00:00:00.000Z"),"5y":new Date("2024-10-21T00:00:00.000Z"),"10y":new Date("2029-10-21T00:00:00.000Z")},dobMonth:2,dobDay:2},{cnName:"袁志强",enName:"Zhiqiang Yuan",dept:"OPS",title:"运维工程师",email:"zyuan@conviva.com",manager:"刘晗昭",onboard:new Date("2020-03-02T00:00:00.000Z"),milestoneDates:{reg:new Date("2020-09-02T00:00:00.000Z"),"3y":new Date("2023-03-02T00:00:00.000Z"),"5y":new Date("2025-03-02T00:00:00.000Z"),"10y":new Date("2030-03-02T00:00:00.000Z")},dobMonth:3,dobDay:26},{cnName:"李忠芯",enName:"Zhongxin Li",dept:"EMP",title:"测试工程师",email:"zli@conviva.com",manager:"朱天明",onboard:new Date("2020-08-03T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-02-03T00:00:00.000Z"),"3y":new Date("2023-08-03T00:00:00.000Z"),"5y":new Date("2025-08-03T00:00:00.000Z"),"10y":new Date("2030-08-03T00:00:00.000Z")},dobMonth:7,dobDay:19},{cnName:"仝嘉亮",enName:"Jialiang Tong",dept:"China Frondend team",title:"前端工程师",email:"jiatong@conviva.com",manager:"许文龙",onboard:new Date("2020-11-04T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-05-04T00:00:00.000Z"),"3y":new Date("2023-11-04T00:00:00.000Z"),"5y":new Date("2025-11-04T00:00:00.000Z"),"10y":new Date("2030-11-04T00:00:00.000Z")},dobMonth:2,dobDay:31},{cnName:"章胜国",enName:"Shengguo Zhang",dept:"Backend  Engineering",title:"后端工程师 (Staff)",email:"szhang@conviva.com",manager:"尉顶",onboard:new Date("2020-11-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-05-23T00:00:00.000Z"),"3y":new Date("2023-11-23T00:00:00.000Z"),"5y":new Date("2025-11-23T00:00:00.000Z"),"10y":new Date("2030-11-23T00:00:00.000Z")},dobMonth:9,dobDay:22},{cnName:"孙振",enName:"Zhen Sun",dept:"EMP",title:"高级测试工程师",email:"zsun@conviva.com",manager:"朱天明",onboard:new Date("2020-11-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-05-23T00:00:00.000Z"),"3y":new Date("2023-11-23T00:00:00.000Z"),"5y":new Date("2025-11-23T00:00:00.000Z"),"10y":new Date("2030-11-23T00:00:00.000Z")},dobMonth:8,dobDay:20},{cnName:"张婧媛",enName:"Jingyuan Zhang",dept:"Platform",title:"大数据开发工程师",email:"jzhang@conviva.com",manager:"(谢林)",onboard:new Date("2017-07-17T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-01-17T00:00:00.000Z"),"3y":new Date("2020-07-17T00:00:00.000Z"),"5y":new Date("2022-07-17T00:00:00.000Z"),"10y":new Date("2027-07-17T00:00:00.000Z")},dobMonth:10,dobDay:7},{cnName:"段梦杰",enName:"Mengjie Duan",dept:"HR",title:"人事行政专员",email:"mduan@conviva.com",manager:"Lenietta()",onboard:new Date("2021-03-01T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-09-01T00:00:00.000Z"),"3y":new Date("2024-03-01T00:00:00.000Z"),"5y":new Date("2026-03-01T00:00:00.000Z"),"10y":new Date("2031-03-01T00:00:00.000Z")},dobMonth:10,dobDay:25},{cnName:"王丽",enName:"Li Wang",dept:"TLB",title:"测试工程师",email:"liwang1@conviva.com",manager:"朱天明",onboard:new Date("2021-03-29T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-09-29T00:00:00.000Z"),"3y":new Date("2024-03-29T00:00:00.000Z"),"5y":new Date("2026-03-29T00:00:00.000Z"),"10y":new Date("2031-03-29T00:00:00.000Z")},dobMonth:6,dobDay:29},{cnName:"王骞赐",enName:"Qianci Wang",dept:"EMP",title:"Software engineer",email:"qwang@conviva.com",manager:"Dylan",onboard:new Date("2021-04-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-10-13T00:00:00.000Z"),"3y":new Date("2024-04-13T00:00:00.000Z"),"5y":new Date("2026-04-13T00:00:00.000Z"),"10y":new Date("2031-04-13T00:00:00.000Z")},dobMonth:10,dobDay:14},{cnName:"兰菊",enName:"Ju Lan",dept:"China Frondend team",title:"Test engineer",email:"jlan@conviva.com",manager:"朱天明",onboard:new Date("2021-04-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-10-13T00:00:00.000Z"),"3y":new Date("2024-04-13T00:00:00.000Z"),"5y":new Date("2026-04-13T00:00:00.000Z"),"10y":new Date("2031-04-13T00:00:00.000Z")},dobMonth:11,dobDay:14},{cnName:"肖禅",enName:"Chan Xiao",dept:"China Frondend team",title:"Senior Frontend Engineer",email:"cxiao@conviva.com",manager:"许文龙",onboard:new Date("2021-07-08T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-01-08T00:00:00.000Z"),"3y":new Date("2024-07-08T00:00:00.000Z"),"5y":new Date("2026-07-08T00:00:00.000Z"),"10y":new Date("2031-07-08T00:00:00.000Z")},dobMonth:4,dobDay:4},{cnName:"张鸥",enName:"Ou Zhang",dept:"TLB",title:"Senior Software Engineer",email:"ozhang@conviva.com",manager:"尉顶",onboard:new Date("2021-07-15T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-01-15T00:00:00.000Z"),"3y":new Date("2024-07-15T00:00:00.000Z"),"5y":new Date("2026-07-15T00:00:00.000Z"),"10y":new Date("2031-07-15T00:00:00.000Z")},dobMonth:3,dobDay:4},{cnName:"单姗",enName:"Shan Shan",dept:"HR",title:"HR Generalist",email:"shshan@conviva.com",manager:"Lenietta()",onboard:new Date("2021-11-08T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-05-08T00:00:00.000Z"),"3y":new Date("2024-11-08T00:00:00.000Z"),"5y":new Date("2026-11-08T00:00:00.000Z"),"10y":new Date("2031-11-08T00:00:00.000Z")},dobMonth:5,dobDay:1},{cnName:"吴雅荣",enName:"Yarong Wu",dept:"Backend  Engineering",title:"Test Engineer",email:"ywu@conviva.com",manager:"朱天明",onboard:new Date("2021-11-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-05-23T00:00:00.000Z"),"3y":new Date("2024-11-23T00:00:00.000Z"),"5y":new Date("2026-11-23T00:00:00.000Z"),"10y":new Date("2031-11-23T00:00:00.000Z")},dobMonth:1,dobDay:3},{cnName:"王琳",enName:"Lin Wang",dept:"Product-TPM",title:"Technical Program Manager",email:"linwang@conviva.com",manager:"马晓睿",onboard:new Date("2022-01-10T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-07-10T00:00:00.000Z"),"3y":new Date("2025-01-10T00:00:00.000Z"),"5y":new Date("2027-01-10T00:00:00.000Z"),"10y":new Date("2032-01-10T00:00:00.000Z")},dobMonth:8,dobDay:19},{cnName:"李雪青",enName:"Xueqing Li",dept:"EMP",title:"Test Engineer I",email:"xqli@conviva.com",manager:"朱天明",onboard:new Date("2022-01-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-07-13T00:00:00.000Z"),"3y":new Date("2025-01-13T00:00:00.000Z"),"5y":new Date("2027-01-13T00:00:00.000Z"),"10y":new Date("2032-01-13T00:00:00.000Z")},dobMonth:7,dobDay:23},{cnName:"吴西飞",enName:"Xifei Wu",dept:"China Frondend team",title:"Senior Software Engineer",email:"xfwu@conviva.com",manager:"许文龙",onboard:new Date("2022-01-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-07-13T00:00:00.000Z"),"3y":new Date("2025-01-13T00:00:00.000Z"),"5y":new Date("2027-01-13T00:00:00.000Z"),"10y":new Date("2032-01-13T00:00:00.000Z")},dobMonth:9,dobDay:9},{cnName:"齐晓棠",enName:"Xiaotang Qi",dept:"HR",title:"Recruiter",email:"xqi@conviva.com",manager:"胡宁宁（）",onboard:new Date("2022-05-09T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-11-09T00:00:00.000Z"),"3y":new Date("2025-05-09T00:00:00.000Z"),"5y":new Date("2027-05-09T00:00:00.000Z"),"10y":new Date("2032-05-09T00:00:00.000Z")},dobMonth:7,dobDay:30},{cnName:"孙长",enName:"Chang Sun",dept:"Conviva",title:"Architect (Sr.Staff)",email:"csun@conviva.com",manager:"胡宁宁",onboard:new Date("2022-05-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-11-23T00:00:00.000Z"),"3y":new Date("2023-11-28T00:00:00.000Z"),"5y":new Date("2025-11-28T00:00:00.000Z"),"10y":new Date("2030-11-28T00:00:00.000Z")},dobMonth:3,dobDay:22},{cnName:"冯保丽",enName:"Baoli Feng",dept:"EMP",title:"Test Engineer II",email:"blfeng@conviva.com",manager:"朱天明",onboard:new Date("2022-06-09T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-12-09T00:00:00.000Z"),"3y":new Date("2025-06-09T00:00:00.000Z"),"5y":new Date("2027-06-09T00:00:00.000Z"),"10y":new Date("2032-06-09T00:00:00.000Z")},dobMonth:10,dobDay:20},{cnName:"谢林",enName:"Lin Xie",dept:"Platform",title:"Engineering Manager",email:"lxie@conviva.com",manager:"Ranjan, Pawas（胡宁宁）",onboard:new Date("2022-06-20T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-12-20T00:00:00.000Z"),"3y":new Date("2025-06-20T00:00:00.000Z"),"5y":new Date("2027-06-20T00:00:00.000Z"),"10y":new Date("2032-06-20T00:00:00.000Z")},dobMonth:9,dobDay:6},{cnName:"孙聪",enName:"Cong Sun",dept:"EMP",title:"Software Engineer II, Backend",email:"congsun@conviva.com",manager:"Dylan",onboard:new Date("2022-06-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-12-23T00:00:00.000Z"),"3y":new Date("2025-06-23T00:00:00.000Z"),"5y":new Date("2027-06-23T00:00:00.000Z"),"10y":new Date("2032-06-23T00:00:00.000Z")},dobMonth:5,dobDay:20},{cnName:"许文龙",enName:"Wenlong Xu",dept:"China Frondend team",title:"Staff Software Engineer, Frontend",email:"wlxu@conviva.com",manager:"胡宁宁",onboard:new Date("2022-07-04T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-01-04T00:00:00.000Z"),"3y":new Date("2025-07-04T00:00:00.000Z"),"5y":new Date("2027-07-04T00:00:00.000Z"),"10y":new Date("2032-07-04T00:00:00.000Z")},dobMonth:9,dobDay:28},{cnName:"余政彦",enName:"Zhengyan Yu",dept:"Product",title:"Senior UX Designer",email:"zhyyu@conviva.com",manager:"Goldfoot, Matthew（）",onboard:new Date("2022-07-25T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-01-25T00:00:00.000Z"),"3y":new Date("2025-07-25T00:00:00.000Z"),"5y":new Date("2027-07-25T00:00:00.000Z"),"10y":new Date("2032-07-25T00:00:00.000Z")},dobMonth:5,dobDay:26},{cnName:"刘湃",enName:"Pai Liu",dept:"China Frondend team",title:"Engineer, Senior(Frontend)",email:"pailiu@conviva.com",manager:"许文龙",onboard:new Date("2022-08-01T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-02-01T00:00:00.000Z"),"3y":new Date("2025-08-01T00:00:00.000Z"),"5y":new Date("2027-08-01T00:00:00.000Z"),"10y":new Date("2032-08-01T00:00:00.000Z")},dobMonth:7,dobDay:11},{cnName:"陈旸",enName:"Yang Chen",dept:"Product",title:"Technical Writer",email:"chyang@conviva.com",manager:"Rich Slogar （）",onboard:new Date("2022-08-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-02-11T00:00:00.000Z"),"3y":new Date("2025-08-11T00:00:00.000Z"),"5y":new Date("2027-08-11T00:00:00.000Z"),"10y":new Date("2032-08-11T00:00:00.000Z")},dobMonth:10,dobDay:30},{cnName:"赵世栋",enName:"Shidong Zhao",dept:"Backend  Engineering",title:"Engineer II, Backend",email:"shdzh@conviva.com",manager:"尉顶",onboard:new Date("2022-09-05T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-03-05T00:00:00.000Z"),"3y":new Date("2025-09-05T00:00:00.000Z"),"5y":new Date("2027-09-05T00:00:00.000Z"),"10y":new Date("2032-09-05T00:00:00.000Z")},dobMonth:11,dobDay:4},{cnName:"张佳运",enName:"Jiayun Zhang",dept:"China Frondend team",title:"Engineer II, Frontend",email:"jyzhang@conviva.com",manager:"许文龙",onboard:new Date("2022-09-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-03-13T00:00:00.000Z"),"3y":new Date("2025-09-13T00:00:00.000Z"),"5y":new Date("2027-09-13T00:00:00.000Z"),"10y":new Date("2032-09-13T00:00:00.000Z")},dobMonth:10,dobDay:8},{cnName:"贾远哲",enName:"Yuanzhe Jia",dept:"Data Scientist",title:"Data Scientist",email:"yzjia@conviva.com",manager:"Daying",onboard:new Date("2022-10-10T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-04-10T00:00:00.000Z"),"3y":new Date("2025-10-10T00:00:00.000Z"),"5y":new Date("2027-10-10T00:00:00.000Z"),"10y":new Date("2032-10-10T00:00:00.000Z")},dobMonth:5,dobDay:13},{cnName:"龚启初",enName:"Qichu Gong",dept:"TLB",title:"Architect",email:"qcgong@conviva.com",manager:"胡宁宁",onboard:new Date("2022-10-17T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-04-17T00:00:00.000Z"),"3y":new Date("2025-10-17T00:00:00.000Z"),"5y":new Date("2027-10-17T00:00:00.000Z"),"10y":new Date("2032-10-17T00:00:00.000Z")},dobMonth:11,dobDay:19},{cnName:"童旭平",enName:"Xuping Tong",dept:"Data Scientist",title:"Data Scientist",email:"xptong@conviva.com",manager:"Daying",onboard:new Date("2022-10-18T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-04-18T00:00:00.000Z"),"3y":new Date("2025-10-18T00:00:00.000Z"),"5y":new Date("2027-10-18T00:00:00.000Z"),"10y":new Date("2032-10-18T00:00:00.000Z")},dobMonth:6,dobDay:24},{cnName:"曹大瀛",enName:"Daying Cao",dept:"Data Scientist",title:"Data Scientist Manager",email:"dycao@conviva.com",manager:"Yan Li（胡宁宁）",onboard:new Date("2023-03-27T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-09-27T00:00:00.000Z"),"3y":new Date("2026-03-27T00:00:00.000Z"),"5y":new Date("2028-03-27T00:00:00.000Z"),"10y":new Date("2033-03-27T00:00:00.000Z")},dobMonth:5,dobDay:26},{cnName:"吴迪",enName:"Di Wu",dept:"EMP",title:"Senior Engineering Manager",email:"diwu@conviva.com",manager:"胡宁宁",onboard:new Date("2023-04-03T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-10-03T00:00:00.000Z"),"3y":new Date("2026-04-03T00:00:00.000Z"),"5y":new Date("2028-04-03T00:00:00.000Z"),"10y":new Date("2033-04-03T00:00:00.000Z")},dobMonth:5,dobDay:26},{cnName:"谭韬",enName:"Tan Tao",dept:"OPS",title:"Senior DevOps Engineer",email:"ttan@conviva.com",manager:"刘晗昭",onboard:new Date("2023-05-08T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-11-08T00:00:00.000Z"),"3y":new Date("2026-05-08T00:00:00.000Z"),"5y":new Date("2028-05-08T00:00:00.000Z"),"10y":new Date("2033-05-08T00:00:00.000Z")},dobMonth:8,dobDay:18},{cnName:"刘洋",enName:"Yang Liu",dept:"Senior Data Scientist",title:"Senior Data Scientist",email:"yaliu@conviva.com",manager:"Daying",onboard:new Date("2023-08-01T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-02-01T00:00:00.000Z"),"3y":new Date("2026-08-01T00:00:00.000Z"),"5y":new Date("2028-08-01T00:00:00.000Z"),"10y":new Date("2033-08-01T00:00:00.000Z")},dobMonth:9,dobDay:6},{cnName:"陈俊文",enName:"Junwen Chen",dept:"Frontend Engineer",title:"Software Engineer",email:"jwchen@conviva.com",manager:"许文龙",onboard:new Date("2023-08-07T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-02-07T00:00:00.000Z"),"3y":new Date("2026-08-07T00:00:00.000Z"),"5y":new Date("2028-08-07T00:00:00.000Z"),"10y":new Date("2033-08-07T00:00:00.000Z")},dobMonth:4,dobDay:9},{cnName:"吴昌",enName:"Chang Wu",dept:"Platform",title:"Senior Software Engineer",email:"cwu@conviva.com",manager:"谢林",onboard:new Date("2023-09-25T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-03-25T00:00:00.000Z"),"3y":new Date("2026-09-25T00:00:00.000Z"),"5y":new Date("2028-09-25T00:00:00.000Z"),"10y":new Date("2033-09-25T00:00:00.000Z")},dobMonth:7,dobDay:2},{cnName:"王澍",enName:"Shu Wang",dept:"TLB",title:"Senior Software Engineer",email:"shwang@conviva.com",manager:"王小平",onboard:new Date("2023-12-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-06-11T00:00:00.000Z"),"3y":new Date("2026-12-11T00:00:00.000Z"),"5y":new Date("2028-12-11T00:00:00.000Z"),"10y":new Date("2033-12-11T00:00:00.000Z")},dobMonth:9,dobDay:22},{cnName:"尉顶",enName:"Ding Wei",dept:"Backend",title:"Engineering Manager",email:"dwei@conviva.com",manager:"胡宁宁",onboard:new Date("2023-12-18T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-06-18T00:00:00.000Z"),"3y":new Date("2026-12-18T00:00:00.000Z"),"5y":new Date("2028-12-18T00:00:00.000Z"),"10y":new Date("2033-12-18T00:00:00.000Z")},dobMonth:4,dobDay:11},{cnName:"刘晗昭",enName:"Harvey Liu",dept:"OPS",title:"DevOps Manager",email:"hliu@conviva.com",manager:"Ken Peng（胡宁宁）",onboard:new Date("2024-01-15T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-07-15T00:00:00.000Z"),"3y":new Date("2027-01-15T00:00:00.000Z"),"5y":new Date("2029-01-15T00:00:00.000Z"),"10y":new Date("2034-01-15T00:00:00.000Z")},dobMonth:2,dobDay:8},{cnName:"孙奥",enName:"Ao Sun",dept:"Gateway（EMP）",title:"Senior Software Engineer",email:"asun@conviva.com",manager:"Swaraj Yadav(尉顶)",onboard:new Date("2024-04-22T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-10-22T00:00:00.000Z"),"3y":new Date("2027-04-22T00:00:00.000Z"),"5y":new Date("2029-04-22T00:00:00.000Z"),"10y":new Date("2034-04-22T00:00:00.000Z")},dobMonth:6,dobDay:19},{cnName:"郝欣然",enName:"Xinran Hao",dept:"EMP",title:"Staff Software Engnieer",email:"xrhao@conviva.com",manager:"Dylan",onboard:new Date("2024-06-24T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-12-24T00:00:00.000Z"),"3y":new Date("2027-06-24T00:00:00.000Z"),"5y":new Date("2029-06-24T00:00:00.000Z"),"10y":new Date("2034-06-24T00:00:00.000Z")},dobMonth:9,dobDay:8},{cnName:"万铎",enName:"Duo Wan",dept:"Sales（DS）",title:"Senior Product Support Engineer",email:"dwan@conviva.com",manager:"Aniruddha Vyawahar(Daying)",onboard:new Date("2024-07-18T00:00:00.000Z"),milestoneDates:{reg:new Date("2025-01-18T00:00:00.000Z"),"3y":new Date("2027-07-18T00:00:00.000Z"),"5y":new Date("2029-07-18T00:00:00.000Z"),"10y":new Date("2034-07-18T00:00:00.000Z")},dobMonth:10,dobDay:14},{cnName:"熊雨佳",enName:"Yujia Xiong",dept:"DS",title:"Data Scientist",email:"yjxiong@conviva.com",manager:"Daying",onboard:new Date("2024-09-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2025-03-23T00:00:00.000Z"),"3y":new Date("2027-09-23T00:00:00.000Z"),"5y":new Date("2029-09-23T00:00:00.000Z"),"10y":new Date("2034-09-23T00:00:00.000Z")},dobMonth:9,dobDay:20},{cnName:"袁也",enName:"Ye Yuan",dept:"Data Platform",title:"Software Engineer",email:"yyuan@conviva.com",manager:"谢林",onboard:new Date("2025-06-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2025-12-23T00:00:00.000Z"),"3y":new Date("2028-06-23T00:00:00.000Z"),"5y":new Date("2030-06-23T00:00:00.000Z"),"10y":new Date("2035-06-23T00:00:00.000Z")},dobMonth:6,dobDay:25},{cnName:"刘宇杰",enName:"Emma Liu",dept:"Customer Support",title:"Product Support Engineer",email:"emliu@conviva.com",manager:"Aniruddha Vyawahare(Daying)",onboard:new Date("2025-08-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-02-11T00:00:00.000Z"),"3y":new Date("2028-08-11T00:00:00.000Z"),"5y":new Date("2030-08-11T00:00:00.000Z"),"10y":new Date("2035-08-11T00:00:00.000Z")},dobMonth:2,dobDay:12},{cnName:"杨健",enName:"James Yang",dept:"Frontend Engineer",title:"Software Engineer II",email:"jyang@conviva.com",manager:"许文龙",onboard:new Date("2025-10-20T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-04-20T00:00:00.000Z"),"3y":new Date("2028-10-20T00:00:00.000Z"),"5y":new Date("2030-10-20T00:00:00.000Z"),"10y":new Date("2035-10-20T00:00:00.000Z")},dobMonth:3,dobDay:14},{cnName:"张莹",enName:"Christine Zhang",dept:"HR",title:"Director, HR",email:"czhang@conviva.com",manager:"Lenietta(胡宁宁)",onboard:new Date("2026-01-19T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-07-19T00:00:00.000Z"),"3y":new Date("2029-01-19T00:00:00.000Z"),"5y":new Date("2031-01-19T00:00:00.000Z"),"10y":new Date("2036-01-19T00:00:00.000Z")},dobMonth:9,dobDay:28},{cnName:"梅玫",enName:"Mei Mei",dept:"Product",title:"Senior Staff Product Designer",email:"mmei@conviva.com",manager:"Joel Goldfoot()",onboard:new Date("2026-03-30T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-09-30T00:00:00.000Z"),"3y":new Date("2029-03-30T00:00:00.000Z"),"5y":new Date("2031-03-30T00:00:00.000Z"),"10y":new Date("2036-03-30T00:00:00.000Z")},dobMonth:5,dobDay:23},{cnName:"程书哲",enName:"Shuzhe Cheng",dept:"Backend Engineering",title:"Big Data Engineer",email:"szcheng@conviva.com",manager:"尉顶",onboard:new Date("2022-03-30T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-09-30T00:00:00.000Z"),"3y":new Date("2025-03-30T00:00:00.000Z"),"5y":new Date("2027-03-30T00:00:00.000Z"),"10y":new Date("2032-03-30T00:00:00.000Z")},dobMonth:10,dobDay:27},{cnName:"潘洪安",enName:"Hongan Pan",dept:"Platform",title:"大数据开发工程师(Staff)",email:"hpan@conviva.com",manager:"谢林",onboard:new Date("2024-03-14T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-09-14T00:00:00.000Z"),"3y":new Date("2027-03-14T00:00:00.000Z"),"5y":new Date("2029-03-14T00:00:00.000Z"),"10y":new Date("2034-03-14T00:00:00.000Z")},dobMonth:10,dobDay:1}];
+let currentBdayMonth = new Date().getMonth(); // 0-based
+let currentBdayYear  = new Date().getFullYear();
+
+const MILESTONES = [
+  { key:'reg', label:'转正(6个月)', dateCol:'Date of Regularization', cls:'b-reg' },
+  { key:'3y',  label:'3周年',       dateCol:'3rd Anniversary',         cls:'b-3y'  },
+  { key:'5y',  label:'5周年',       dateCol:'5th Anniversary',         cls:'b-5y'  },
+  { key:'10y', label:'10周年',      dateCol:'10th Anniversary',        cls:'b-10y' },
+];
+
+function toJSDate(v) {
+  if (!v && v !== 0) return null;
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  if (typeof v === 'number' && v > 1000) {
+    return new Date(Math.round((v - 25569) * 86400 * 1000));
+  }
+  if (typeof v === 'string') {
+    const d = new Date(v.trim().replace(/[./]/g,'-'));
+    return isNaN(d) ? null : d;
+  }
+  return null;
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const fileName = file.name;
+  document.getElementById('upload-msg').innerHTML = '<div style="font-size:13px;color:#888;padding:8px 0">读取中，请稍候...</div>';
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const wb = XLSX.read(ev.target.result, {type:'array', cellDates:false});
+      const sheetName = wb.SheetNames.includes('总表') ? '总表' : wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const allRows = XLSX.utils.sheet_to_json(ws, {defval:'', header:1});
+      const headerRow = allRows[1] || [];
+      employees = parseEmployees(headerRow, allRows.slice(2));
+      showUploadResult(employees, fileName);
+      updateBadges();
+      // export shown via showUploadResult
+      updateExportPanel();
+    } catch(err) {
+      document.getElementById('upload-msg').innerHTML = `<div style="color:#c0392b;font-size:13px;padding:8px 0">读取失败：${err.message}</div>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function avatarChar(emp) {
+  return emp.cnName ? emp.cnName.charAt(0) : (emp.enName ? emp.enName.charAt(0) : '?');
+}
+
+function displayName(emp) {
+  if (emp.cnName && emp.enName) return `${emp.cnName} (${emp.enName})`;
+  return emp.cnName || emp.enName;
+}
+
+function sameMonthDay(a, b) {
+  if (!a||!b) return false;
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function getMilestonesOnDate(emp, date) {
+  return MILESTONES.filter(m => {
+    const d = emp.milestoneDates[m.key];
+    return d && sameMonthDay(d, date);
+  });
+}
+
+function getSecondMondayOfMonth(year, month) {
+  // month is 0-based
+  let count = 0;
+  for (let day = 1; day <= 31; day++) {
+    const d = new Date(year, month, day);
+    if (d.getMonth() !== month) break;
+    if (d.getDay() === 1) { // Monday
+      count++;
+      if (count === 2) return d;
+    }
+  }
+  return null;
+}
+
+function isSecondMondayOfMonth(date) {
+  const d = getSecondMondayOfMonth(date.getFullYear(), date.getMonth());
+  return d && d.toDateString() === date.toDateString();
+}
+
+function goToday() {
+  const china = getChinaToday ? getChinaToday() : new Date();
+  document.getElementById('checkDate').value = china.toISOString().split('T')[0];
+  renderToday();
+}
+
+function renderToday() {
+  const v = document.getElementById('checkDate').value;
+  if (!v) return;
+  const date = new Date(v+'T00:00:00');
+  const listEl = document.getElementById('today-list');
+  const statsEl = document.getElementById('stats-area');
+  const sendBtn = document.getElementById('sendMilestoneBtn');
+  if (!employees.length) {
+    statsEl.innerHTML=''; listEl.innerHTML='<div class="empty">请先上传员工数据</div>';
+    sendBtn.style.display='none'; return;
+  }
+
+  const mHits  = employees.map(emp=>({emp,ms:getMilestonesOnDate(emp,date)})).filter(h=>h.ms.length);
+  const bdHits = employees.filter(emp => emp.dobMonth===date.getMonth() && emp.dobDay===date.getDate());
+  const counts = {reg:0,'3y':0,'5y':0,'10y':0};
+  mHits.forEach(h=>h.ms.forEach(m=>counts[m.key]++));
+  const totalPeople = mHits.length + bdHits.length;
+
+  statsEl.innerHTML = `<div class="stats" style="grid-template-columns:repeat(6,1fr)">
+    <div class="stat"><div class="stat-num${totalPeople?' alert':''}">${totalPeople}</div><div class="stat-label">今日合计</div></div>
+    <div class="stat"><div class="stat-num">${counts.reg}</div><div class="stat-label">Regularization</div></div>
+    <div class="stat"><div class="stat-num">${counts['3y']}</div><div class="stat-label">3周年</div></div>
+    <div class="stat"><div class="stat-num">${counts['5y']}</div><div class="stat-label">5周年</div></div>
+    <div class="stat"><div class="stat-num">${counts['10y']}</div><div class="stat-label">10周年</div></div>
+    <div class="stat"><div class="stat-num">${bdHits.length}</div><div class="stat-label">🎂 生日</div></div>
+  </div>`;
+
+  // send btn removed
+
+  if (!totalPeople) { listEl.innerHTML='<div class="empty">🎉 今天没有提醒</div>'; return; }
+
+  let html = '';
+
+  // Birthday section
+  if (bdHits.length) {
+    html += `<div class="card">
+      <div class="section-title" style="color:#c2185b">🎂 生日 今日提醒</div>
+      ${bdHits.map(emp=>{
+        const idx = employees.indexOf(emp);
+        return `<div class="emp-row">
+          <div class="avatar avatar-pink">${avatarChar(emp)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="emp-name">${emp.cnName||emp.enName}</div>
+            <div class="emp-en">${emp.cnName&&emp.enName?emp.enName:''}</div>
+            <div class="emp-info">${[emp.dept,emp.title].filter(Boolean).join(' · ')}</div>
+          </div>
+          <div class="badges">
+            <span class="badge b-bday">🎂 生日快乐</span>
+            <button class="slack-btn" onclick="openSlackByIdx(${idx},'birthday')">💬 祝福本人</button>
+            ${emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'birthday_mgr')">👔 通知领导</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Milestone section
+  if (mHits.length) {
+    html += `<div class="card">
+      <div class="section-title">🏆 今日里程碑</div>
+      ${mHits.map(h=>{
+        const empJson = JSON.stringify(h.emp).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        return `<div class="emp-row">
+          <div class="avatar">${avatarChar(h.emp)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="emp-name">${h.emp.cnName||h.emp.enName}</div>
+            <div class="emp-en">${h.emp.cnName&&h.emp.enName?h.emp.enName:''}</div>
+            <div class="emp-info">${[h.emp.dept,h.emp.title].filter(Boolean).join(' · ')}</div>
+          </div>
+          <div class="badges">
+            ${h.ms.map(m=>`<span class="badge ${m.cls}">${m.label}</span>`).join('')}
+            ${h.ms.map(m=>`
+              <button class="slack-btn" onclick="openSlackModal(${empJson},'${m.key}')">💬 祝贺本人</button>
+              ${h.emp.manager?`<button class="slack-btn manager" onclick="openSlackModal(${empJson},'${m.key}_mgr')">👔 通知领导</button>`:''}
+            `).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  listEl.innerHTML = html;
+}
+
+
+function getChinaToday() {
+  const now = new Date();
+  const chinaOffset = 8 * 60;
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  return new Date(utc + chinaOffset * 60000);
+}
+
+function getWeekRange(refDate) {
+  const d = new Date(refDate);
+  const day = d.getDay();
+  const diffToMon = (day === 0) ? -6 : 1 - day;
+  const mon = new Date(d); mon.setDate(d.getDate() + diffToMon); mon.setHours(0,0,0,0);
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6); sun.setHours(23,59,59,999);
+  return { mon, sun };
+}
+
+function sendMilestoneEmail() {
+  if (_todayView === 'week') { sendWeekEmail(); return; }
+  _origSendMilestone();
+}
+
+let currentMilestoneKey = 'reg';
+let currentMilestoneMonth = new Date().getMonth();
+let currentMilestoneYear  = new Date().getFullYear();
+
+function showTab(t) {
+  document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  const navEl = document.getElementById('nav-'+t);
+  if (navEl) navEl.classList.add('active');
+  if (t==='today')   renderToday();
+  if (t==='meeting')  renderMeeting();
+  if (t==='export')  updateExportPanel();
+  if (t==='weekly')  { _weekOffset = 0; renderWeek(); }
+  if (t==='birthday') goCurrentBdayYear();
+  if (t==='monthly')  goCurrentMonthlyMonth();
+renderMeeting();
+renderMeeting();
+applyLang();
+startAutoSync();
+}
+
+function showMilestoneTab(key) {
+  document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-milestone').classList.add('active');
+  const navEl = document.getElementById('nav-'+key);
+  if (navEl) navEl.classList.add('active');
+  setMilestoneSub(key);
+}
+
+function setMilestoneSub(key) {
+  currentMilestoneKey = key;
+  // Update sidebar nav highlight
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navEl = document.getElementById('nav-'+key);
+  if (navEl) navEl.classList.add('active');
+  // Update page title and subtitle
+  const titleMap = { reg:'本年转正名单', '3y':'本年3周年名单', '5y':'本年5周年名单', '10y':'本年10周年名单' };
+  const subMap   = { reg:'入职满6个月转为正式员工', '3y':'入职满3周年', '5y':'入职满5周年', '10y':'入职满10周年' };
+  const ptEl = document.getElementById('milestone-page-title');
+  const psEl = document.getElementById('milestone-page-sub');
+  if (ptEl) ptEl.textContent = titleMap[key] || '本年里程碑';
+  if (psEl) psEl.textContent = subMap[key]  || '';
+  // Update any inline sub-tab buttons if present
+  ['reg','3y','5y','10y'].forEach(k => {
+    const el = document.getElementById('ms-sub-'+k);
+    if (el) el.classList.toggle('active', k===key);
+  });
+  renderMilestoneMonth();
+}
+
+function goCurrentMilestoneYear() {
+  currentMilestoneYear = new Date().getFullYear();
+  renderMilestoneMonth();
+}
+
+function goCurrentMilestoneMonth() { goCurrentMilestoneYear(); }
+
+function changeMilestoneYear(delta) {
+  currentMilestoneYear += delta;
+  renderMilestoneMonth();
+}
+
+function changeMilestoneMonth(delta) { changeMilestoneYear(delta); }
+
+function renderMilestoneMonth() {
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  document.getElementById('milestone-month-display').textContent = currentMilestoneYear + '年';
+
+  const m = MILESTONES.find(x => x.key === currentMilestoneKey);
+  const listEl = document.getElementById('milestone-month-list');
+
+  if (!employees.length) {
+    listEl.innerHTML = '<div class="empty">请先上传员工数据</div>';
+    return;
+  }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Get all employees with this milestone in the selected year, grouped by month
+  const byMonth = {};
+  employees.forEach(emp => {
+    const d = emp.milestoneDates[m.key];
+    if (d && d.getFullYear() === currentMilestoneYear) {
+      const mo = d.getMonth();
+      if (!byMonth[mo]) byMonth[mo] = [];
+      byMonth[mo].push({ emp, date: d });
+    }
+  });
+
+  const months = Object.keys(byMonth).map(Number).sort((a,b) => a-b);
+  const total = months.reduce((s, mo) => s + byMonth[mo].length, 0);
+
+  if (!months.length) {
+    listEl.innerHTML = `<div class="empty">${currentMilestoneYear}年没有员工达到${m.label}</div>`;
+    return;
+  }
+
+  listEl.innerHTML = months.map(mo => {
+    const isCurrentMonth = mo === today.getMonth() && currentMilestoneYear === today.getFullYear();
+    const entries = byMonth[mo].sort((a,b) => a.date.getDate() - b.date.getDate());
+    return `<div class="card" style="${isCurrentMonth ? 'border-color:var(--green);border-width:1.5px' : ''}">
+      <div class="section-title" style="${isCurrentMonth ? 'color:var(--green-deeper)' : ''}">
+        ${isCurrentMonth ? '📍 本月 · ' : ''}${monthNames[mo]}（${entries.length}人）
+      </div>
+      ${entries.map(({ emp, date }) => {
+        const idx = employees.indexOf(emp);
+        const dateStr = (mo + 1) + '月' + date.getDate() + '日';
+        return `<div class="emp-row">
+          <div class="avatar">${avatarChar(emp)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="emp-name">${emp.cnName || emp.enName}</div>
+            <div class="emp-en">${emp.cnName && emp.enName ? emp.enName : ''}</div>
+            <div class="emp-info">${[emp.dept, emp.title].filter(Boolean).join(' · ')}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+            <span class="bday-date-badge"><span class="badge ${m.cls}">${m.label}</span> ${dateStr}</span>
+            <button class="slack-btn" onclick="openSlackByIdx(${idx},'${m.key}')">💬 祝贺本人</button>
+            ${emp.manager ? `<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'${m.key}_mgr')">👔 通知领导</button>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function sendMilestoneMonthEmail() {
+  const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const m = MILESTONES.find(x => x.key === currentMilestoneKey);
+  const hits = employees.filter(emp => {
+    const d = emp.milestoneDates[m.key];
+    return d && d.getFullYear()===currentMilestoneYear && d.getMonth()===currentMilestoneMonth;
+  }).sort((a,b) => a.milestoneDates[m.key].getDate() - b.milestoneDates[m.key].getDate());
+  if (!hits.length) { alert('本月没有对应人员！'); return; }
+  const lines = hits.map(emp => {
+    const d = emp.milestoneDates[m.key];
+    return `• ${currentMilestoneMonth+1}月${d.getDate()}日 — ${emp.cnName||''}${emp.enName?'（'+emp.enName+'）':''}${emp.dept?' ['+emp.dept+']':''}`;
+  });
+  const body = '你好，\n\n本周（' + monStr + ' — ' + sunStr + '）员工提醒汇总：\n\n' + lines.join('\n') + '\n\n— Conviva HR 提醒工具';
+  const subj = `[HR提醒] 本周（${monStr}-${sunStr}）员工提醒`;
+  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+}
+
+
+function parseEmployees(headers, rows) {
+  const idx = {};
+  headers.forEach((h,i) => { if(h) idx[String(h).trim()] = i; });
+  return rows.map(row => {
+    const cnName = String(row[idx['Chinese name']]||'').trim();
+    const enName = String(row[idx['Name']]||'').trim();
+    if (!cnName && !enName) return null;
+    const onboard = toJSDate(row[idx['Onboarding Date']]);
+    if (!onboard) return null;
+    const dept  = String(row[idx['China-Department']]||'').trim();
+    const title = String(row[idx['Title']]||'').trim();
+    const email = String(row[idx['Company Email']]||'').trim();
+    // Birthday: use month+day from Date of Birth, ignore year (year is entry year not birth year)
+    const dobRaw = toJSDate(row[idx['Date of Birth']]);
+    const birthMonth = row[idx['Birth Month']]; // 1-12
+    let dobMonth = null, dobDay = null;
+    if (dobRaw) {
+      dobMonth = dobRaw.getMonth(); // 0-based
+      dobDay   = dobRaw.getDate();
+    } else if (birthMonth) {
+      dobMonth = parseInt(birthMonth) - 1;
+    }
+    const milestoneDates = {};
+    for (const m of MILESTONES) {
+      milestoneDates[m.key] = toJSDate(row[idx[m.dateCol]]);
+    }
+    const manager = String(row[idx['Direct Manager']]||'').trim();
+    return { cnName, enName, dept, title, email, onboard, milestoneDates, dobMonth, dobDay, manager };
+  }).filter(Boolean);
+}
+
+let _weekOffset = 0; // weeks from current China week (0 = this week)
+
+function changeWeek(delta) {
+  _weekOffset += delta;
+  renderWeek();
+}
+
+function goThisWeek() {
+  _weekOffset = 0;
+  renderWeek();
+}
+
+function getOffsetWeekRange() {
+  const chinaToday = getChinaToday();
+  // Shift by _weekOffset weeks
+  const shifted = new Date(chinaToday);
+  shifted.setDate(shifted.getDate() + _weekOffset * 7);
+  return getWeekRange(shifted);
+}
+
+function renderWeek() {
+  const chinaToday = getChinaToday();
+  const { mon, sun } = getOffsetWeekRange();
+  const listEl  = document.getElementById('week-list');
+  const statsEl = document.getElementById('week-stats-area');
+  const rangeEl = document.getElementById('week-range-label');
+
+  const fmt = d => d.toLocaleDateString('zh-CN', {month:'long', day:'numeric', weekday:'short'});
+  const isCurrentWeek = _weekOffset === 0;
+  rangeEl.textContent = (isCurrentWeek ? '本周：' : '') + fmt(mon) + ' — ' + fmt(sun) + '（中国时间）';
+
+  if (!employees.length) {
+    statsEl.innerHTML = '';
+    listEl.innerHTML = '<div class="empty">请先上传员工数据</div>';
+    return;
+  }
+
+  // Milestones only, no birthdays
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mon); d.setDate(mon.getDate() + i);
+    const mHits = employees.map(emp => ({emp, ms: getMilestonesOnDate(emp, d)})).filter(h => h.ms.length);
+    if (mHits.length) days.push({ date: new Date(d), mHits });
+  }
+
+  const total  = days.reduce((s, d) => s + d.mHits.length, 0);
+  const cntReg = days.reduce((s,d)=>s+d.mHits.filter(h=>h.ms.some(m=>m.key==='reg')).length,0);
+  const cnt3y  = days.reduce((s,d)=>s+d.mHits.filter(h=>h.ms.some(m=>m.key==='3y')).length,0);
+  const cnt5y  = days.reduce((s,d)=>s+d.mHits.filter(h=>h.ms.some(m=>m.key==='5y')).length,0);
+  const cnt10y = days.reduce((s,d)=>s+d.mHits.filter(h=>h.ms.some(m=>m.key==='10y')).length,0);
+
+  statsEl.innerHTML = `<div class="stats" style="grid-template-columns:repeat(5,1fr);margin-bottom:16px">
+    <div class="stat"><div class="stat-num${total?' alert':''}">${total}</div><div class="stat-label">本周合计</div></div>
+    <div class="stat"><div class="stat-num">${cntReg}</div><div class="stat-label">转正</div></div>
+    <div class="stat"><div class="stat-num">${cnt3y}</div><div class="stat-label">3周年</div></div>
+    <div class="stat"><div class="stat-num">${cnt5y}</div><div class="stat-label">5周年</div></div>
+    <div class="stat"><div class="stat-num">${cnt10y}</div><div class="stat-label">10周年</div></div>
+  </div>`;
+
+  if (!days.length) {
+    listEl.innerHTML = '<div class="empty">🎉 本周没有里程碑</div>';
+    return;
+  }
+
+  const weekdayNames = ['周日','周一','周二','周三','周四','周五','周六'];
+  const todayStr = chinaToday.toDateString();
+
+  listEl.innerHTML = days.map(day => {
+    const isToday  = day.date.toDateString() === todayStr;
+    const isFriday = day.date.getDay() === 5;
+    const dateLabel = day.date.toLocaleDateString('zh-CN', {month:'long', day:'numeric'});
+    const weekday   = weekdayNames[day.date.getDay()];
+    const dayTotal  = day.mHits.length;
+
+    return `<div class="card" style="${isToday ? 'border-color:var(--green);border-width:1.5px' : ''}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:${isToday?'var(--green-deeper)':'var(--gray-text)'}">
+          ${isToday ? '🔴 今天 · ' : ''}${dateLabel} ${weekday}
+        </div>
+        ${isFriday ? '<span style="font-size:11px;background:#fff8ed;color:#92400e;border:1px solid #fbbf24;border-radius:20px;padding:2px 8px;font-weight:600">📋 周五会议</span>' : ''}
+        <span style="font-size:12px;color:var(--gray-mid);margin-left:4px">${dayTotal} 人</span>
+      </div>
+      ${day.mHits.map(h => {
+        const idx = employees.indexOf(h.emp);
+        return `<div class="emp-row">
+          <div class="avatar">${avatarChar(h.emp)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="emp-name">${h.emp.cnName||h.emp.enName}</div>
+            <div class="emp-en">${h.emp.cnName&&h.emp.enName?h.emp.enName:''}</div>
+            <div class="emp-info">${[h.emp.dept,h.emp.title].filter(Boolean).join(' · ')}</div>
+          </div>
+          <div class="badges">
+            ${h.ms.map(m=>`<span class="badge ${m.cls}">${m.label}</span>`).join('')}
+            ${h.ms.map(m=>`
+              <button class="slack-btn" onclick="openSlackByIdx(${idx},'${m.key}')">💬 祝贺本人</button>
+              ${h.emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'${m.key}_mgr')">👔 通知领导</button>`:''}
+            `).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function sendWeekEmail() {
+  const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
+  const chinaToday = getChinaToday();
+  const { mon, sun } = getWeekRange(chinaToday);
+  const lines = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mon); d.setDate(mon.getDate() + i);
+    const mHits  = employees.map(emp=>({emp,ms:getMilestonesOnDate(emp,d)})).filter(h=>h.ms.length);
+    const bdHits = employees.filter(emp=>emp.dobMonth===d.getMonth()&&emp.dobDay===d.getDate());
+    if (!mHits.length && !bdHits.length) continue;
+    const dateStr = d.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'});
+    lines.push(`[${dateStr}]`);
+    bdHits.forEach(emp => lines.push(`  • ${emp.cnName||''}${emp.enName?' ('+emp.enName+')':''} — 🎂 Birthday`));
+    mHits.forEach(h  => lines.push(`  • ${h.emp.cnName||''}${h.emp.enName?' ('+h.emp.enName+')':''} — ${h.ms.map(m=>m.label).join(', ')}`));
+  }
+  if (!lines.length) { alert('本周没有提醒！'); return; }
+  const monStr = mon.toLocaleDateString('zh-CN',{month:'long',day:'numeric'});
+  const sunStr = sun.toLocaleDateString('zh-CN',{month:'long',day:'numeric'});
+  const body = 'Hi,\n\nWeekly employee reminder summary (' + monStr + ' — ' + sunStr + '）员工提醒汇总：\n\n' + lines.join('\n') + '\n\n— Conviva HR 提醒工具';
+  const subj = `[HR Alert] Weekly Reminders (${monStr} — ${sunStr})`;
+  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+}
+
+
+function showUploadResult(emps, fileName) {
+  // 如果是真实上传（非云端同步），推送到 Sheets
+  if (fileName && fileName !== '云端同步' && fileName !== '已内嵌数据' && typeof syncPushEmployees === 'function') {
+    setTimeout(syncPushEmployees, 1000);
+  }
+  // Update upload area to show filename
+  const titleEl = document.getElementById('upload-title-text');
+  const hintEl  = document.getElementById('upload-hint-text');
+  const labelEl = document.getElementById('upload-label');
+  if (titleEl) titleEl.textContent = fileName || '已上传';
+  if (hintEl)  hintEl.textContent  = '✅ 成功读取 ' + emps.length + ' 名员工 · 点击重新上传';
+  if (labelEl) { labelEl.style.borderColor = 'var(--green)'; labelEl.style.background = '#f7fde6'; }
+  // Show export, hide placeholder
+  const ea = document.getElementById('export-area');
+  const ep = document.getElementById('export-placeholder');
+  if (ea) ea.style.display = '';
+  if (ep) ep.style.display = 'none';
+  document.getElementById('upload-msg').innerHTML =
+    `<div class="notice">✅ 成功读取 ${emps.length} 名员工数据</div>`;
+  const sample = emps.slice(0, 5);
+  document.getElementById('preview-area').innerHTML = `<div class="card">
+    <div class="section-title">Data Preview (first 5)</div>
+    ${sample.map(e => `<div class="emp-row">
+      <div class="avatar">${avatarChar(e)}</div>
+      <div>
+        <div class="emp-name">${e.cnName || e.enName}</div>
+        <div class="emp-en">${e.cnName && e.enName ? e.enName : ''}</div>
+        <div class="emp-info">${[e.dept, e.title].filter(Boolean).join(' · ')} &nbsp;|&nbsp; Joined: ${e.onboard.toLocaleDateString('zh-CN')}</div>
+      </div>
+    </div>`).join('')}
+    <div style="font-size:12px;color:#aaa;padding-top:10px">切换到「今日提醒」或「本年生日」查看结果</div>
+  </div>`;
+}
+
+function updateBadges() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const china = getChinaToday ? getChinaToday() : today;
+
+  // ── Today ──
+  const mHits = employees.filter(emp => getMilestonesOnDate(emp, today).length);
+  const bdHits = employees.filter(emp => emp.dobMonth === today.getMonth() && emp.dobDay === today.getDate());
+  const totalToday = mHits.length + bdHits.length;
+  const tb = document.getElementById('today-count-badge');
+  if (tb) { tb.textContent = totalToday; tb.style.display = totalToday ? '' : 'none'; }
+
+  // ── This Week (milestones only, China time) ──
+  const { mon, sun } = getWeekRange ? getWeekRange(china) : { mon: today, sun: today };
+  let weekCount = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mon); d.setDate(mon.getDate() + i);
+    weekCount += employees.filter(emp => getMilestonesOnDate(emp, d).length).length;
+  }
+  const wb = document.getElementById('weekly-count-badge');
+  if (wb) { wb.textContent = weekCount; wb.style.display = weekCount ? '' : 'none'; }
+
+  // ── This Month (birthdays only) ──
+  const monthCount = employees.filter(emp => emp.dobMonth === today.getMonth() && emp.dobDay !== null).length;
+  const mb = document.getElementById('monthly-count-badge');
+  if (mb) { mb.textContent = monthCount; mb.style.display = monthCount ? '' : 'none'; }
+
+  // ── Annual birthday (all employees with a birthday) ──
+  const bm = document.getElementById('bday-count-badge');
+  const bdThisYear = employees.filter(emp => emp.dobDay !== null);
+  if (bm) { bm.textContent = bdThisYear.length; bm.style.display = bdThisYear.length ? '' : 'none'; }
+
+  // ── Milestone year badges ──
+  for (const m of MILESTONES) {
+    const count = employees.filter(emp => {
+      const d = emp.milestoneDates[m.key];
+      return d && d.getFullYear() === today.getFullYear();
+    }).length;
+    const el = document.getElementById(m.key+'-count-badge');
+    if (el) { el.textContent = count; el.style.display = count ? '' : 'none'; }
+  }
+}
+
+
+// ── MONTHLY OVERVIEW ──
+let _monthlyMonth = new Date().getMonth();
+let _monthlyYear  = new Date().getFullYear();
+
+function goCurrentMonthlyMonth() {
+  const china = getChinaToday();
+  _monthlyMonth = china.getMonth();
+  _monthlyYear  = china.getFullYear();
+  renderMonthly();
+}
+
+function changeMonthlyMonth(delta) {
+  _monthlyMonth += delta;
+  if (_monthlyMonth > 11) { _monthlyMonth = 0;  _monthlyYear++; }
+  if (_monthlyMonth < 0)  { _monthlyMonth = 11; _monthlyYear--; }
+  renderMonthly();
+}
+
+function renderMonthly() {
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  document.getElementById('monthly-month-display').textContent = _monthlyYear + '年 ' + monthNames[_monthlyMonth];
+
+  const listEl  = document.getElementById('monthly-list');
+  const statsEl = document.getElementById('monthly-stats-area');
+
+  if (!employees.length) {
+    statsEl.innerHTML = '';
+    listEl.innerHTML = '<div class="empty">请先上传员工数据</div>';
+    return;
+  }
+
+  const chinaToday = getChinaToday();
+
+  // Birthdays only — employees whose birthday month matches
+  const bdEmps = employees
+    .filter(emp => emp.dobMonth === _monthlyMonth && emp.dobDay !== null)
+    .sort((a, b) => a.dobDay - b.dobDay);
+
+  const total = bdEmps.length;
+
+  statsEl.innerHTML = `<div class="stats" style="grid-template-columns:repeat(2,1fr);max-width:300px;margin-bottom:16px">
+    <div class="stat"><div class="stat-num">${monthNames[_monthlyMonth]}</div><div class="stat-label">当前月份</div></div>
+    <div class="stat"><div class="stat-num${total?' alert':''}">${total}</div><div class="stat-label">本月生日人数</div></div>
+  </div>`;
+
+  if (!bdEmps.length) {
+    listEl.innerHTML = '<div class="empty">🎉 本月没有员工生日</div>';
+    return;
+  }
+
+  // Second Monday notice
+  const secondMonday = getSecondMondayOfMonth(_monthlyYear, _monthlyMonth);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const isCurrentMonth = _monthlyMonth === today.getMonth() && _monthlyYear === today.getFullYear();
+  const isTodaySecondMonday = isCurrentMonth && secondMonday && secondMonday.toDateString() === today.toDateString();
+  const noticeEl = document.getElementById('monthly-notice');
+  if (noticeEl) {
+    if (secondMonday && bdEmps.length) {
+      const smStr = secondMonday.toLocaleDateString('zh-CN', {month:'long', day:'numeric', weekday:'long'});
+      if (isTodaySecondMonday) {
+        noticeEl.innerHTML = '<div class="week2-banner"><div class="week2-banner-title">🎉 今天就是第二周周一！记得安排生日礼物和蛋糕！</div><div class="week2-banner-sub">本月共 ' + bdEmps.length + ' 人过生日</div></div>';
+      } else {
+        noticeEl.innerHTML = '<div class="notice notice-info" style="margin-bottom:12px">📅 建议在第二周周一（<strong>' + smStr + '</strong>）统一安排礼物和蛋糕（共' + bdEmps.length + '人）</div>';
+      }
+    } else {
+      noticeEl.innerHTML = '';
+    }
+  }
+
+  listEl.innerHTML = `<div class="card">
+    <div class="section-title">🎂 ${monthNames[_monthlyMonth]}生日名单（${bdEmps.length}人）</div>
+    ${bdEmps.map(emp => {
+      const dayStr = (_monthlyMonth + 1) + '月' + emp.dobDay + '日';
+      const idx = employees.indexOf(emp);
+      return `<div class="emp-row">
+        <div class="avatar avatar-pink">${avatarChar(emp)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="emp-name">${emp.cnName||emp.enName}</div>
+          <div class="emp-en">${emp.cnName&&emp.enName?emp.enName:''}</div>
+          <div class="emp-info">${[emp.dept,emp.title].filter(Boolean).join(' · ')}</div>
+        </div>
+        <div class="badges">
+          <span class="bday-date-badge">🎂 ${dayStr}</span>
+          <button class="slack-btn" onclick="openSlackByIdx(${idx},'birthday')">💬 祝福本人</button>
+          ${emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'birthday_mgr')">👔 通知领导</button>`:''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ---- BIRTHDAY ----
+function goCurrentBdayYear() {
+  currentBdayYear = new Date().getFullYear();
+  renderBirthday();
+}
+
+function goCurrentMonth() { goCurrentBdayYear(); }
+
+function changeBdayYear(delta) {
+  currentBdayYear += delta;
+  renderBirthday();
+}
+
+function changeMonth(delta) { changeBdayYear(delta); }
+
+function renderBirthday() {
+  const yearStr = currentBdayYear + '年';
+  document.getElementById('month-display').textContent = yearStr;
+
+  const listEl   = document.getElementById('birthday-list');
+  const noticeEl = document.getElementById('week2-notice');
+  noticeEl.innerHTML = '';
+
+  if (!employees.length) {
+    listEl.innerHTML = '<div class="empty">请先上传员工数据</div>';
+    return;
+  }
+
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Group by month
+  let totalCount = 0;
+  const sections = [];
+  for (let m = 0; m < 12; m++) {
+    const emps = employees
+      .filter(emp => emp.dobMonth === m && emp.dobDay !== null)
+      .sort((a, b) => a.dobDay - b.dobDay);
+    if (emps.length) {
+      sections.push({ month: m, emps });
+      totalCount += emps.length;
+    }
+  }
+
+  if (!sections.length) {
+    listEl.innerHTML = '<div class="empty">没有员工生日数据</div>';
+    return;
+  }
+
+  listEl.innerHTML = sections.map(sec => {
+    const isCurrentMonth = sec.month === today.getMonth() && currentBdayYear === today.getFullYear();
+    return `<div class="card" style="${isCurrentMonth ? 'border-color:var(--green);border-width:1.5px' : ''}">
+      <div class="section-title" style="${isCurrentMonth ? 'color:var(--green-deeper)' : ''}">
+        ${isCurrentMonth ? '📍 本月 · ' : ''}🎂 ${monthNames[sec.month]}（${sec.emps.length}人）
+      </div>
+      ${sec.emps.map(emp => {
+        const dayStr = (sec.month + 1) + '月' + emp.dobDay + '日';
+        return `<div class="emp-row">
+          <div class="avatar avatar-pink">${avatarChar(emp)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="emp-name">${emp.cnName || emp.enName}</div>
+            <div class="emp-en">${emp.cnName && emp.enName ? emp.enName : ''}</div>
+            <div class="emp-info">${[emp.dept, emp.title].filter(Boolean).join(' · ')}</div>
+          </div>
+          <span class="bday-date-badge">🎂 ${dayStr}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+// renderUpcoming removed - replaced by renderMilestoneMonth above
+
+// ---- EMAIL ----
+
+
+function sendBirthdayEmail() {
+  const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const mName = monthNames[currentBdayMonth];
+  const bdEmps = employees
+    .filter(emp=>emp.dobMonth===currentBdayMonth&&emp.dobDay!==null)
+    .sort((a,b)=>a.dobDay-b.dobDay);
+  if (!bdEmps.length) { alert('本月没有生日！'); return; }
+  const secondMonday = getSecondMondayOfMonth(currentBdayYear, currentBdayMonth);
+  const smStr = secondMonday ? secondMonday.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'}) : '待定';
+  const lines = bdEmps.map(emp=>`• ${mName.replace('月','')}月${emp.dobDay}日 — ${emp.cnName||''}${emp.enName?'（'+emp.enName+'）':''}${emp.dept?' ['+emp.dept+']':''}`);
+  const body = `你好，\n\n${currentBdayYear}年${mName}过生日的员工名单如下：\n\n${lines.join('\n')}\n\n共 ${bdEmps.length} 人。\n\n📅 建议在第二周周一（${smStr}）统一安排礼物和蛋糕。\n\n— Conviva HR 提醒工具`;
+  const subj = `[HR生日] ${currentBdayYear}年${mName}生日名单 — ${bdEmps.length}人`;
+  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+}
+
+function sendMilestoneEmailToday() {
+  goToday();
+  sendMilestoneEmail();
+}
+function sendBirthdayEmailCurrent() {
+  const now = new Date();
+  currentBdayMonth = now.getMonth(); currentBdayYear = now.getFullYear();
+  sendBirthdayEmail();
+}
+
+
+
+// ── SLACK MODAL HELPERS ──
+let _modalCurrentEmp = null;
+let _modalCurrentTab = 'employee';
+
+const MSG_TEMPLATES = {
+  birthday: (emp) =>
+    `Hi ${emp.cnName||emp.enName}！\n\n今天是你的生日 🎂，祝你生日快乐！希望新的一岁平安健康、万事顺意！\n\n— HR团队`,
+  birthday_manager: (emp) =>
+    `Hi ${emp.manager||'领导'}，\n\n今天是 ${emp.cnName||emp.enName} 的生日 🎂，请别忘了送上祝福！\n\n— HR`,
+  reg: (emp) =>
+    `Hi ${emp.cnName||emp.enName}！\n\n恭喜你今天正式转正 🎉！感谢你这6个月的努力与付出，欢迎成为Conviva的正式员工！\n\n— HR团队`,
+  reg_manager: (emp) =>
+    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天正式转正 🎉，请记得与他/她沟通转正情况！\n\n— HR`,
+  '3y': (emp) =>
+    `Hi ${emp.cnName||emp.enName}！\n\n恭喜你入职满3周年 🥉！感谢你3年来对Conviva的贡献与坚守，期待与你共同成长！\n\n— HR团队`,
+  '3y_manager': (emp) =>
+    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天入职满3周年 🥉，欢迎致以祝贺！\n\n— HR`,
+  '5y': (emp) =>
+    `Hi ${emp.cnName||emp.enName}！\n\n恭喜你入职满5周年 🥈！五年同行，感谢你一路以来的坚持与贡献！\n\n— HR团队`,
+  '5y_manager': (emp) =>
+    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天入职满5周年 🥈，欢迎致以祝贺！\n\n— HR`,
+  '10y': (emp) =>
+    `Hi ${emp.cnName||emp.enName}！\n\n热烈祝贺你入职满10周年 🏆！十年相伴，你是Conviva最宝贵的财富！\n\n— HR团队`,
+  '10y_manager': (emp) =>
+    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天入职满10周年 🏆，这是一个重要里程碑，欢迎特别祝贺！\n\n— HR`,
+};
+
+
+function openSlackByIdx(idx, type) {
+  const emp = employees[idx];
+  if (emp) openSlackModal(emp, type);
+}
+
+function openSlackModal(emp, type) {
+  _modalCurrentEmp = emp;
+  _modalCurrentTab = 'employee';
+  const isEmployee = true;
+  const cleanType = type.replace('_mgr','');
+  const titles = { birthday:'🎂 生日祝福', reg:'🎉 转正祝贺', '3y':'🥉 3周年祝贺', '5y':'🥈 5周年祝贺', '10y':'🏆 10周年祝贺' };
+  const startTab = type.endsWith('_mgr') ? 'manager' : 'employee';
+  document.getElementById('slackModal').dataset.type = cleanType;
+  document.getElementById('modalTitle').textContent = titles[type] || '💬 发送 Slack 消息';
+
+  // Store type for switching tabs
+  // (set above)
+
+  // Auto-switch tab if opened via manager button
+  if (startTab === 'manager') {
+    switchMsgTab('manager');
+  }
+  // Show tabs
+  const tabsEl = document.getElementById('modalTabs');
+  tabsEl.style.display = 'flex';
+  document.getElementById('tabEmployee').classList.add('active');
+  document.getElementById('tabManager').classList.remove('active');
+
+  // Manager row
+  const mgr = emp.manager || '';
+  const mgrRow = document.getElementById('modalManagerRow');
+  mgrRow.style.display = mgr ? 'flex' : 'none';
+  document.getElementById('modalManagerName').textContent = mgr || '未填写';
+
+  // Set recipient & message for employee tab
+  document.getElementById('modalRecipient').textContent = `${emp.cnName||emp.enName}${emp.email ? ' · ' + emp.email : ''}`;
+  const tmpl = MSG_TEMPLATES[type];
+  const txt = tmpl ? tmpl(emp) : '';
+  document.getElementById('msgText').value = txt;
+  updateCharCount(document.getElementById('msgText'));
+  document.getElementById('slackModal').classList.add('open');
+}
+
+function switchMsgTab(tab) {
+  _modalCurrentTab = tab;
+  const emp = _modalCurrentEmp;
+  const type = document.getElementById('slackModal').dataset.type;
+  document.getElementById('tabEmployee').classList.toggle('active', tab==='employee');
+  document.getElementById('tabManager').classList.toggle('active', tab==='manager');
+
+  if (tab === 'employee') {
+    document.getElementById('modalRecipient').textContent = `${emp.cnName||emp.enName}${emp.email ? ' · '+emp.email : ''}`;
+    const tmpl = MSG_TEMPLATES[type];
+    document.getElementById('msgText').value = tmpl ? tmpl(emp) : '';
+  } else {
+    const mgr = emp.manager || '领导';
+    document.getElementById('modalRecipient').textContent = mgr;
+    const tmpl = MSG_TEMPLATES[type+'_manager'];
+    document.getElementById('msgText').value = tmpl ? tmpl(emp) : '';
+  }
+  updateCharCount(document.getElementById('msgText'));
+}
+
+function updateCharCount(el) {
+  document.getElementById('charCount').textContent = el.value.length;
+}
+
+function closeModal() {
+  document.getElementById('slackModal').classList.remove('open');
+}
+
+function openInSlack() {
+  const emp = _modalCurrentEmp;
+  const msg = document.getElementById('msgText').value.trim();
+  if (!msg) return;
+
+  let target = '';
+  if (_modalCurrentTab === 'employee' && emp.email) {
+    target = emp.email;
+  } else if (_modalCurrentTab === 'manager') {
+    // Try to find manager email from employees list
+    const mgr = employees.find(e =>
+      e.cnName === emp.manager || e.enName === emp.manager ||
+      (e.enName && emp.manager && e.enName.toLowerCase().includes(emp.manager.toLowerCase())) ||
+      (e.cnName && emp.manager && e.cnName.includes(emp.manager))
+    );
+    target = mgr ? mgr.email : '';
+  }
+
+  // Open Slack with pre-filled message (uses mailto-like deep link)
+  // Slack doesn't support pre-filled DM via URL, so open new DM search
+  const encoded = encodeURIComponent(msg);
+  if (target) {
+    window.open(`slack://user?email=${encodeURIComponent(target)}&text=${encoded}`, '_blank');
+    setTimeout(() => {
+      // Fallback: copy to clipboard and open Slack web
+      navigator.clipboard.writeText(msg).then(() => {
+        alert('✅ 消息已复制到剪贴板！\n\n正在打开 Slack，请粘贴发送。');
+        window.open(`https://app.slack.com/client`, '_blank');
+      }).catch(() => {
+        alert('请手动复制消息内容后在 Slack 中发送给：' + (target || '对应人员'));
+      });
+    }, 800);
+  } else {
+    navigator.clipboard.writeText(msg).then(() => {
+      alert('✅ 消息已复制到剪贴板！\n\n请在 Slack 中手动发送给：' + (emp.manager || emp.cnName || emp.enName));
+      window.open(`https://app.slack.com/client`, '_blank');
+    });
+  }
+  closeModal();
+}
+
+
+// ── TEMPLATE EDITOR ──
+let _editingTemplateKey = null;
+const TEMPLATE_LABELS = {
+  birthday: '🎂 生日祝福（发给本人）',
+  reg: '🎉 转正祝贺（发给本人）',
+  '3y': '🥉 3周年祝贺（发给本人）',
+  '5y': '🥈 5周年祝贺（发给本人）',
+  '10y': '🏆 10周年祝贺（发给本人）',
+};
+
+function editTemplate(key) {
+  _editingTemplateKey = key;
+  const emp = { cnName:'张三', enName:'San Zhang', dept:'HR', manager:'Ningning Hu' };
+  const tpl = MSG_TEMPLATES[key];
+  document.getElementById('template-edit-label').textContent = TEMPLATE_LABELS[key] || key;
+  document.getElementById('templateTextArea').value = tpl ? tpl(emp) : '';
+  document.getElementById('template-edit-area').style.display = '';
+}
+
+function saveTemplate() {
+  const key = _editingTemplateKey;
+  const newText = document.getElementById('templateTextArea').value;
+  // Replace template with a function that returns the edited text
+  // but still substitutes the employee name
+  const saved = newText;
+  MSG_TEMPLATES[key] = (emp) => saved
+    .replace(/张三/g, emp.cnName||emp.enName)
+    .replace(/San Zhang/g, emp.enName||emp.cnName)
+    .replace(/Ningning Hu/g, emp.manager||'领导');
+  document.getElementById('template-edit-area').style.display = 'none';
+  // Show success
+  const btn = document.querySelector('[onclick="saveTemplate()"]');
+  const orig = btn.textContent;
+  btn.textContent = '✅ 已保存！'; btn.disabled = true;
+  setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
+}
+
+function resetTemplate() {
+  // Just re-open so user sees original
+  editTemplate(_editingTemplateKey);
+}
+
+function showSlackAutoGuide() {
+  const el = document.getElementById('slack-auto-guide');
+  if (el.innerHTML) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="code-block"># pip install slack-sdk schedule openpyxl
+
+import schedule, time, openpyxl
+from datetime import date
+from slack_sdk import WebClient
+
+# ===== 配置区域 =====
+SLACK_TOKEN = "xoxb-your-bot-token"   # 找Santhosh申请
+EXCEL_FILE  = r"C:\路径\Employee_information_list.xlsx"
+SEND_TIME   = "08:30"
+# ====================
+
+client = WebClient(token=SLACK_TOKEN)
+
+MILESTONE_COLS = {
+    'Date of Regularization': ('reg',  '转正(6个月)'),
+    '3rd Anniversary':        ('3y',   '3周年'),
+    '5th Anniversary':        ('5y',   '5周年'),
+    '10th Anniversary':       ('10y',  '10周年'),
+}
+
+MESSAGES = {
+    'birthday': lambda cn,en: f"Hi {cn}！今天是你的生日 🎂，祝你生日快乐！— HR",
+    'birthday_mgr': lambda cn,en,mgr: f"Hi {mgr}，今天是 {cn} 的生日 🎂，请送上祝福！— HR",
+    'reg':  lambda cn,en: f"Hi {cn}！恭喜你今天正式转正 🎉！欢迎成为Conviva正式员工！— HR",
+    'reg_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天正式转正 🎉，请记得沟通！— HR",
+    '3y':   lambda cn,en: f"Hi {cn}！恭喜入职满3周年 🥉！感谢你的贡献！— HR",
+    '3y_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天入职满3周年 🥉！— HR",
+    '5y':   lambda cn,en: f"Hi {cn}！恭喜入职满5周年 🥈！五年同行，感谢你！— HR",
+    '5y_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天入职满5周年 🥈！— HR",
+    '10y':  lambda cn,en: f"Hi {cn}！热烈祝贺入职满10周年 🏆！你是Conviva最宝贵的财富！— HR",
+    '10y_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天入职满10周年 🏆，请特别祝贺！— HR",
+}
+
+def find_user(email):
+    try:
+        r = client.users_lookupByEmail(email=email)
+        return r['user']['id'] if r['ok'] else None
+    except: return None
+
+def send_dm(email, msg):
+    uid = find_user(email)
+    if uid: client.chat_postMessage(channel=uid, text=msg)
+
+def load_employees():
+    wb = openpyxl.load_workbook(EXCEL_FILE, data_only=True)
+    ws = wb['总表']
+    headers = [str(c.value).strip() if c.value else '' for c in ws[2]]
+    emps = []
+    for row in ws.iter_rows(min_row=3, values_only=True):
+        r = dict(zip(headers, row))
+        cn  = str(r.get('Chinese name','')).strip()
+        en  = str(r.get('Name','')).strip()
+        if not (cn or en): continue
+        dob = r.get('Date of Birth')
+        emps.append({
+            'cn': cn, 'en': en,
+            'email': str(r.get('Company Email','')).strip(),
+            'mgr_name': str(r.get('Direct Manager','')).strip(),
+            'dob_month': dob.month-1 if hasattr(dob,'month') else None,
+            'dob_day':   dob.day     if hasattr(dob,'day')   else None,
+            'ms': {col: (v.date() if hasattr(v,'date') else None)
+                   for col,_ in MILESTONE_COLS.items()
+                   for v in [r.get(col)]},
+        })
+    return emps
+
+def find_manager_email(emps, mgr_name):
+    for e in emps:
+        if e['cn']==mgr_name or e['en']==mgr_name: return e['email']
+    return None
+
+def run_daily():
+    emps = load_employees()
+    today = date.today()
+    for e in emps:
+        cn, en, email = e['cn'], e['en'], e['email']
+        mgr = e['mgr_name']
+        mgr_email = find_manager_email(emps, mgr)
+        # Birthday
+        if e['dob_month']==today.month-1 and e['dob_day']==today.day:
+            send_dm(email, MESSAGES['birthday'](cn,en))
+            if mgr_email: send_dm(mgr_email, MESSAGES['birthday_mgr'](cn,en,mgr))
+        # Milestones
+        for col, (key, label) in MILESTONE_COLS.items():
+            d = e['ms'].get(col)
+            if d and d.year==today.year and d.month==today.month and d.day==today.day:
+                send_dm(email, MESSAGES[key](cn,en))
+                if mgr_email: send_dm(mgr_email, MESSAGES[key+'_mgr'](cn,en,mgr))
+                print(f"✅ 已发送 {label} 提醒给 {cn}")
+
+schedule.every().day.at(SEND_TIME).do(run_daily)
+print("⏰ 自动Slack提醒已启动")
+while True:
+    schedule.run_pending(); time.sleep(60)</div>
+    <div style="font-size:12px;color:var(--gray-mid);margin-top:10px">
+      💡 找 Santhosh 申请 Slack Bot Token（需要 <code>chat:write</code> 和 <code>users:read.email</code> 权限）
+    </div>`;
+}
+
+
+// ── EXPORT WITH DATA ──
+function exportWithData() {
+  if (!employees.length) { alert('请先上传员工数据！'); return; }
+  var hint = document.getElementById('export-hint');
+  if (hint) hint.textContent = '生成中...';
+
+  function empToJs(e) {
+    var md = e.milestoneDates || {};
+    function d(v) {
+      if (!v) return 'null';
+      if (v instanceof Date) return 'new Date("' + v.toISOString() + '")';
+      return 'new Date("' + v + '")';
+    }
+    return '{cnName:' + JSON.stringify(e.cnName||'') +
+      ',enName:' + JSON.stringify(e.enName||'') +
+      ',dept:' + JSON.stringify(e.dept||'') +
+      ',title:' + JSON.stringify(e.title||'') +
+      ',email:' + JSON.stringify(e.email||'') +
+      ',manager:' + JSON.stringify(e.manager||'') +
+      ',onboard:' + d(e.onboard) +
+      ',milestoneDates:{reg:' + d(md.reg) +
+        ',"3y":' + d(md['3y']) +
+        ',"5y":' + d(md['5y']) +
+        ',"10y":' + d(md['10y']) + '}' +
+      ',dobMonth:' + (e.dobMonth != null ? e.dobMonth : 'null') +
+      ',dobDay:' + (e.dobDay != null ? e.dobDay : 'null') + '}';
+  }
+
+  // 把员工数组序列化成单行（避免多行处理问题）
+  var empJs = '[' + employees.map(empToJs).join(',') + ']';
+
+  var html = document.documentElement.outerHTML;
+
+  // 清理：用正则把上次注入的 let employees = [...]; 整行替换回空数组
+  // 关键：序列化成单行，所以这里只需要替换一行
+  html = html.replace(/let employees = \[.*\];/, 'let employees = [];');
+
+  // 清理 init 行
+  html = html.split('\n').filter(function(l) {
+    return l.trimLeft().indexOf('if(employees.length){showUploadResult') !== 0;
+  }).join('\n');
+
+  // 注入新数据（单行）
+  html = html.replace('let employees = [];', 'let employees = ' + empJs + ';');
+
+  // 注入 init
+  html = html.replace('goCurrentMilestoneMonth();\n', 'goCurrentMilestoneMonth();\nif(employees.length){showUploadResult(employees,"已内嵌数据");updateBadges();}\n');
+
+  // 把会议记录数据也注入到导出文件
+  try {
+    var meetingData = exportMeetingData();
+    var meetingJson = JSON.stringify(meetingData);
+    var meetingScript = '<scr'+'ipt>try{var md=JSON.parse('+JSON.stringify(meetingJson)+');' +
+      'Object.keys(md).forEach(function(k){localStorage.setItem("meeting_"+k,JSON.stringify(md[k]));});' +
+      '}catch(e){}</sc'+'ript>';
+        html = html.replace('</body>', meetingScript + '</body>');
+  } catch(e) {}
+
+  var blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'Conviva_HR_Tool_with_data.html';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  if (hint) { hint.textContent = '✅ 已下载！'; setTimeout(function(){ hint.textContent = ''; }, 3000); }
+}
+
+function updateExportPanel() {
+  const ready  = document.getElementById('export-ready');
+  const nodata = document.getElementById('export-area');
+  const info   = document.getElementById('export-file-info');
+  if (employees.length) {
+    if (ready)  ready.style.display  = '';
+    if (nodata) nodata.style.display = 'none';
+    if (info)   info.textContent = '已加载 ' + employees.length + ' 名员工数据';
+  } else {
+    if (ready)  ready.style.display  = 'none';
+    if (nodata) nodata.style.display = '';
+  }
+}
+
+
+// ════════════════════════════════════════════
+// 📋 会议记录模块
+// ════════════════════════════════════════════
+
+var _meetingWeekOffset = 0; // 相对于本周的偏移
+
+// 获取某周偏移对应的周一日期字符串 YYYY-MM-DD
+function localDateStr(d) {
+  var y = d.getFullYear();
+  var m = String(d.getMonth()+1).padStart(2,'0');
+  var dd = String(d.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + dd;
+}
+
+function getMeetingWeekMonday(offset) {
+  var china = getChinaToday();
+  var day = china.getDay();
+  var diffToMon = (day === 0) ? -6 : 1 - day;
+  var mon = new Date(china.getFullYear(), china.getMonth(), china.getDate() + diffToMon + offset * 7);
+  return localDateStr(mon);
+}
+
+function getMeetingWeekFriday(offset) {
+  var mondayStr = getMeetingWeekMonday(offset);
+  var parts = mondayStr.split('-');
+  var mon = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+  var fri = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 4);
+  return localDateStr(fri);
+}
+
+function meetingStorageKey(mondayStr) {
+  return 'meeting_' + mondayStr;
+}
+
+function loadMeetingData(mondayStr) {
+  try {
+    var raw = localStorage.getItem(meetingStorageKey(mondayStr));
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function saveMeetingData(mondayStr, data) {
+  try {
+    localStorage.setItem(meetingStorageKey(mondayStr), JSON.stringify(data));
+  } catch(e) {}
+}
+
+function getAllMeetingKeys() {
+  var keys = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf('meeting_') === 0) keys.push(k);
+    }
+  } catch(e) {}
+  return keys.sort().reverse(); // 最新的在前
+}
+
+function meetingPrevWeek() { _meetingWeekOffset--; renderMeeting(); }
+function meetingNextWeek() { _meetingWeekOffset++; renderMeeting(); }
+function meetingGoThisWeek() { _meetingWeekOffset = 0; renderMeeting(); }
+
+function meetingNewWeek() {
+  var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
+  var existing = loadMeetingData(mondayStr);
+  if (existing) {
+    if (!confirm('本周已有记录，要重新创建吗？（原内容将清空）')) return;
+  }
+  var fridayStr = getMeetingWeekFriday(_meetingWeekOffset);
+  var d = new Date(fridayStr + 'T00:00:00');
+  var label = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+  saveMeetingData(mondayStr, { label: label, hr: '', execution: '', created: new Date().toISOString() });
+  renderMeeting();
+}
+
+function meetingAutoFill() {
+  var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
+  var data = loadMeetingData(mondayStr);
+  if (!data) {
+    alert('请先点「新建本周」创建本周记录');
+    return;
+  }
+  if (!employees.length) {
+    alert('请先上传员工数据');
+    return;
+  }
+
+  var mon = new Date(getMeetingWeekMonday(_meetingWeekOffset) + 'T00:00:00');
+  var lines = [];
+
+  // 只收集本周转正和周年（不含生日）
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(mon); d.setDate(mon.getDate() + i);
+    employees.forEach(function(emp) {
+      MILESTONES.forEach(function(m) {
+        var md = emp.milestoneDates[m.key];
+        if (md && md.getFullYear() === d.getFullYear() &&
+            md.getMonth() === d.getMonth() && md.getDate() === d.getDate()) {
+          var dateStr = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+          var name = (emp.cnName || emp.enName) + (emp.enName && emp.cnName ? '-' + emp.enName : '');
+          lines.push(m.label + '：' + name + ' ' + dateStr);
+        }
+      });
+    });
+  }
+
+  var hrText = lines.length ? lines.join('\n') : '本周无转正或周年提醒';
+  data.hr = hrText;
+  saveMeetingData(mondayStr, data);
+  renderMeeting();
+}
+
+function meetingSave() {
+  var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
+  var data = loadMeetingData(mondayStr);
+  if (!data) return;
+  var hrEl = document.getElementById('meeting-hr-input');
+  var exEl = document.getElementById('meeting-ex-input');
+  if (hrEl) data.hr = hrEl.value;
+  if (exEl) data.execution = exEl.value;
+  saveMeetingData(mondayStr, data);
+  // 同步到云端
+  if (typeof syncPush === 'function') syncPush('meeting_' + mondayStr, JSON.stringify(data));
+  // 显示保存提示
+  var btn = document.getElementById('meeting-save-btn');
+  if (btn) { btn.textContent = '✅ 已保存'; setTimeout(function(){ btn.textContent = '💾 保存'; }, 1500); }
+}
+
+function meetingDelete() {
+  var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
+  if (!confirm('确定删除本周记录吗？')) return;
+  try { localStorage.removeItem(meetingStorageKey(mondayStr)); } catch(e) {}
+  if (typeof syncDelete === 'function') syncDelete('meeting_' + mondayStr);
+  renderMeeting();
+}
+
+function renderMeeting() {
+  var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
+  var fridayStr = getMeetingWeekFriday(_meetingWeekOffset);
+  var friParts = fridayStr.split('-');
+  var friDate = new Date(parseInt(friParts[0]), parseInt(friParts[1])-1, parseInt(friParts[2]));
+  var label = (friDate.getMonth()+1) + '/' + friDate.getDate() + '/' + friDate.getFullYear();
+
+  var labelEl = document.getElementById('meeting-week-label');
+  if (labelEl) labelEl.textContent = label + ' (周五)';
+
+  var data = loadMeetingData(mondayStr);
+  var el = document.getElementById('meeting-content');
+  if (!el) return;
+
+  if (!data) {
+    // 显示历史记录列表
+    var keys = getAllMeetingKeys();
+    var historyHtml = '';
+    if (keys.length) {
+      historyHtml = '<div class="card" style="margin-top:12px"><div class="section-title">历史记录</div>' +
+        keys.map(function(k) {
+          var d2 = loadMeetingData(k.replace('meeting_', ''));
+          return '<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;cursor:pointer;color:var(--green-deeper)" onclick="meetingJumpTo(\'' + k.replace('meeting_','') + '\')">' +
+            (d2 ? d2.label : k.replace('meeting_','')) + '</div>';
+        }).join('') + '</div>';
+    }
+    el.innerHTML = '<div class="empty" style="margin-bottom:8px">本周暂无记录，点击「新建本周」开始</div>' + historyHtml;
+    return;
+  }
+
+  el.innerHTML =
+    '<div class="card">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
+    '<div style="font-size:15px;font-weight:700;color:var(--gray-text)">' + label + '</div>' +
+    '<button onclick="meetingEditLabel(&quot;' + mondayStr + '&quot;)" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--gray-mid)">✏️ 修改日期</button>' +
+    '<button onclick="meetingCopyContent(&quot;' + mondayStr + '&quot;)" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--gray-mid)">📋 复制到其他周</button>' +
+    '</div>' +
+    '<table style="width:100%;border-collapse:collapse">' +
+    '<thead><tr>' +
+    '<th style="background:#2e6da4;color:#fff;padding:8px 12px;text-align:left;width:120px;font-size:13px">Category</th>' +
+    '<th style="background:#2e6da4;color:#fff;padding:8px 12px;text-align:left;font-size:13px">Topics</th>' +
+    '</tr></thead>' +
+    '<tbody>' +
+    '<tr style="vertical-align:top">' +
+    '<td style="padding:10px 12px;font-weight:600;font-size:13px;border:1px solid #dee2e6">HR</td>' +
+    '<td style="padding:6px 8px;border:1px solid #dee2e6">' +
+    '<textarea id="meeting-hr-input" oninput="meetingAutoSave()" ' +
+    'style="width:100%;min-height:120px;border:none;outline:none;resize:vertical;font-size:13px;font-family:inherit;line-height:1.6">' +
+    escapeHtml(data.hr || '') + '</textarea></td>' +
+    '</tr>' +
+    '<tr style="vertical-align:top">' +
+    '<td style="padding:10px 12px;font-weight:600;font-size:13px;border:1px solid #dee2e6">Execution</td>' +
+    '<td style="padding:6px 8px;border:1px solid #dee2e6">' +
+    '<textarea id="meeting-ex-input" oninput="meetingAutoSave()" ' +
+    'style="width:100%;min-height:80px;border:none;outline:none;resize:vertical;font-size:13px;font-family:inherit;line-height:1.6">' +
+    escapeHtml(data.execution || '') + '</textarea></td>' +
+    '</tr>' +
+    '</tbody>' +
+    '</table>' +
+    '<div style="display:flex;gap:8px;margin-top:12px;align-items:center">' +
+    '<button class="btn btn-green" id="meeting-save-btn" onclick="meetingSave()">💾 保存</button>' +
+    '<button class="btn" onclick="meetingDelete()" style="color:#e74c3c;border-color:#e74c3c">🗑 删除本周</button>' +
+    '<span id="meeting-autosave-hint" style="font-size:12px;color:var(--gray-mid);margin-left:8px"></span>' +
+    '</div>' +
+    '</div>';
+}
+
+var _meetingAutoSaveTimer = null;
+function meetingAutoSave() {
+  clearTimeout(_meetingAutoSaveTimer);
+  _meetingAutoSaveTimer = setTimeout(function() {
+    meetingSave();
+    var hint = document.getElementById('meeting-autosave-hint');
+    if (hint) { hint.textContent = '已自动保存'; setTimeout(function(){ hint.textContent = ''; }, 2000); }
+  }, 800);
+}
+
+function meetingJumpTo(mondayStr) {
+  // 计算这个周和当前周的偏移
+  var thisMon = new Date(getMeetingWeekMonday(0) + 'T00:00:00');
+  var targetMon = new Date(mondayStr + 'T00:00:00');
+  var diff = Math.round((targetMon - thisMon) / (7 * 24 * 3600 * 1000));
+  _meetingWeekOffset = diff;
+  renderMeeting();
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// 导出时把会议记录一起带走
+function exportMeetingData() {
+  var allKeys = getAllMeetingKeys();
+  var result = {};
+  allKeys.forEach(function(k) {
+    var mondayStr = k.replace('meeting_', '');
+    result[mondayStr] = loadMeetingData(mondayStr);
+  });
+  return result;
+}
+
+
+function meetingEditLabel(mondayStr) {
+  var data = loadMeetingData(mondayStr);
+  if (!data) return;
+  var newLabel = prompt('修改日期显示（如 4/17/2026）：', data.label || '');
+  if (newLabel === null) return;
+  data.label = newLabel.trim() || data.label;
+  saveMeetingData(mondayStr, data);
+  renderMeeting();
+}
+
+function meetingCopyContent(fromMondayStr) {
+  var fromData = loadMeetingData(fromMondayStr);
+  if (!fromData) return;
+
+  // 列出所有周供选择
+  var keys = getAllMeetingKeys();
+  var options = keys.filter(function(k) { return k !== 'meeting_' + fromMondayStr; });
+
+  if (!options.length) {
+    alert('没有其他周的记录可以复制到。请先新建其他周。');
+    return;
+  }
+
+  var choices = options.map(function(k, i) {
+    var d = loadMeetingData(k.replace('meeting_',''));
+    return (i+1) + '. ' + (d ? d.label : k.replace('meeting_',''));
+  }).join('\n');
+
+  var input = prompt('选择目标周（输入序号）：\n' + choices);
+  if (!input) return;
+  var idx = parseInt(input) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= options.length) { alert('无效序号'); return; }
+
+  var toMondayStr = options[idx].replace('meeting_', '');
+  var toData = loadMeetingData(toMondayStr) || { label: toMondayStr, hr: '', execution: '' };
+
+  var mode = prompt('复制方式：\n1. 追加到目标周\n2. 覆盖目标周\n（输入1或2）');
+  if (!mode) return;
+
+  if (mode === '1') {
+    toData.hr = (toData.hr ? toData.hr + '\n\n' : '') + fromData.hr;
+    toData.execution = (toData.execution ? toData.execution + '\n\n' : '') + fromData.execution;
+  } else if (mode === '2') {
+    toData.hr = fromData.hr;
+    toData.execution = fromData.execution;
+  } else { alert('无效选项'); return; }
+
+  saveMeetingData(toMondayStr, toData);
+  alert('已复制到 ' + (toData.label || toMondayStr));
+  renderMeeting();
+}
+
+
+// ════════════════════════════════════════════
+// 🔄 Google Sheets 实时同步模块（JSONP方式，支持本地文件）
+// ════════════════════════════════════════════
+
+var SYNC_URL = 'https://script.google.com/macros/s/AKfycbw6CZAsE6BXI94zUcLcXQIszbZvJ65pfb2sY8CQEPgOjlr_oSzc9f09D8yRUAFrAITKsg/exec';
+var _syncEnabled = true;
+var _syncInterval = null;
+var _pendingWrites = {};
+var _writeTimer = null;
+var _jsonpCallbackCount = 0;
+
+function setSyncStatus(state, msg) {
+  var el = document.getElementById('sync-status');
+  var txt = document.getElementById('sync-text');
+  if (!el) return;
+  el.className = state;
+  if (txt) txt.textContent = msg;
+}
+
+// JSONP 请求（绕过 CORS，支持 file:// 协议）
+function jsonpRequest(url, callback) {
+  var cbName = '_syncCb' + (++_jsonpCallbackCount);
+  var script = document.createElement('script');
+  var done = false;
+  var timer = setTimeout(function() {
+    if (!done) { done = true; cleanup(); callback(null, 'timeout'); }
+  }, 10000);
+  window[cbName] = function(data) {
+    if (!done) { done = true; cleanup(); callback(data, null); }
+  };
+  function cleanup() {
+    clearTimeout(timer);
+    if (script.parentNode) script.parentNode.removeChild(script);
+    delete window[cbName];
+  }
+  script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + cbName;
+  script.onerror = function() {
+    if (!done) { done = true; cleanup(); callback(null, 'script error'); }
+  };
+  document.head.appendChild(script);
+}
+
+// 从 Sheets 读取所有数据
+function syncPull() {
+  if (!_syncEnabled) return;
+  setSyncStatus('syncing', '同步中...');
+  jsonpRequest(SYNC_URL + '?action=read', function(data, err) {
+    if (err || !data) { setSyncStatus('error', '网络错误'); return; }
+    if (data.error) { setSyncStatus('error', '读取失败'); return; }
+
+    // 更新员工数据
+    if (data['employees']) {
+      try {
+        var raw = JSON.parse(data['employees']);
+        var emps = raw.map(function(e) {
+          e.onboard = e.onboard ? new Date(e.onboard) : null;
+          var md = {};
+          Object.keys(e.milestoneDates||{}).forEach(function(k) {
+            md[k] = e.milestoneDates[k] ? new Date(e.milestoneDates[k]) : null;
+          });
+          e.milestoneDates = md;
+          return e;
+        });
+        if (emps.length > 0 && emps.length !== employees.length) {
+          employees = emps;
+          if (typeof showUploadResult === 'function') showUploadResult(employees, '云端同步');
+          if (typeof updateBadges === 'function') updateBadges();
+        }
+      } catch(e) {}
+    }
+
+    // 更新会议记录
+    Object.keys(data).forEach(function(key) {
+      if (key.indexOf('meeting_') === 0) {
+        try {
+          var val = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+          localStorage.setItem(key, val);
+        } catch(e) {}
+      }
+    });
+
+    setSyncStatus('synced', '已同步 ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
+    var meetingPanel = document.getElementById('tab-meeting');
+    if (meetingPanel && meetingPanel.classList.contains('active')) renderMeeting();
+  });
+}
+
+// 写入数据到 Sheets
+function syncPush(key, value) {
+  if (!_syncEnabled) return;
+  _pendingWrites[key] = value;
+  clearTimeout(_writeTimer);
+  _writeTimer = setTimeout(function() {
+    var writes = Object.assign({}, _pendingWrites);
+    _pendingWrites = {};
+    Object.keys(writes).forEach(function(k) {
+      setSyncStatus('syncing', '保存中...');
+      var url = SYNC_URL + '?action=write&key=' + encodeURIComponent(k) + '&value=' + encodeURIComponent(writes[k]);
+      jsonpRequest(url, function(res, err) {
+        if (!err && res && res.success) {
+          setSyncStatus('synced', '已保存 ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
+        } else {
+          setSyncStatus('error', '保存失败');
+        }
+      });
+    });
+  }, 800);
+}
+
+// 删除 Sheets 里的数据
+function syncDelete(key) {
+  if (!_syncEnabled) return;
+  var url = SYNC_URL + '?action=delete&key=' + encodeURIComponent(key);
+  jsonpRequest(url, function() {});
+}
+
+// 启动自动同步（每30秒）
+function startAutoSync() {
+  if (!document.getElementById('sync-status')) {
+    var div = document.createElement('div');
+    div.id = 'sync-status';
+    div.innerHTML = '<span class="sync-dot"></span><span id="sync-text">连接中...</span>';
+    document.body.appendChild(div);
+  }
+  syncPull();
+  _syncInterval = setInterval(syncPull, 30000);
+}
+
+// 上传员工数据后推送到云端
+function syncPushEmployees() {
+  if (!employees.length) return;
+  var dataStr = JSON.stringify(employees, function(k, v) {
+    return v instanceof Date ? v.toISOString() : v;
+  });
+  syncPush('employees', dataStr);
+}
+
+
+
+// ════════════════════════════════════════════
+// 🌐 双语切换模块
+// ════════════════════════════════════════════
+
+var _lang = localStorage.getItem('hr_lang') || 'zh';
+
+var I18N = {
+  zh: {
+    'header-title': 'Conviva HR',
+    'header-sub': '员工提醒工具',
+    'nav-upload': '上传表格',
+    'nav-today': '今日提醒',
+    'nav-weekly': '本周提醒',
+    'nav-monthly': '本月生日',
+    'nav-birthday': '本年生日',
+    'nav-reg': '本年转正',
+    'nav-3y': '本年3周年',
+    'nav-5y': '本年5周年',
+    'nav-10y': '本年10周年',
+    'nav-email': 'Slack 设置',
+    'nav-export': '导出小程序',
+    'nav-meeting': '会议记录',
+    'sec-meeting': '会议',
+    'sec-main': '主功能',
+    'sec-milestone': '里程碑',
+    'sec-settings': '设置',
+    'page-meeting-title': '📋 会议记录',
+    'page-meeting-sub': '每周五例会议题 · 所有人均可编辑，内容保存在本地浏览器',
+    'btn-autofill': '🔄 自动填入本周转正&周年',
+    'btn-new-week': '➕ 新建本周',
+    'btn-this-week': '本周',
+    'btn-save': '💾 保存',
+    'btn-delete-week': '🗑 删除本周',
+    'btn-edit-label': '✏️ 修改日期',
+    'btn-copy-week': '📋 复制到其他周',
+    'nameField': 'cnName',
+  },
+  en: {
+    'header-title': 'Conviva HR',
+    'header-sub': 'Employee Reminder',
+    'nav-upload': 'Upload Sheet',
+    'nav-today': 'Today',
+    'nav-weekly': 'This Week',
+    'nav-monthly': 'Birthdays',
+    'nav-birthday': 'Birthdays',
+    'nav-reg': 'Regularization',
+    'nav-3y': '3-Year Anniv.',
+    'nav-5y': '5-Year Anniv.',
+    'nav-10y': '10-Year Anniv.',
+    'nav-email': 'Slack Settings',
+    'nav-export': 'Export App',
+    'nav-meeting': 'Meeting Notes',
+    'sec-meeting': 'Meeting',
+    'sec-main': 'Main',
+    'sec-milestone': 'Milestones',
+    'sec-settings': 'Settings',
+    'page-meeting-title': '📋 Meeting Notes',
+    'page-meeting-sub': 'Weekly Friday meeting topics · Everyone can edit, saved locally',
+    'btn-autofill': '🔄 Auto-fill This Week',
+    'btn-new-week': '➕ New Week',
+    'btn-this-week': 'This Week',
+    'btn-save': '💾 Save',
+    'btn-delete-week': '🗑 Delete Week',
+    'btn-edit-label': '✏️ Edit Date',
+    'btn-copy-week': '📋 Copy to Another Week',
+    'nameField': 'enName',
+  }
+};
+
+function t(key) {
+  return (I18N[_lang] && I18N[_lang][key]) || (I18N['zh'] && I18N['zh'][key]) || key;
+}
+
+function applyLang() {
+  var lang = _lang;
+  var d = I18N[lang];
+  if (!d) return;
+
+  // Header
+  var ht = document.querySelector('.header-title');
+  if (ht) ht.textContent = d['header-title'];
+  var hs = document.querySelector('.header-sub');
+  if (hs) hs.textContent = d['header-sub'];
+
+  // Nav items (text node is the last child after badge span)
+  var navMap = {
+    'nav-upload': d['nav-upload'],
+    'nav-today': d['nav-today'],
+    'nav-weekly': d['nav-weekly'],
+    'nav-monthly': d['nav-monthly'],
+    'nav-birthday': d['nav-birthday'],
+    'nav-reg': d['nav-reg'],
+    'nav-3y': d['nav-3y'],
+    'nav-5y': d['nav-5y'],
+    'nav-10y': d['nav-10y'],
+    'nav-email': d['nav-email'],
+    'nav-export': d['nav-export'],
+    'nav-meeting': d['nav-meeting'],
+  };
+  Object.keys(navMap).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    // Find text node (last child or after icon span)
+    var nodes = el.childNodes;
+    for (var i = nodes.length - 1; i >= 0; i--) {
+      if (nodes[i].nodeType === 3 && nodes[i].textContent.trim()) {
+        nodes[i].textContent = ' ' + navMap[id];
+        break;
+      }
+    }
+  });
+
+  // Sidebar section labels
+  var sections = document.querySelectorAll('.sidebar-section');
+  var sectionKeys = ['sec-meeting', 'sec-main', 'sec-milestone', 'sec-settings'];
+  sections.forEach(function(el, i) {
+    if (sectionKeys[i]) el.textContent = d[sectionKeys[i]] || el.textContent;
+  });
+
+  // Meeting page title and sub
+  var mt = document.getElementById('meeting-page-title');
+  if (mt) mt.textContent = d['page-meeting-title'];
+  var ms = document.getElementById('meeting-page-sub');
+  if (ms) ms.textContent = d['page-meeting-sub'];
+
+  // Meeting buttons
+  var btnMap = {
+    'btn-autofill-el': d['btn-autofill'],
+    'btn-new-week-el': d['btn-new-week'],
+    'btn-this-week-el': d['btn-this-week'],
+  };
+  Object.keys(btnMap).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = btnMap[id];
+  });
+
+  // Lang toggle button
+  var lb = document.getElementById('lang-toggle');
+  if (lb) lb.textContent = lang === 'zh' ? '中/EN' : 'EN/中';
+
+  // Re-render current tab to update employee names
+  var activePanel = document.querySelector('.panel.active');
+  if (activePanel) {
+    var tabId = activePanel.id.replace('tab-', '');
+    if (typeof showTab === 'function' && tabId !== 'meeting') {
+      var renderFns = {
+        'today': renderToday,
+        'weekly': renderWeek,
+        'monthly': renderBirthday,
+      };
+      if (renderFns[tabId]) renderFns[tabId]();
+    }
+    if (tabId === 'meeting') renderMeeting();
+  }
+}
+
+function toggleLang() {
+  _lang = (_lang === 'zh') ? 'en' : 'zh';
+  localStorage.setItem('hr_lang', _lang);
+  applyLang();
+}
+
+// 获取员工显示名（根据当前语言）
+function getEmpName(emp) {
+  if (!emp) return '';
+  if (_lang === 'en') return emp.enName || emp.cnName || '';
+  return emp.cnName || emp.enName || '';
+}
+
+// Init
+// Use China time for initial date
+const _chinaInit = new Date(new Date().getTime() + (8*60 - new Date().getTimezoneOffset()) * 60000);
+document.getElementById('checkDate').value = _chinaInit.toISOString().split('T')[0];
+goCurrentMonth();
+goCurrentMilestoneMonth();
+if(employees.length){showUploadResult(employees,"已内嵌数据");updateBadges();}
+renderMeeting();
+applyLang();
+startAutoSync();
+
+
+
+
+
+
+function showAutoGuide() {
+  const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
+  document.getElementById('email-guide').innerHTML = `<div class="card" style="margin-top:16px">
+    <div class="card-title">⚙️ 每日自动发送方案</div>
+    <p style="font-size:13px;color:var(--gray-mid);margin-bottom:14px">需联系 <strong style="color:var(--gray-text)">Santhosh（IT）</strong> 帮你申请公司邮箱应用密码，然后运行以下Python脚本即可。</p>
+    <div class="code-block"># pip install openpyxl schedule python-dateutil
+
+import schedule, time, smtplib, openpyxl
+from datetime import date
+from email.mime.text import MIMEText
+
+SMTP_SERVER = "smtp.office365.com"; SMTP_PORT = 587
+FROM_EMAIL  = "${to}"; FROM_PASS = "your_app_password"
+TO_EMAIL    = "${to}"
+EXCEL_FILE  = r"C:\路径\Employee_information_list.xlsx"
+
+MILESTONE_COLS = {
+    'Date of Regularization':'转正(6个月)',
+    '3rd Anniversary':'3周年',
+    '5th Anniversary':'5周年',
+    '10th Anniversary':'10周年'
+}
+
+def load_employees():
+    wb = openpyxl.load_workbook(EXCEL_FILE, data_only=True)
+    ws = wb['总表']
+    headers = [str(c.value).strip() if c.value else '' for c in ws[2]]
+    emps = []
+    for row in ws.iter_rows(min_row=3, values_only=True):
+        r = dict(zip(headers, row))
+        cn = str(r.get('Chinese name','')).strip()
+        en = str(r.get('Name','')).strip()
+        if not (cn or en): continue
+        dob = r.get('Date of Birth')
+        ms_dates = {}
+        for col in MILESTONE_COLS:
+            v = r.get(col)
+            ms_dates[col] = v.date() if hasattr(v,'date') else None
+        emps.append({'cn':cn,'en':en,'dept':str(r.get('China-Department','')).strip(),
+                     'dob_month':dob.month-1 if hasattr(dob,'month') else None,
+                     'dob_day':dob.day if hasattr(dob,'day') else None,'ms':ms_dates})
+    return emps
+
+def send_email(subj, body):
+    msg = MIMEText(body,'plain','utf-8')
+    msg['Subject']=subj; msg['From']=FROM_EMAIL; msg['To']=TO_EMAIL
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
+        s.starttls(); s.login(FROM_EMAIL, FROM_PASS); s.send_message(msg)
+
+def check_milestones():
+    emps = load_employees(); today = date.today()
+    hits = []
+    for e in emps:
+        ms = []
+        for col, label in MILESTONE_COLS.items():
+            d = e['ms'].get(col)
+            if d and d.year==today.year and d.month==today.month and d.day==today.day:
+                ms.append(label)
+        if ms:
+            hits.append(f"• {e['cn']}（{e['en']}）[{e['dept']}] — {'、'.join(ms)}")
+    if hits:
+        send_email(f'[HR提醒] {today} 员工里程碑',
+                   "以下员工今日有里程碑：\n\n"+("\n".join(hits)))
+
+def check_birthdays():
+    today = date.today()
+    mondays = [d for d in range(1,32)
+               if date(today.year,today.month,d).weekday()==0
+               if date(today.year,today.month,d).month==today.month]
+    if len(mondays)<2 or today.day != mondays[1]: return
+    emps = load_employees()
+    bds = [e for e in emps if e['dob_month']==today.month-1 and e['dob_day']]
+    bds.sort(key=lambda e: e['dob_day'])
+    if not bds: return
+    lines = [f"• {today.month}月{e['dob_day']}日 — {e['cn']}（{e['en']}）[{e['dept']}]" for e in bds]
+    send_email(f'[HR生日] {today.year}年{today.month}月生日名单',
+               f"本月过生日员工（共{len(bds)}人）：\n\n" + ("\n".join(lines)) + "\n\n请安排礼物和蛋糕！")
+
+schedule.every().day.at("08:30").do(check_milestones)
+schedule.every().day.at("08:30").do(check_birthdays)
+print("⏰ 已启动，每天 08:30 自动检查")
+while True:
+    schedule.run_pending(); time.sleep(60)</div>
+    <div style="font-size:12px;color:var(--gray-mid);margin-top:10px">💡 把 your_app_password 替换为 Santhosh 提供的邮箱应用密码后直接运行即可</div>
+  </div>`;
+}
+</script>
+<!-- __HR_INJECT_HERE_v2__ -->
+</body>
+</html>
