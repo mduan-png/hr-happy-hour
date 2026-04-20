@@ -1,0 +1,3992 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>China HR Happy Hour</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --green:       #9cdc00;
+    --green-dark:  #78b900;
+    --green-deeper:#5a9b00;
+    --gray-text:   #222629;
+    --gray-mid:    #717372;
+    --gray-600:    #b7b9b8;
+    --gray-400:    #d4d5d5;
+    --gray-200:    #f1f1f1;
+    --gray-100:    #f8f8f8;
+    --bg:          #fcfcfc;
+    --purple:      #942366;
+    --pink:        #e5167b;
+    --radius-sm:   6px;
+    --radius-md:   10px;
+    --radius-lg:   14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--gray-200);
+    color: var(--gray-text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--gray-text);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    height: 56px;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-dot {
+    width: 28px;
+    height: 28px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-dot svg { width: 16px; height: 16px; }
+  .header-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.2px;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--gray-600);
+    margin-left: 4px;
+    font-weight: 400;
+  }
+  .header-pill {
+    margin-left: auto;
+    background: rgba(156,220,0,0.15);
+    border: 1px solid rgba(156,220,0,0.3);
+    color: var(--green);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; min-height: calc(100vh - 56px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: #fff;
+    border-right: 1px solid var(--gray-400);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+  }
+  .sidebar-section {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gray-600);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 12px 20px 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-mid);
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--gray-100); color: var(--gray-text); }
+  .nav-item.active {
+    background: #f0fae0;
+    color: var(--green-deeper);
+    border-left-color: var(--green);
+    font-weight: 600;
+  }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--green);
+    color: var(--gray-text);
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 1px 6px;
+    min-width: 18px;
+    text-align: center;
+    pointer-events: none;
+  }
+  .nav-divider { height: 1px; background: var(--gray-200); margin: 8px 16px; }
+
+  /* ── MAIN CONTENT ── */
+  .main { flex: 1; padding: 28px 32px; min-width: 0; }
+  .page-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-text);
+    margin-bottom: 4px;
+  }
+  .page-sub {
+    font-size: 12px;
+    color: var(--gray-mid);
+    margin-bottom: 24px;
+  }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-400);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-mid);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* ── UPLOAD ── */
+  .upload-area {
+    border: 2px dashed var(--gray-400);
+    border-radius: var(--radius-lg);
+    padding: 48px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+    display: block;
+  }
+  .upload-area:hover { border-color: var(--green); background: #f7fde6; }
+  .upload-icon-wrap {
+    width: 64px; height: 64px;
+    background: #f0fae0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+  }
+  .upload-icon-wrap svg { width: 28px; height: 28px; color: var(--green-deeper); }
+  .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .upload-hint { font-size: 12px; color: var(--gray-mid); }
+
+  /* ── STATS ── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat {
+    background: #fff;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-num { font-size: 28px; font-weight: 700; line-height: 1; color: var(--gray-text); }
+  .stat-num.alert { color: var(--green-deeper); }
+  .stat-label { font-size: 11px; color: var(--gray-mid); margin-top: 4px; font-weight: 500; }
+
+  /* ── EMP ROWS ── */
+  .emp-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .emp-row:last-child { border-bottom: none; }
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #f0fae0;
+    border: 1.5px solid var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    color: var(--green-deeper);
+    flex-shrink: 0;
+  }
+  .avatar-pink {
+    background: #fce8f2;
+    border-color: var(--pink);
+    color: var(--pink);
+  }
+  .emp-name { font-weight: 600; font-size: 14px; color: var(--gray-text); }
+  .emp-en { font-size: 12px; color: var(--gray-mid); margin-top: 1px; }
+  .emp-info { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+
+  /* ── BADGES ── */
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
+  .badge {
+    display: inline-block; font-size: 11px;
+    padding: 3px 10px; border-radius: 20px;
+    font-weight: 600; white-space: nowrap;
+    font-family: 'Poppins', sans-serif;
+  }
+  .b-reg  { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
+  .b-3y   { background: #eef4ff; color: #1a56c9; border: 1px solid #93b4f5; }
+  .b-5y   { background: #f3efff; color: #5b21b6; border: 1px solid #c4b5fd; }
+  .b-10y  { background: #fff8ed; color: #92400e; border: 1px solid #fbbf24; }
+  .b-bday { background: #fce8f2; color: var(--pink); border: 1px solid #f9a8d4; }
+
+  /* ── DATE BADGE ── */
+  .date-badge {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 3px 10px;
+    font-size: 12px;
+    color: var(--gray-mid);
+    font-weight: 500;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+
+  /* ── BUTTONS ── */
+  button.btn {
+    background: #fff;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--gray-text);
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.15s;
+  }
+  button.btn:hover { background: var(--gray-100); border-color: var(--gray-mid); }
+  button.btn-green {
+    background: var(--green);
+    color: var(--gray-text);
+    border-color: var(--green);
+    font-weight: 600;
+  }
+  button.btn-green:hover { background: var(--green-dark); border-color: var(--green-dark); }
+  button.btn-dark {
+    background: var(--gray-text);
+    color: #fff;
+    border-color: var(--gray-text);
+    font-weight: 600;
+  }
+  button.btn-dark:hover { background: #444; }
+  button.btn-pink {
+    background: var(--pink);
+    color: #fff;
+    border-color: var(--pink);
+    font-weight: 600;
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .controls input[type=date],
+  .controls input[type=number] {
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    font-size: 13px;
+    color: var(--gray-text);
+    background: #fff;
+    font-family: 'Poppins', sans-serif;
+  }
+  .controls label { font-size: 13px; color: var(--gray-mid); font-weight: 500; }
+
+  /* ── MONTH NAV ── */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .month-nav-arrow {
+    width: 32px; height: 32px;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: var(--gray-mid);
+    transition: all 0.15s;
+  }
+  .month-nav-arrow:hover { border-color: var(--green); color: var(--green-deeper); }
+  .month-display {
+    font-size: 15px;
+    font-weight: 700;
+    min-width: 120px;
+    text-align: center;
+    color: var(--gray-text);
+  }
+
+  /* ── NOTICE ── */
+  .notice {
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .notice-green { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
+  .notice-info  { background: #eef4ff; color: #1a56c9; border: 1px solid #93b4f5; }
+  .notice-bday  { background: #fce8f2; color: var(--pink); border: 1px solid #f9a8d4; }
+  .notice-success { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
+
+  /* ── SETTING ROW ── */
+  .setting-row { margin-bottom: 14px; }
+  .setting-row label { display: block; font-size: 11px; color: var(--gray-mid); margin-bottom: 4px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+  .setting-row input {
+    width: 100%;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--gray-text);
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* ── EMPTY ── */
+  .empty { text-align: center; padding: 48px; color: var(--gray-600); font-size: 13px; }
+  .empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--gray-text);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    font-size: 11.5px;
+    font-family: 'Courier New', monospace;
+    color: #d4f5a0;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(34,38,41,0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    width: 560px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .modal-title { font-size: 15px; font-weight: 700; color: var(--gray-text); }
+  .modal-close {
+    width: 30px; height: 30px;
+    border: none; background: none; cursor: pointer;
+    font-size: 18px; color: var(--gray-mid);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: var(--gray-200); }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer {
+    padding: 14px 24px;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .msg-target {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .msg-target-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    min-width: 52px;
+  }
+  .msg-target-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-text);
+    background: var(--gray-100);
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 5px 12px;
+  }
+  .msg-textarea {
+    width: 100%;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--gray-text);
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.6;
+    transition: border-color 0.15s;
+  }
+  .msg-textarea:focus { outline: none; border-color: var(--green); }
+  .char-hint { font-size: 11px; color: var(--gray-mid); margin-top: 6px; text-align: right; }
+  .slack-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--gray-400);
+    background: #fff;
+    cursor: pointer;
+    color: var(--gray-mid);
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .slack-btn:hover { border-color: var(--green); color: var(--green-deeper); background: #f7fde6; }
+  .slack-btn.manager { border-color: #b7b9b8; }
+  .slack-btn.manager:hover { border-color: #717372; color: #222629; background: var(--gray-100); }
+  .slack-icon { font-size: 13px; }
+  .tab-btns { display: flex; gap: 4px; margin-bottom: 16px; }
+  .tab-btn {
+    flex: 1; padding: 8px; text-align: center;
+    font-size: 12px; font-weight: 600;
+    border: 1.5px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    cursor: pointer; background: #fff;
+    color: var(--gray-mid);
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.15s;
+  }
+  .tab-btn.active { border-color: var(--green); background: #f0fae0; color: var(--green-deeper); }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <div class="logo-dot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#222629" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+      </svg>
+    </div>
+    <span class="header-title">Conviva HR</span>
+    <span class="header-sub">Employee Reminder Tool</span>
+  </div>
+  <button id="lang-toggle" onclick="toggleLang()" style="
+    background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.4);
+    color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;
+    cursor:pointer;margin-right:10px;letter-spacing:0.5px;transition:all 0.2s">
+    EN/中
+  </button>
+  <div class="header-pill">China Office</div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">MEETINGS</div>
+    <button class="nav-item active" onclick="showTab('meeting')" id="nav-meeting">
+      <span class="nav-icon">📋</span> Meeting Notes
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="sidebar-section">MAIN</div>
+    <button class="nav-item" onclick="showTab('today')" id="nav-today">
+      <span class="nav-icon">🔔</span> Today
+      <span class="nav-badge" id="today-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showTab('weekly')" id="nav-weekly">
+      <span class="nav-icon">📅</span> This Week
+      <span class="nav-badge" id="weekly-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showTab('monthly')" id="nav-monthly">
+      <span class="nav-icon">🎂</span> Monthly Birthdays
+      <span class="nav-badge" id="monthly-count-badge" style="display:none">0</span>
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="sidebar-section" id="milestones-section-label">MILESTONES</div>
+
+    <button class="nav-item" onclick="showTab('birthday')" id="nav-birthday">
+      <span class="nav-icon">🎂</span> Birthdays
+      <span class="nav-badge" id="bday-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('reg')" id="nav-reg">
+      <span class="nav-icon">✅</span> Annual Regularization
+      <span class="nav-badge" id="reg-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('3y')" id="nav-3y">
+      <span class="nav-icon">🥉</span> Annual 3-Year
+      <span class="nav-badge" id="3y-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('5y')" id="nav-5y">
+      <span class="nav-icon">🥈</span> Annual 5-Year
+      <span class="nav-badge" id="5y-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('10y')" id="nav-10y">
+      <span class="nav-icon">🏆</span> Annual 10-Year
+      <span class="nav-badge" id="10y-count-badge" style="display:none">0</span>
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="sidebar-section">SETTINGS</div>
+    <button class="nav-item" onclick="showTab('upload')" id="nav-upload">
+      <span class="nav-icon">📂</span> Upload Data
+    </button>
+    <button class="nav-item" onclick="showTab('export')" id="nav-export">
+      <span class="nav-icon">📤</span> Export Tool
+    </button>
+    <button class="nav-item" onclick="showTab('email')" id="nav-email">
+      <span class="nav-icon">💬</span> Slack Settings
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- UPLOAD -->
+    <div id="tab-upload" class="panel">
+      <div class="page-title">Upload Employee Data</div>
+      <div class="page-sub">Supports Employee_information_list_xxxx.xlsx format</div>
+
+      <label class="upload-area" for="fileInput" id="upload-label">
+        <div class="upload-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="upload-title" id="upload-title-text">Click to select employee Excel file</div>
+        <div class="upload-hint" id="upload-hint-text">Drag & drop or click · .xlsx / .xls</div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(event)">
+      </label>
+
+      <div id="upload-msg"></div>
+      <div id="preview-area"></div>
+
+      <!-- 员工管理 -->
+      <div id="emp-mgmt-area" style="display:none;margin-top:24px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+          <div class="section-title" style="margin:0">Employee Management</div>
+          <button class="btn btn-green" onclick="showAddEmpForm()" style="margin-left:auto">➕ Add Employee</button>
+          <input id="emp-search" type="text" placeholder="Search name / dept..." 
+            oninput="renderEmpTable()"
+            style="padding:6px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;width:200px">
+        </div>
+        <!-- Add/Edit form -->
+        <div id="emp-form-wrap" style="display:none;background:#f8fdf2;border:1.5px solid var(--green);border-radius:12px;padding:20px;margin-bottom:20px">
+          <div class="section-title" id="emp-form-title">Add Employee</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+            <div><label style="font-size:12px;color:#666">Chinese Name</label>
+              <input id="ef-cnName" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">English Name *</label>
+              <input id="ef-enName" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Department</label>
+              <input id="ef-dept" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Title</label>
+              <input id="ef-title" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Email</label>
+              <input id="ef-email" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Manager</label>
+              <input id="ef-manager" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Onboard Date *</label>
+              <input id="ef-onboard" type="date" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Birthday (MM/DD)</label>
+              <div style="display:flex;gap:8px;margin-top:4px">
+                <input id="ef-dobMonth" type="number" min="1" max="12" placeholder="MM" style="width:50%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box">
+                <input id="ef-dobDay" type="number" min="1" max="31" placeholder="DD" style="width:50%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box">
+              </div>
+            </div>
+          </div>
+          <input id="ef-editIndex" type="hidden" value="-1">
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <button class="btn btn-green" onclick="saveEmpForm()">💾 Save</button>
+            <button class="btn" onclick="cancelEmpForm()">Cancel</button>
+          </div>
+        </div>
+        <!-- Employee table -->
+        <div id="emp-table-wrap"></div>
+      </div>
+    </div>
+
+    <!-- TODAY -->
+    <div id="tab-today" class="panel">
+      <div class="page-title">Today's Reminders</div>
+      <div class="page-sub">Milestones + Birthdays</div>
+      <div class="controls" style="margin-bottom:16px">
+        <label>View date:</label>
+        <input type="date" id="checkDate" onchange="renderToday()">
+        <button class="btn" onclick="goToday()">Today</button>
+      </div>
+      <div id="stats-area"></div>
+      <div id="today-list"></div>
+    </div>
+
+    <!-- BIRTHDAY -->
+    <div id="tab-birthday" class="panel">
+      <div class="page-title">Annual Birthdays</div>
+      <div class="page-sub">View all employee birthdays by month</div>
+      <div class="month-nav">
+        <button class="month-nav-arrow" onclick="changeBdayYear(-1)">◀</button>
+        <div class="month-display" id="month-display"></div>
+        <button class="month-nav-arrow" onclick="changeBdayYear(1)">▶</button>
+        <button class="btn" onclick="goCurrentBdayYear()" style="margin-left:8px">This Year</button>
+  
+      </div>
+      <div id="week2-notice"></div>
+      <div id="birthday-list"></div>
+    </div>
+
+    <!-- MILESTONE MONTH -->
+    <div id="tab-milestone" class="panel">
+      <div class="page-title" id="milestone-page-title">Annual Milestones</div>
+      <div class="page-sub" id="milestone-page-sub"></div>
+      <div class="month-nav">
+        <button class="month-nav-arrow" onclick="changeMilestoneYear(-1)">◀</button>
+        <div class="month-display" id="milestone-month-display"></div>
+        <button class="month-nav-arrow" onclick="changeMilestoneYear(1)">▶</button>
+        <button class="btn" onclick="goCurrentMilestoneYear()" style="margin-left:8px">This Year</button>
+  
+      </div>
+      <div id="milestone-month-list"></div>
+    </div>
+
+    <!-- WEEKLY PANEL -->
+    <div id="tab-weekly" class="panel">
+      <div class="page-title" id="btn-thisweek">This Week</div>
+      <div class="page-sub">This week's regularizations and anniversaries (excl. birthdays)</div>
+      <div class="month-nav" style="margin-bottom:16px">
+        <button class="month-nav-arrow" onclick="changeWeek(-1)">◀</button>
+        <div id="week-range-label" style="font-size:14px;font-weight:700;min-width:200px;text-align:center;color:var(--gray-text)"></div>
+        <button class="month-nav-arrow" onclick="changeWeek(1)">▶</button>
+        <button class="btn" onclick="goThisWeek()" style="margin-left:8px">This Week</button>
+      </div>
+      <div id="week-stats-area"></div>
+      <div id="week-list"></div>
+    </div>
+
+    <!-- MONTHLY OVERVIEW -->
+    <div id="tab-monthly" class="panel">
+      <div class="page-title">Monthly Birthdays</div>
+      <div class="page-sub">Employees with birthdays this month</div>
+      <div class="month-nav">
+        <button class="month-nav-arrow" onclick="changeMonthlyMonth(-1)">◀</button>
+        <div class="month-display" id="monthly-month-display"></div>
+        <button class="month-nav-arrow" onclick="changeMonthlyMonth(1)">▶</button>
+        <button class="btn" onclick="goCurrentMonthlyMonth()" style="margin-left:8px">This Month</button>
+      </div>
+      <div id="monthly-stats-area"></div>
+      <div id="monthly-notice"></div>
+      <div id="monthly-list"></div>
+    </div>
+
+    <!-- EXPORT PANEL -->
+    <div id="tab-export" class="panel">
+      <div class="page-title">Export Tool</div>
+      <div class="page-sub">Generate a version with employee data to share</div>
+      <div id="export-area" class="card" style="border-color:var(--green)">
+        <div style="text-align:center;padding:12px 0">
+          <div style="font-size:48px;margin-bottom:12px">📤</div>
+          <div style="font-size:15px;font-weight:600;color:var(--gray-text);margin-bottom:8px">No data uploaded yet</div>
+          <div style="font-size:13px;color:var(--gray-mid)">Please upload the employee Excel in "Upload Data" first,<br>then come back to export.</div>
+        </div>
+      </div>
+      <div id="export-ready" style="display:none">
+        <div class="card" style="border-color:var(--green);background:#f7fde6">
+          <div style="text-align:center;padding:8px 0 16px">
+            <div style="font-size:48px;margin-bottom:12px">✅</div>
+            <div style="font-size:15px;font-weight:600;color:var(--gray-text);margin-bottom:6px">Data Ready</div>
+            <div style="font-size:13px;color:var(--gray-mid);margin-bottom:6px" id="export-file-info"></div>
+            <div style="font-size:13px;color:var(--gray-mid);margin-bottom:20px">
+              Click the button below to generate a new HTML file.<br>
+              Share this file with colleagues — they can open it in<br>
+              a browser and see all the data,<strong>no re-upload needed.</strong>。
+            </div>
+            <button class="btn btn-green" style="font-size:14px;padding:10px 24px" onclick="exportWithData()">⬇️ Download with Data</button>
+            <div id="export-hint" style="font-size:12px;color:var(--green-deeper);margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+        <!-- MEETING NOTES -->
+    <div id="tab-meeting" class="panel active">
+      <div class="page-title" id="meeting-page-title">📋 Meeting Notes</div>
+      <div class="page-sub" id="meeting-page-sub">Weekly Friday meeting topics · Editable by everyone · Saved in browser</div>
+
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn" onclick="meetingPrevWeek()">◀</button>
+        <div id="meeting-week-label" style="font-size:14px;font-weight:700;min-width:120px;text-align:center"></div>
+        <button class="btn" onclick="meetingNextWeek()">▶</button>
+        <button class="btn" onclick="meetingGoThisWeek()" id="btn-this-week-el" style="margin-left:4px">This Week</button>
+        <button class="btn btn-green" onclick="meetingAutoFill()" id="btn-autofill-el" style="margin-left:auto" id="btn-autofill">🔄 Auto-fill This Week</button>
+        <button class="btn" onclick="meetingNewWeek()" id="btn-new-week-el" style="background:#fff;border:1.5px solid var(--green);color:var(--green-deeper)" id="btn-newweek">➕ New This Week</button>
+      </div>
+
+      <div id="meeting-content">
+        <div class="empty">Select a week or click "New This Week" to start</div>
+      </div>
+    </div>
+
+    <!-- SLACK SETTINGS -->
+    <div id="tab-email" class="panel">
+      <div class="page-title">Slack Settings</div>
+      <div class="page-sub">Configure message templates and reminders</div>
+
+      <div class="card">
+        <div class="card-title">How to use</div>
+        <div style="font-size:13px;color:var(--gray-mid);line-height:1.8">
+          On the "Today's Reminders」or t("This Week","本周提醒") page, each employee has:<br>
+          <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
+            <button class="slack-btn" style="pointer-events:none">💬 Congratulate/Wish the person</button>
+          </span> — Click to preview and edit, send to the employee<br>
+          <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
+            <button class="slack-btn manager" style="pointer-events:none">👔 Notify Manager</button>
+          </span> — Click to preview and edit, notify their manager
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Custom Message Templates</div>
+        <div style="font-size:13px;color:var(--gray-mid);margin-bottom:14px">
+          Click any template to edit. Changes apply to this session.
+        </div>
+        <div id="template-editor">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+            <button class="btn" onclick="editTemplate('birthday')" >🎂 Birthday Wish</button>
+            <button class="btn" onclick="editTemplate('reg')"     >🎉 Regularization Congrats</button>
+            <button class="btn" onclick="editTemplate('3y')"      >🥉 3Anniversary Congrats</button>
+            <button class="btn" onclick="editTemplate('5y')"      >🥈 5Anniversary Congrats</button>
+            <button class="btn" onclick="editTemplate('10y')"     >🏆 10Anniversary Congrats</button>
+          </div>
+          <div id="template-edit-area" style="display:none">
+            <div style="font-size:12px;font-weight:600;color:var(--gray-mid);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px" id="template-edit-label"></div>
+            <textarea class="msg-textarea" id="templateTextArea" style="min-height:100px"></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn btn-green" onclick="saveTemplate()">Save Templates</button>
+              <button class="btn" onclick="resetTemplate()">Reset to Default</button>
+              <button class="btn" onclick="document.getElementById('template-edit-area').style.display='none'">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Auto Reminder Script</div>
+        <p style="font-size:13px;color:var(--gray-mid);margin-bottom:12px">
+          Send daily Slack messages to employees and managers. Contact <strong style="color:var(--gray-text)">Santhosh（IT）</strong> to configure Slack Bot Token.
+        </p>
+        <button class="btn btn-dark" onclick="showSlackAutoGuide()">⚙️ View Automation Script</button>
+        <div id="slack-auto-guide" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+  </main>
+
+<!-- SLACK MODAL -->
+<div class="modal-overlay" id="slackModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">💬 Send Slack Message</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tab-btns" id="modalTabs" style="display:none">
+        <button class="tab-btn active" id="tabEmployee" onclick="switchMsgTab('employee')">👤 Send to Employee</button>
+        <button class="tab-btn" id="tabManager" onclick="switchMsgTab('manager')">👔 Notify Manager</button>
+      </div>
+      <div class="msg-target">
+        <span class="msg-target-label">Send to</span>
+        <span class="msg-target-val" id="modalRecipient">—</span>
+      </div>
+      <div class="msg-target" id="modalManagerRow" style="display:none">
+        <span class="msg-target-label">Direct Manager</span>
+        <span class="msg-target-val" id="modalManagerName">—</span>
+      </div>
+      <textarea class="msg-textarea" id="msgText" oninput="updateCharCount(this)" placeholder="Enter message..."></textarea>
+      <div class="char-hint"><span id="charCount">0</span> chars</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-green" onclick="openInSlack()">
+        <span style="font-size:14px">💬</span> Open in Slack
+      </button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+
+let employees = [];
+let currentBdayMonth = new Date().getMonth(); // 0-based
+let currentBdayYear  = new Date().getFullYear();
+
+const MILESTONES = [
+  { key:'reg', label:'转正(6个月)', dateCol:'Date of Regularization', cls:'b-reg' },
+  { key:'3y',  label:'3周年',       dateCol:'3rd Anniversary',         cls:'b-3y'  },
+  { key:'5y',  label:'5周年',       dateCol:'5th Anniversary',         cls:'b-5y'  },
+  { key:'10y', label:'10周年',      dateCol:'10th Anniversary',        cls:'b-10y' },
+];
+
+function toJSDate(v) {
+  if (!v && v !== 0) return null;
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  if (typeof v === 'number' && v > 1000) {
+    return new Date(Math.round((v - 25569) * 86400 * 1000));
+  }
+  if (typeof v === 'string') {
+    const d = new Date(v.trim().replace(/[./]/g,'-'));
+    return isNaN(d) ? null : d;
+  }
+  return null;
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const fileName = file.name;
+  document.getElementById('upload-msg').innerHTML = '<div style="font-size:13px;color:#888;padding:8px 0">Loading...</div>';
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const wb = XLSX.read(ev.target.result, {type:'array', cellDates:false});
+      const sheetName = wb.SheetNames.includes('Master') ? 'Master' : wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const allRows = XLSX.utils.sheet_to_json(ws, {defval:'', header:1});
+      const headerRow = allRows[1] || [];
+      employees = parseEmployees(headerRow, allRows.slice(2));
+      showUploadResult(employees, fileName);
+      updateBadges();
+      // export shown via showUploadResult
+      updateExportPanel();
+    } catch(err) {
+      document.getElementById('upload-msg').innerHTML = `<div style="color:#c0392b;font-size:13px;padding:8px 0">Read failed：${err.message}</div>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function avatarChar(emp) {
+  return emp.cnName ? emp.cnName.charAt(0) : (emp.enName ? emp.enName.charAt(0) : '?');
+}
+
+function displayName(emp) {
+  if (emp.cnName && emp.enName) return `${emp.cnName} (${emp.enName})`;
+  return emp.cnName || emp.enName;
+}
+
+function sameMonthDay(a, b) {
+  if (!a||!b) return false;
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function getMilestonesOnDate(emp, date) {
+  return MILESTONES.filter(m => {
+    const d = emp.milestoneDates[m.key];
+    return d && sameMonthDay(d, date);
+  });
+}
+
+function getSecondMondayOfMonth(year, month) {
+  // month is 0-based
+  let count = 0;
+  for (let day = 1; day <= 31; day++) {
+    const d = new Date(year, month, day);
+    if (d.getMonth() !== month) break;
+    if (d.getDay() === 1) { // Monday
+      count++;
+      if (count === 2) return d;
+    }
+  }
+  return null;
+}
+
+function isSecondMondayOfMonth(date) {
+  const d = getSecondMondayOfMonth(date.getFullYear(), date.getMonth());
+  return d && d.toDateString() === date.toDateString();
+}
+
+function goToday() {
+  const china = getChinaToday ? getChinaToday() : new Date();
+  document.getElementById('checkDate').value = china.toISOString().split('T')[0];
+  renderToday();
+}
+
+function renderToday() {
+  const v = document.getElementById('checkDate').value;
+  if (!v) return;
+  const date = new Date(v+'T00:00:00');
+  const listEl = document.getElementById('today-list');
+  const statsEl = document.getElementById('stats-area');
+  const sendBtn = document.getElementById('sendMilestoneBtn');
+  if (!employees.length) {
+    statsEl.innerHTML=''; listEl.innerHTML='<div class="empty">Please upload employee data first</div>';
+    sendBtn.style.display='none'; return;
+  }
+
+  const mHits  = employees.map(emp=>({emp,ms:getMilestonesOnDate(emp,date)})).filter(h=>h.ms.length);
+  const bdHits = employees.filter(emp => emp.dobMonth===date.getMonth() && emp.dobDay===date.getDate());
+  const counts = {reg:0,'3y':0,'5y':0,'10y':0};
+  mHits.forEach(h=>h.ms.forEach(m=>counts[m.key]++));
+  const totalPeople = mHits.length + bdHits.length;
+
+  statsEl.innerHTML = `<div class="stats" style="grid-template-columns:repeat(6,1fr)">
+    <div class="stat"><div class="stat-num${totalPeople?' alert':''}">${totalPeople}</div><div class="stat-label">今合计</div></div>
+    <div class="stat"><div class="stat-num">${counts.reg}</div><div class="stat-label">Regularization</div></div>
+    <div class="stat"><div class="stat-num">${counts['3y']}</div><div class="stat-label">3周年</div></div>
+    <div class="stat"><div class="stat-num">${counts['5y']}</div><div class="stat-label">5周年</div></div>
+    <div class="stat"><div class="stat-num">${counts['10y']}</div><div class="stat-label">10周年</div></div>
+    <div class="stat"><div class="stat-num">${bdHits.length}</div><div class="stat-label">🎂 生</div></div>
+  </div>`;
+
+  // send btn removed
+
+  if (!totalPeople) { listEl.innerHTML='<div class="empty">🎉 No reminders today</div>'; return; }
+
+  let html = '';
+
+  // Birthday section
+  if (bdHits.length) {
+    html += `<div class="card">
+      <div class="section-title" style="color:#c2185b">🎂 生 Today's Reminders</div>
+      ${bdHits.map(emp=>{
+        const idx = employees.indexOf(emp);
+        return `<div class="emp-row">
+          <div class="avatar avatar-pink">${avatarChar(emp)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="emp-name">${emp.cnName||emp.enName}</div>
+            <div class="emp-en">${emp.cnName&&emp.enName?emp.enName:''}</div>
+            <div class="emp-info">${[emp.dept,emp.title].filter(Boolean).join(' · ')}</div>
+          </div>
+          <div class="badges">
+            <span class="badge b-bday">🎂 生快乐</span>
+            <button class="slack-btn" onclick="openSlackByIdx(${idx},'birthday')">💬 祝福本人</button>
+            ${emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'birthday_mgr')">👔 Notify Manager</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Milestone section
+  if (mHits.length) {
+    html += `<div class="card">
+      <div class="section-title">🏆 今里程碑</div>
+      ${mHits.map(h=>{
+        const empJson = JSON.stringify(h.emp).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        return `<div class="emp-row">
+          <div class="avatar">${avatarChar(h.emp)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="emp-name">${h.emp.cnName||h.emp.enName}</div>
+            <div class="emp-en">${h.emp.cnName&&h.emp.enName?h.emp.enName:''}</div>
+            <div class="emp-info">${[h.emp.dept,h.emp.title].filter(Boolean).join(' · ')}</div>
+          </div>
+          <div class="badges">
+            ${h.ms.map(m=>`<span class="badge ${m.cls}">${m.label}</span>`).join('')}
+            ${h.ms.map(m=>`
+              <button class="slack-btn" onclick="openSlackModal(${empJson},'${m.key}')">💬 祝贺本人</button>
+              ${h.emp.manager?`<button class="slack-btn manager" onclick="openSlackModal(${empJson},'${m.key}_mgr')">👔 Notify Manager</button>`:''}
+            `).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  listEl.innerHTML = html;
+}
+
+
+function getChinaToday() {
+  const now = new Date();
+  const chinaOffset = 8 * 60;
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  return new Date(utc + chinaOffset * 60000);
+}
+
+function getWeekRange(refDate) {
+  const d = new Date(refDate);
+  const day = d.getDay();
+  const diffToMon = (day === 0) ? -6 : 1 - day;
+  const mon = new Date(d); mon.setDate(d.getDate() + diffToMon); mon.setHours(0,0,0,0);
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6); sun.setHours(23,59,59,999);
+  return { mon, sun };
+}
+
+function sendMilestoneEmail() {
+  if (_todayView === 'week') { sendWeekEmail(); return; }
+  _origSendMilestone();
+}
+
+let currentMilestoneKey = 'reg';
+let currentMilestoneMonth = new Date().getMonth();
+let currentMilestoneYear  = new Date().getFullYear();
+
+function showTab(t) {
+  document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  const navEl = document.getElementById('nav-'+t);
+  if (navEl) navEl.classList.add('active');
+  if (t==='today')   renderToday();
+  if (t==='meeting')  renderMeeting();
+  if (t==='export')  updateExportPanel();
+  if (t==='weekly')  { _weekOffset = 0; renderWeek(); }
+  if (t==='birthday') goCurrentBdayYear();
+  if (t==='monthly')  goCurrentMonthlyMonth();
+  updateStaticLabels();
+}
+
+function showMilestoneTab(key) {
+  document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-milestone').classList.add('active');
+  const navEl = document.getElementById('nav-'+key);
+  if (navEl) navEl.classList.add('active');
+  setMilestoneSub(key);
+}
+
+function setMilestoneSub(key) {
+  currentMilestoneKey = key;
+  // Update sidebar nav highlight
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const navEl = document.getElementById('nav-'+key);
+  if (navEl) navEl.classList.add('active');
+  // Update page title and subtitle
+  const titleMap = { reg:t('Annual Regularization List','本年转正名单'), '3y':t('Annual 3-Year List','本年3周年名单'), '5y':t('Annual 5-Year List','本年5周年名单'), '10y':t('Annual 10-Year List','本年10周年名单') };
+  const subMap   = { reg:'入职满6个月转为正式员工', '3y':'入职满3周年', '5y':'入职满5周年', '10y':'入职满10周年' };
+  const ptEl = document.getElementById('milestone-page-title');
+  const psEl = document.getElementById('milestone-page-sub');
+  if (ptEl) ptEl.textContent = titleMap[key] || t('Annual Milestones','本年里程碑');
+  if (psEl) psEl.textContent = subMap[key]  || '';
+  // Update any inline sub-tab buttons if present
+  ['reg','3y','5y','10y'].forEach(k => {
+    const el = document.getElementById('ms-sub-'+k);
+    if (el) el.classList.toggle('active', k===key);
+  });
+  renderMilestoneMonth();
+}
+
+function goCurrentMilestoneYear() {
+  currentMilestoneYear = new Date().getFullYear();
+  renderMilestoneMonth();
+}
+
+function goCurrentMilestoneMonth() { goCurrentMilestoneYear(); }
+
+function changeMilestoneYear(delta) {
+  currentMilestoneYear += delta;
+  renderMilestoneMonth();
+}
+
+function changeMilestoneMonth(delta) { changeMilestoneYear(delta); }
+
+function renderMilestoneMonth() {
+  const monthNames = [t('Jan','1月'),t('Feb','2月'),t('Mar','3月'),t('Apr','4月'),t('May','5月'),t('Jun','6月'),t('Jul','7月'),t('Aug','8月'),t('Sep','9月'),t('Oct','10月'),'1Jan','1Feb'];
+  document.getElementById('milestone-month-display').textContent = currentMilestoneYear + ' ';
+
+  const m = MILESTONES.find(x => x.key === currentMilestoneKey);
+  const listEl = document.getElementById('milestone-month-list');
+
+  if (!employees.length) {
+    listEl.innerHTML = '<div class="empty">Please upload employee data first</div>';
+    return;
+  }
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Get all employees with this milestone in the selected year, grouped by month
+  const byMonth = {};
+  employees.forEach(emp => {
+    const d = emp.milestoneDates[m.key];
+    if (d && d.getFullYear() === currentMilestoneYear) {
+      const mo = d.getMonth();
+      if (!byMonth[mo]) byMonth[mo] = [];
+      byMonth[mo].push({ emp, date: d });
+    }
+  });
+
+  const months = Object.keys(byMonth).map(Number).sort((a,b) => a-b);
+  const total = months.reduce((s, mo) => s + byMonth[mo].length, 0);
+
+  if (!months.length) {
+    listEl.innerHTML = `<div class="empty">${currentMilestoneYear} 没有员工达到${m.label}</div>`;
+    return;
+  }
+
+  listEl.innerHTML = months.map(mo => {
+    const isCurrentMonth = mo === today.getMonth() && currentMilestoneYear === today.getFullYear();
+    const entries = byMonth[mo].sort((a,b) => a.date.getDate() - b.date.getDate());
+    return `<div class="card" style="${isCurrentMonth ? 'border-color:var(--green);border-width:1.5px' : ''}">
+      <div class="section-title" style="${isCurrentMonth ? 'color:var(--green-deeper)' : ''}">
+        ${isCurrentMonth ? '📍 本月 · ' : ''}${monthNames[mo]}（${entries.length}人）
+      </div>
+      ${entries.map(({ emp, date }) => {
+        const idx = employees.indexOf(emp);
+        const dateStr = (mo + 1) + '/' + date.getDate() + '';
+        return `<div class="emp-row">
+          <div class="avatar">${avatarChar(emp)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="emp-name">${emp.cnName || emp.enName}</div>
+            <div class="emp-en">${emp.cnName && emp.enName ? emp.enName : ''}</div>
+            <div class="emp-info">${[emp.dept, emp.title].filter(Boolean).join(' · ')}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+            <span class="bday-date-badge"><span class="badge ${m.cls}">${m.label}</span> ${dateStr}</span>
+            <button class="slack-btn" onclick="openSlackByIdx(${idx},'${m.key}')">💬 祝贺本人</button>
+            ${emp.manager ? `<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'${m.key}_mgr')">👔 Notify Manager</button>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function sendMilestoneMonthEmail() {
+  const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
+  const monthNames = [t('Jan','1月'),t('Feb','2月'),t('Mar','3月'),t('Apr','4月'),t('May','5月'),t('Jun','6月'),t('Jul','7月'),t('Aug','8月'),t('Sep','9月'),t('Oct','10月'),'1Jan','1Feb'];
+  const m = MILESTONES.find(x => x.key === currentMilestoneKey);
+  const hits = employees.filter(emp => {
+    const d = emp.milestoneDates[m.key];
+    return d && d.getFullYear()===currentMilestoneYear && d.getMonth()===currentMilestoneMonth;
+  }).sort((a,b) => a.milestoneDates[m.key].getDate() - b.milestoneDates[m.key].getDate());
+  if (!hits.length) { alert('本月没有Relevant People！'); return; }
+  const lines = hits.map(emp => {
+    const d = emp.milestoneDates[m.key];
+    return `• ${currentMilestoneMonth+1}/${d.getDate()} — ${emp.cnName||''}${emp.enName?'（'+emp.enName+'）':''}${emp.dept?' ['+emp.dept+']':''}`;
+  });
+  const body = 'Hello,\n\nThis week (' + monStr + ' — ' + sunStr + ') Employee Reminder Summary:\n\n' + lines.join('\n') + '\n\n— Conviva HR Reminder Tool';
+  const subj = `[HR提醒] 本周（${monStr}-${sunStr}）员工提醒`;
+  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+}
+
+
+function parseEmployees(headers, rows) {
+  const idx = {};
+  headers.forEach((h,i) => { if(h) idx[String(h).trim()] = i; });
+  return rows.map(row => {
+    const cnName = String(row[idx['Chinese name']]||'').trim();
+    const enName = String(row[idx['Name']]||'').trim();
+    if (!cnName && !enName) return null;
+    const onboard = toJSDate(row[idx['Onboarding Date']]);
+    if (!onboard) return null;
+    const dept  = String(row[idx['China-Department']]||'').trim();
+    const title = String(row[idx['Title']]||'').trim();
+    const email = String(row[idx['Company Email']]||'').trim();
+    // Birthday: use month+day from Date of Birth, ignore year (year is entry year not birth year)
+    const dobRaw = toJSDate(row[idx['Date of Birth']]);
+    const birthMonth = row[idx['Birth Month']]; // 1-12
+    let dobMonth = null, dobDay = null;
+    if (dobRaw) {
+      dobMonth = dobRaw.getMonth(); // 0-based
+      dobDay   = dobRaw.getDate();
+    } else if (birthMonth) {
+      dobMonth = parseInt(birthMonth) - 1;
+    }
+    const milestoneDates = {};
+    for (const m of MILESTONES) {
+      milestoneDates[m.key] = toJSDate(row[idx[m.dateCol]]);
+    }
+    const manager = String(row[idx['Direct Manager']]||'').trim();
+    return { cnName, enName, dept, title, email, onboard, milestoneDates, dobMonth, dobDay, manager };
+  }).filter(Boolean);
+}
+
+let _weekOffset = 0; // weeks from current China week (0 = this week)
+
+function changeWeek(delta) {
+  _weekOffset += delta;
+  renderWeek();
+}
+
+function goThisWeek() {
+  _weekOffset = 0;
+  renderWeek();
+}
+
+function getOffsetWeekRange() {
+  const chinaToday = getChinaToday();
+  // Shift by _weekOffset weeks
+  const shifted = new Date(chinaToday);
+  shifted.setDate(shifted.getDate() + _weekOffset * 7);
+  return getWeekRange(shifted);
+}
+
+function renderWeek() {
+  const chinaToday = getChinaToday();
+  const { mon, sun } = getOffsetWeekRange();
+  const listEl  = document.getElementById('week-list');
+  const statsEl = document.getElementById('week-stats-area');
+  const rangeEl = document.getElementById('week-range-label');
+
+  const fmt = d => d.toLocaleDateString('zh-CN', {month:'long', day:'numeric', weekday:'short'});
+  const isCurrentWeek = _weekOffset === 0;
+  rangeEl.textContent = (isCurrentWeek ? t('This week: ','本周：') : '') + fmt(mon) + ' — ' + fmt(sun) + t('(China Time)','(中国时间)');
+
+  if (!employees.length) {
+    statsEl.innerHTML = '';
+    listEl.innerHTML = '<div class="empty">Please upload employee data first</div>';
+    return;
+  }
+
+  // Milestones only, no birthdays
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mon); d.setDate(mon.getDate() + i);
+    const mHits = employees.map(emp => ({emp, ms: getMilestonesOnDate(emp, d)})).filter(h => h.ms.length);
+    if (mHits.length) days.push({ date: new Date(d), mHits });
+  }
+
+  const total  = days.reduce((s, d) => s + d.mHits.length, 0);
+  const cntReg = days.reduce((s,d)=>s+d.mHits.filter(h=>h.ms.some(m=>m.key==='reg')).length,0);
+  const cnt3y  = days.reduce((s,d)=>s+d.mHits.filter(h=>h.ms.some(m=>m.key==='3y')).length,0);
+  const cnt5y  = days.reduce((s,d)=>s+d.mHits.filter(h=>h.ms.some(m=>m.key==='5y')).length,0);
+  const cnt10y = days.reduce((s,d)=>s+d.mHits.filter(h=>h.ms.some(m=>m.key==='10y')).length,0);
+
+  statsEl.innerHTML = `<div class="stats" style="grid-template-columns:repeat(5,1fr);margin-bottom:16px">
+    <div class="stat"><div class="stat-num${total?' alert':''}">${total}</div><div class="stat-label">本周合计</div></div>
+    <div class="stat"><div class="stat-num">${cntReg}</div><div class="stat-label">转正</div></div>
+    <div class="stat"><div class="stat-num">${cnt3y}</div><div class="stat-label">3周年</div></div>
+    <div class="stat"><div class="stat-num">${cnt5y}</div><div class="stat-label">5周年</div></div>
+    <div class="stat"><div class="stat-num">${cnt10y}</div><div class="stat-label">10周年</div></div>
+  </div>`;
+
+  if (!days.length) {
+    listEl.innerHTML = '<div class="empty">🎉 No milestones this week</div>';
+    return;
+  }
+
+  const weekdayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const todayStr = chinaToday.toDateString();
+
+  listEl.innerHTML = days.map(day => {
+    const isToday  = day.date.toDateString() === todayStr;
+    const isFriday = day.date.getDay() === 5;
+    const dateLabel = day.date.toLocaleDateString('zh-CN', {month:'long', day:'numeric'});
+    const weekday   = weekdayNames[day.date.getDay()];
+    const dayTotal  = day.mHits.length;
+
+    return `<div class="card" style="${isToday ? 'border-color:var(--green);border-width:1.5px' : ''}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:${isToday?'var(--green-deeper)':'var(--gray-text)'}">
+          ${isToday ? '🔴 Today · ' : ''}${dateLabel} ${weekday}
+        </div>
+        ${isFriday ? '<span style="font-size:11px;background:#fff8ed;color:#92400e;border:1px solid #fbbf24;border-radius:20px;padding:2px 8px;font-weight:600">📋 Fri会议</span>' : ''}
+        <span style="font-size:12px;color:var(--gray-mid);margin-left:4px">${dayTotal} 人</span>
+      </div>
+      ${day.mHits.map(h => {
+        const idx = employees.indexOf(h.emp);
+        return `<div class="emp-row">
+          <div class="avatar">${avatarChar(h.emp)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="emp-name">${h.emp.cnName||h.emp.enName}</div>
+            <div class="emp-en">${h.emp.cnName&&h.emp.enName?h.emp.enName:''}</div>
+            <div class="emp-info">${[h.emp.dept,h.emp.title].filter(Boolean).join(' · ')}</div>
+          </div>
+          <div class="badges">
+            ${h.ms.map(m=>`<span class="badge ${m.cls}">${m.label}</span>`).join('')}
+            ${h.ms.map(m=>`
+              <button class="slack-btn" onclick="openSlackByIdx(${idx},'${m.key}')">💬 祝贺本人</button>
+              ${h.emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'${m.key}_mgr')">👔 Notify Manager</button>`:''}
+            `).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function sendWeekEmail() {
+  const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
+  const chinaToday = getChinaToday();
+  const { mon, sun } = getWeekRange(chinaToday);
+  const lines = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mon); d.setDate(mon.getDate() + i);
+    const mHits  = employees.map(emp=>({emp,ms:getMilestonesOnDate(emp,d)})).filter(h=>h.ms.length);
+    const bdHits = employees.filter(emp=>emp.dobMonth===d.getMonth()&&emp.dobDay===d.getDate());
+    if (!mHits.length && !bdHits.length) continue;
+    const dateStr = d.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'});
+    lines.push(`[${dateStr}]`);
+    bdHits.forEach(emp => lines.push(`  • ${emp.cnName||''}${emp.enName?' ('+emp.enName+')':''} — 🎂 Birthday`));
+    mHits.forEach(h  => lines.push(`  • ${h.emp.cnName||''}${h.emp.enName?' ('+h.emp.enName+')':''} — ${h.ms.map(m=>m.label).join(', ')}`));
+  }
+  if (!lines.length) { alert('No reminders this week!'); return; }
+  const monStr = mon.toLocaleDateString('zh-CN',{month:'long',day:'numeric'});
+  const sunStr = sun.toLocaleDateString('zh-CN',{month:'long',day:'numeric'});
+  const body = 'Hi,\n\nWeekly employee reminder summary (' + monStr + ' — ' + sunStr + ') Employee Reminder Summary:\n\n' + lines.join('\n') + '\n\n— Conviva HR Reminder Tool';
+  const subj = `[HR Alert] Weekly Reminders (${monStr} — ${sunStr})`;
+  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+}
+
+
+function showUploadResult(emps, fileName) {
+  // 如果是真实上传（非Cloud sync），推送到 Sheets
+  if (fileName && fileName !== 'Cloud sync' && fileName !== 'Data pre-loaded' && typeof syncPushEmployees === 'function') {
+    setTimeout(syncPushEmployees, 1000);
+  }
+  // Show employee management
+  var mgmt = document.getElementById('emp-mgmt-area');
+  if (mgmt) mgmt.style.display = 'block';
+  renderEmpTable();
+  // Update upload area to show filename
+  const titleEl = document.getElementById('upload-title-text');
+  const hintEl  = document.getElementById('upload-hint-text');
+  const labelEl = document.getElementById('upload-label');
+  if (titleEl) titleEl.textContent = fileName || t('Uploaded','已上传');
+  if (hintEl)  hintEl.textContent  = t('✅ Loaded','✅ 已加载') + ' ' + emps.length + t(' employees · Click to re-upload',' 名员工 · 点击重新上传');
+  if (labelEl) { labelEl.style.borderColor = 'var(--green)'; labelEl.style.background = '#f7fde6'; }
+  // Show export, hide placeholder
+  const ea = document.getElementById('export-area');
+  const ep = document.getElementById('export-placeholder');
+  if (ea) ea.style.display = '';
+  if (ep) ep.style.display = 'none';
+  document.getElementById('upload-msg').innerHTML =
+    `<div class="notice">✅ ${t('Loaded','已加载')} ${emps.length} ${t('employees','名员工')}</div>`;
+  document.getElementById('preview-area').innerHTML = '';
+}
+
+function updateBadges() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const china = getChinaToday ? getChinaToday() : today;
+
+  // ── Today ──
+  const mHits = employees.filter(emp => getMilestonesOnDate(emp, today).length);
+  const bdHits = employees.filter(emp => emp.dobMonth === today.getMonth() && emp.dobDay === today.getDate());
+  const totalToday = mHits.length + bdHits.length;
+  const tb = document.getElementById('today-count-badge');
+  if (tb) { tb.textContent = totalToday; tb.style.display = totalToday ? '' : 'none'; }
+
+  // ── This Week (milestones only, China time) ──
+  const { mon, sun } = getWeekRange ? getWeekRange(china) : { mon: today, sun: today };
+  let weekCount = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(mon); d.setDate(mon.getDate() + i);
+    weekCount += employees.filter(emp => getMilestonesOnDate(emp, d).length).length;
+  }
+  const wb = document.getElementById('weekly-count-badge');
+  if (wb) { wb.textContent = weekCount; wb.style.display = weekCount ? '' : 'none'; }
+
+  // ── This Month (birthdays only) ──
+  const monthCount = employees.filter(emp => emp.dobMonth === today.getMonth() && emp.dobDay !== null).length;
+  const mb = document.getElementById('monthly-count-badge');
+  if (mb) { mb.textContent = monthCount; mb.style.display = monthCount ? '' : 'none'; }
+
+  // ── Annual birthday (all employees with a birthday) ──
+  const bm = document.getElementById('bday-count-badge');
+  const bdThisYear = employees.filter(emp => emp.dobDay !== null);
+  if (bm) { bm.textContent = bdThisYear.length; bm.style.display = bdThisYear.length ? '' : 'none'; }
+
+  // ── Milestone year badges ──
+  for (const m of MILESTONES) {
+    const count = employees.filter(emp => {
+      const d = emp.milestoneDates[m.key];
+      return d && d.getFullYear() === today.getFullYear();
+    }).length;
+    const el = document.getElementById(m.key+'-count-badge');
+    if (el) { el.textContent = count; el.style.display = count ? '' : 'none'; }
+  }
+}
+
+
+// ── MONTHLY OVERVIEW ──
+let _monthlyMonth = new Date().getMonth();
+let _monthlyYear  = new Date().getFullYear();
+
+function goCurrentMonthlyMonth() {
+  const china = getChinaToday();
+  _monthlyMonth = china.getMonth();
+  _monthlyYear  = china.getFullYear();
+  renderMonthly();
+}
+
+function changeMonthlyMonth(delta) {
+  _monthlyMonth += delta;
+  if (_monthlyMonth > 11) { _monthlyMonth = 0;  _monthlyYear++; }
+  if (_monthlyMonth < 0)  { _monthlyMonth = 11; _monthlyYear--; }
+  renderMonthly();
+}
+
+function renderMonthly() {
+  const monthNames = [t('Jan','1月'),t('Feb','2月'),t('Mar','3月'),t('Apr','4月'),t('May','5月'),t('Jun','6月'),t('Jul','7月'),t('Aug','8月'),t('Sep','9月'),t('Oct','10月'),'1Jan','1Feb'];
+  document.getElementById('monthly-month-display').textContent = _monthlyYear + '  ' + monthNames[_monthlyMonth];
+
+  const listEl  = document.getElementById('monthly-list');
+  const statsEl = document.getElementById('monthly-stats-area');
+
+  if (!employees.length) {
+    statsEl.innerHTML = '';
+    listEl.innerHTML = '<div class="empty">Please upload employee data first</div>';
+    return;
+  }
+
+  const chinaToday = getChinaToday();
+
+  // Birthdays only — employees whose birthday month matches
+  const bdEmps = employees
+    .filter(emp => emp.dobMonth === _monthlyMonth && emp.dobDay !== null)
+    .sort((a, b) => a.dobDay - b.dobDay);
+
+  const total = bdEmps.length;
+
+  statsEl.innerHTML = `<div class="stats" style="grid-template-columns:repeat(2,1fr);max-width:300px;margin-bottom:16px">
+    <div class="stat"><div class="stat-num">${monthNames[_monthlyMonth]}</div><div class="stat-label">当前/份</div></div>
+    <div class="stat"><div class="stat-num${total?' alert':''}">${total}</div><div class="stat-label">" + t('Monthly Birthdays','本月生日人数') + "</div></div>
+  </div>`;
+
+  if (!bdEmps.length) {
+    listEl.innerHTML = '<div class="empty">🎉 本月没有员工生</div>';
+    return;
+  }
+
+  // Second Monday notice
+  const secondMonday = getSecondMondayOfMonth(_monthlyYear, _monthlyMonth);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const isCurrentMonth = _monthlyMonth === today.getMonth() && _monthlyYear === today.getFullYear();
+  const isTodaySecondMonday = isCurrentMonth && secondMonday && secondMonday.toDateString() === today.toDateString();
+  const noticeEl = document.getElementById('monthly-notice');
+  if (noticeEl) {
+    if (secondMonday && bdEmps.length) {
+      const smStr = secondMonday.toLocaleDateString('zh-CN', {month:'long', day:'numeric', weekday:'long'});
+      if (isTodaySecondMonday) {
+        noticeEl.innerHTML = '<div class="week2-banner"><div class="week2-banner-title">🎉 今天就是第二周周一！记得安排生日礼物和蛋糕！</div><div class="week2-banner-sub">本月共 ' + bdEmps.length + ' 人过生日</div></div>';
+      } else {
+        noticeEl.innerHTML = '<div class="notice notice-info" style="margin-bottom:12px">📅 建议在第二周Mon（<strong>' + smStr + '</strong>) arrange gifts & cake (total ' + bdEmps.length + '人）</div>';
+      }
+    } else {
+      noticeEl.innerHTML = '';
+    }
+  }
+
+  listEl.innerHTML = `<div class="card">
+    <div class="section-title">🎂 ${monthNames[_monthlyMonth]}生名单（${bdEmps.length}人）</div>
+    ${bdEmps.map(emp => {
+      const dayStr = (_monthlyMonth + 1) + '/' + emp.dobDay + '';
+      const idx = employees.indexOf(emp);
+      return `<div class="emp-row">
+        <div class="avatar avatar-pink">${avatarChar(emp)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="emp-name">${emp.cnName||emp.enName}</div>
+          <div class="emp-en">${emp.cnName&&emp.enName?emp.enName:''}</div>
+          <div class="emp-info">${[emp.dept,emp.title].filter(Boolean).join(' · ')}</div>
+        </div>
+        <div class="badges">
+          <span class="bday-date-badge">🎂 ${dayStr}</span>
+          <button class="slack-btn" onclick="openSlackByIdx(${idx},'birthday')">💬 祝福本人</button>
+          ${emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'birthday_mgr')">👔 Notify Manager</button>`:''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ---- BIRTHDAY ----
+function goCurrentBdayYear() {
+  currentBdayYear = new Date().getFullYear();
+  renderBirthday();
+}
+
+function goCurrentMonth() { goCurrentBdayYear(); }
+
+function changeBdayYear(delta) {
+  currentBdayYear += delta;
+  renderBirthday();
+}
+
+function changeMonth(delta) { changeBdayYear(delta); }
+
+function renderBirthday() {
+  const yearStr = currentBdayYear + ' ';
+  document.getElementById('month-display').textContent = yearStr;
+
+  const listEl   = document.getElementById('birthday-list');
+  const noticeEl = document.getElementById('week2-notice');
+  noticeEl.innerHTML = '';
+
+  if (!employees.length) {
+    listEl.innerHTML = '<div class="empty">Please upload employee data first</div>';
+    return;
+  }
+
+  const monthNames = [t('Jan','1月'),t('Feb','2月'),t('Mar','3月'),t('Apr','4月'),t('May','5月'),t('Jun','6月'),t('Jul','7月'),t('Aug','8月'),t('Sep','9月'),t('Oct','10月'),'1Jan','1Feb'];
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Group by month
+  let totalCount = 0;
+  const sections = [];
+  for (let m = 0; m < 12; m++) {
+    const emps = employees
+      .filter(emp => emp.dobMonth === m && emp.dobDay !== null)
+      .sort((a, b) => a.dobDay - b.dobDay);
+    if (emps.length) {
+      sections.push({ month: m, emps });
+      totalCount += emps.length;
+    }
+  }
+
+  if (!sections.length) {
+    listEl.innerHTML = '<div class="empty">没有员工生日数据</div>';
+    return;
+  }
+
+  listEl.innerHTML = sections.map(sec => {
+    const isCurrentMonth = sec.month === today.getMonth() && currentBdayYear === today.getFullYear();
+    return `<div class="card" style="${isCurrentMonth ? 'border-color:var(--green);border-width:1.5px' : ''}">
+      <div class="section-title" style="${isCurrentMonth ? 'color:var(--green-deeper)' : ''}">
+        ${isCurrentMonth ? '📍 本月 · ' : ''}🎂 ${monthNames[sec.month]}（${sec.emps.length}人）
+      </div>
+      ${sec.emps.map(emp => {
+        const dayStr = (sec.month + 1) + '/' + emp.dobDay + '';
+        return `<div class="emp-row">
+          <div class="avatar avatar-pink">${avatarChar(emp)}</div>
+          <div style="flex:1;min-width:0">
+            <div class="emp-name">${emp.cnName || emp.enName}</div>
+            <div class="emp-en">${emp.cnName && emp.enName ? emp.enName : ''}</div>
+            <div class="emp-info">${[emp.dept, emp.title].filter(Boolean).join(' · ')}</div>
+          </div>
+          <span class="bday-date-badge">🎂 ${dayStr}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+// renderUpcoming removed - replaced by renderMilestoneMonth above
+
+// ---- EMAIL ----
+
+
+function sendBirthdayEmail() {
+  const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
+  const monthNames = [t('Jan','1月'),t('Feb','2月'),t('Mar','3月'),t('Apr','4月'),t('May','5月'),t('Jun','6月'),t('Jul','7月'),t('Aug','8月'),t('Sep','9月'),t('Oct','10月'),'1Jan','1Feb'];
+  const mName = monthNames[currentBdayMonth];
+  const bdEmps = employees
+    .filter(emp=>emp.dobMonth===currentBdayMonth&&emp.dobDay!==null)
+    .sort((a,b)=>a.dobDay-b.dobDay);
+  if (!bdEmps.length) { alert('本月没有生！'); return; }
+  const secondMonday = getSecondMondayOfMonth(currentBdayYear, currentBdayMonth);
+  const smStr = secondMonday ? secondMonday.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'}) : 'TBD';
+  const lines = bdEmps.map(emp=>`• ${mName.replace('/','')}/${emp.dobDay} — ${emp.cnName||''}${emp.enName?'（'+emp.enName+'）':''}${emp.dept?' ['+emp.dept+']':''}`);
+  const body = `你好，\n\n${currentBdayYear} ${mName}过生的员工名单如下：\n\n${lines.join('\n')}\n\n共 ${bdEmps.length} 人。\n\n📅 建议在第二周Mon（${smStr}）统一安排礼物和蛋糕。\n\n— Conviva HR Reminder Tool`;
+  const subj = `[HR生] ${currentBdayYear} ${mName}生名单 — ${bdEmps.length}人`;
+  window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
+}
+
+function sendMilestoneEmailToday() {
+  goToday();
+  sendMilestoneEmail();
+}
+function sendBirthdayEmailCurrent() {
+  const now = new Date();
+  currentBdayMonth = now.getMonth(); currentBdayYear = now.getFullYear();
+  sendBirthdayEmail();
+}
+
+
+
+// ── SLACK MODAL HELPERS ──
+let _modalCurrentEmp = null;
+let _modalCurrentTab = 'employee';
+
+const MSG_TEMPLATES = {
+  birthday: (emp) =>
+    `Hi ${emp.cnName||emp.enName}！\n\n今天是你的生 🎂，祝你生快乐！希望新的一岁平安健康、万事顺意！\n\n— HR团队`,
+  birthday_manager: (emp) =>
+    `Hi ${emp.manager||'领导'}，\n\n今天是 ${emp.cnName||emp.enName} 的生 🎂，请别忘了送上祝福！\n\n— HR`,
+  reg: (emp) =>
+    `Hi ${emp.cnName||emp.enName}！\n\n恭喜你今天正式转正 🎉！感谢你这6个月的努力与付出，欢迎成为Conviva的正式员工！\n\n— HR团队`,
+  reg_manager: (emp) =>
+    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天正式转正 🎉，请记得与他/她沟通转正情况！\n\n— HR`,
+  '3y': (emp) =>
+    `Hi ${emp.cnName||emp.enName}！\n\n恭喜你入职满3周年 🥉！感谢你3 来对Conviva的贡献与坚守，期待与你共同成长！\n\n— HR团队`,
+  '3y_manager': (emp) =>
+    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天入职满3周年 🥉，欢迎致以祝贺！\n\n— HR`,
+  '5y': (emp) =>
+    `Hi ${emp.cnName||emp.enName}！\n\n恭喜你入职满5周年 🥈！五 同行，感谢你一路以来的坚持与贡献！\n\n— HR团队`,
+  '5y_manager': (emp) =>
+    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天入职满5周年 🥈，欢迎致以祝贺！\n\n— HR`,
+  '10y': (emp) =>
+    `Hi ${emp.cnName||emp.enName}！\n\n热烈祝贺你入职满10周年 🏆！十 相伴，你是Conviva最宝贵的财富！\n\n— HR团队`,
+  '10y_manager': (emp) =>
+    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天入职满10周年 🏆，这是一个重要里程碑，欢迎特别祝贺！\n\n— HR`,
+};
+
+
+function openSlackByIdx(idx, type) {
+  const emp = employees[idx];
+  if (emp) openSlackModal(emp, type);
+}
+
+function openSlackModal(emp, type) {
+  _modalCurrentEmp = emp;
+  _modalCurrentTab = 'employee';
+  const isEmployee = true;
+  const cleanType = type.replace('_mgr','');
+  const titles = { birthday:t('🎂 Birthday Wish','🎂 生日祝福'), reg:t('🎉 Regularization Congrats','🎉 转正祝贺'), "3y":t('🥉 3-Year Congrats','🥉 3周年祝贺'), "5y":t('🥈 5-Year Congrats','🥈 5周年祝贺'), "10y":t('🏆 10-Year Congrats','🏆 10周年祝贺') };
+  const startTab = type.endsWith('_mgr') ? 'manager' : 'employee';
+  document.getElementById('slackModal').dataset.type = cleanType;
+  document.getElementById('modalTitle').textContent = titles[type] || '💬 Send Slack Message';
+
+  // Store type for switching tabs
+  // (set above)
+
+  // Auto-switch tab if opened via manager button
+  if (startTab === 'manager') {
+    switchMsgTab('manager');
+  }
+  // Show tabs
+  const tabsEl = document.getElementById('modalTabs');
+  tabsEl.style.display = 'flex';
+  document.getElementById('tabEmployee').classList.add('active');
+  document.getElementById('tabManager').classList.remove('active');
+
+  // Manager row
+  const mgr = emp.manager || '';
+  const mgrRow = document.getElementById('modalManagerRow');
+  mgrRow.style.display = mgr ? 'flex' : 'none';
+  document.getElementById('modalManagerName').textContent = mgr || 'N/A';
+
+  // Set recipient & message for employee tab
+  document.getElementById('modalRecipient').textContent = `${emp.cnName||emp.enName}${emp.email ? ' · ' + emp.email : ''}`;
+  const tmpl = MSG_TEMPLATES[type];
+  const txt = tmpl ? tmpl(emp) : '';
+  document.getElementById('msgText').value = txt;
+  updateCharCount(document.getElementById('msgText'));
+  document.getElementById('slackModal').classList.add('open');
+}
+
+function switchMsgTab(tab) {
+  _modalCurrentTab = tab;
+  const emp = _modalCurrentEmp;
+  const type = document.getElementById('slackModal').dataset.type;
+  document.getElementById('tabEmployee').classList.toggle('active', tab==='employee');
+  document.getElementById('tabManager').classList.toggle('active', tab==='manager');
+
+  if (tab === 'employee') {
+    document.getElementById('modalRecipient').textContent = `${emp.cnName||emp.enName}${emp.email ? ' · '+emp.email : ''}`;
+    const tmpl = MSG_TEMPLATES[type];
+    document.getElementById('msgText').value = tmpl ? tmpl(emp) : '';
+  } else {
+    const mgr = emp.manager || '领导';
+    document.getElementById('modalRecipient').textContent = mgr;
+    const tmpl = MSG_TEMPLATES[type+'_manager'];
+    document.getElementById('msgText').value = tmpl ? tmpl(emp) : '';
+  }
+  updateCharCount(document.getElementById('msgText'));
+}
+
+function updateCharCount(el) {
+  document.getElementById('charCount').textContent = el.value.length;
+}
+
+function closeModal() {
+  document.getElementById('slackModal').classList.remove('open');
+}
+
+function openInSlack() {
+  const emp = _modalCurrentEmp;
+  const msg = document.getElementById('msgText').value.trim();
+  if (!msg) return;
+
+  let target = '';
+  if (_modalCurrentTab === 'employee' && emp.email) {
+    target = emp.email;
+  } else if (_modalCurrentTab === 'manager') {
+    // Try to find manager email from employees list
+    const mgr = employees.find(e =>
+      e.cnName === emp.manager || e.enName === emp.manager ||
+      (e.enName && emp.manager && e.enName.toLowerCase().includes(emp.manager.toLowerCase())) ||
+      (e.cnName && emp.manager && e.cnName.includes(emp.manager))
+    );
+    target = mgr ? mgr.email : '';
+  }
+
+  // Open Slack with pre-filled message (uses mailto-like deep link)
+  // Slack doesn't support pre-filled DM via URL, so open new DM search
+  const encoded = encodeURIComponent(msg);
+  if (target) {
+    window.open(`slack://user?email=${encodeURIComponent(target)}&text=${encoded}`, '_blank');
+    setTimeout(() => {
+      // Fallback: copy to clipboard and open Slack web
+      navigator.clipboard.writeText(msg).then(() => {
+        alert('✅ Copied! Opening Slack — please paste and send.');
+        window.open(`https://app.slack.com/client`, '_blank');
+      }).catch(() => {
+        alert('Please copy message and send in Slack to:' + (target || 'Relevant People'));
+      });
+    }, 800);
+  } else {
+    navigator.clipboard.writeText(msg).then(() => {
+      alert('✅ Copied! Please manually send in Slack to:' + (emp.manager || emp.cnName || emp.enName));
+      window.open(`https://app.slack.com/client`, '_blank');
+    });
+  }
+  closeModal();
+}
+
+
+// ── TEMPLATE EDITOR ──
+let _editingTemplateKey = null;
+const TEMPLATE_LABELS = {
+  birthday: '🎂 Birthday Wish（Send to Employee）',
+  reg: '🎉 Regularization Congrats（Send to Employee）',
+  '3y': '🥉 3Anniversary Congrats（Send to Employee）',
+  '5y': '🥈 5Anniversary Congrats（Send to Employee）',
+  '10y': '🏆 10Anniversary Congrats（Send to Employee）',
+};
+
+function editTemplate(key) {
+  _editingTemplateKey = key;
+  const emp = { cnName:'张三', enName:'San Zhang', dept:'HR', manager:'Ningning Hu' };
+  const tpl = MSG_TEMPLATES[key];
+  document.getElementById('template-edit-label').textContent = TEMPLATE_LABELS[key] || key;
+  document.getElementById('templateTextArea').value = tpl ? tpl(emp) : '';
+  document.getElementById('template-edit-area').style.display = '';
+}
+
+function saveTemplate() {
+  const key = _editingTemplateKey;
+  const newText = document.getElementById('templateTextArea').value;
+  // Replace template with a function that returns the edited text
+  // but still substitutes the employee name
+  const saved = newText;
+  MSG_TEMPLATES[key] = (emp) => saved
+    .replace(/张三/g, emp.cnName||emp.enName)
+    .replace(/San Zhang/g, emp.enName||emp.cnName)
+    .replace(/Ningning Hu/g, emp.manager||'领导');
+  document.getElementById('template-edit-area').style.display = 'none';
+  // Show success
+  const btn = document.querySelector('[onclick="saveTemplate()"]');
+  const orig = btn.textContent;
+  btn.textContent = t('✅ Saved!','✅ 已保存！'); btn.disabled = true;
+  setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
+}
+
+function resetTemplate() {
+  // Just re-open so user sees original
+  editTemplate(_editingTemplateKey);
+}
+
+function showSlackAutoGuide() {
+  const el = document.getElementById('slack-auto-guide');
+  if (el.innerHTML) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="code-block"># pip install slack-sdk schedule openpyxl
+
+import schedule, time, openpyxl
+from datetime import date
+from slack_sdk import WebClient
+
+# ===== 配置区域 =====
+SLACK_TOKEN = "xoxb-your-bot-token"   # 找Santhosh申请
+EXCEL_FILE  = r"C:\路径\Employee_information_list.xlsx"
+SEND_TIME   = "08:30"
+# ====================
+
+client = WebClient(token=SLACK_TOKEN)
+
+MILESTONE_COLS = {
+    'Date of Regularization': ('reg',  '转正(6个月)'),
+    '3rd Anniversary':        ('3y',   '3周年'),
+    '5th Anniversary':        ('5y',   '5周年'),
+    '10th Anniversary':       ('10y',  '10周年'),
+}
+
+MESSAGES = {
+    'birthday': lambda cn,en: f"Hi {cn}！今天是你的生日 🎂，祝你生日快乐！— HR",
+    'birthday_mgr': lambda cn,en,mgr: f"Hi {mgr}，今天是 {cn} 的生日 🎂，请送上祝福！— HR",
+    'reg':  lambda cn,en: f"Hi {cn}！恭喜你今天正式转正 🎉！欢迎成为Conviva正式员工！— HR",
+    'reg_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天正式转正 🎉，请记得沟通！— HR",
+    '3y':   lambda cn,en: f"Hi {cn}！恭喜入职满3周年 🥉！感谢你的贡献！— HR",
+    '3y_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天入职满3周年 🥉！— HR",
+    '5y':   lambda cn,en: f"Hi {cn}！恭喜入职满5周年 🥈！五 同行，感谢你！— HR",
+    '5y_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天入职满5周年 🥈！— HR",
+    '10y':  lambda cn,en: f"Hi {cn}！热烈祝贺入职满10周年 🏆！你是Conviva最宝贵的财富！— HR",
+    '10y_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天入职满10周年 🏆，请特别祝贺！— HR",
+}
+
+def find_user(email):
+    try:
+        r = client.users_lookupByEmail(email=email)
+        return r['user']['id'] if r['ok'] else None
+    except: return None
+
+def send_dm(email, msg):
+    uid = find_user(email)
+    if uid: client.chat_postMessage(channel=uid, text=msg)
+
+def load_employees():
+    wb = openpyxl.load_workbook(EXCEL_FILE, data_only=True)
+    ws = wb['Master']
+    headers = [str(c.value).strip() if c.value else '' for c in ws[2]]
+    emps = []
+    for row in ws.iter_rows(min_row=3, values_only=True):
+        r = dict(zip(headers, row))
+        cn  = str(r.get('Chinese name','')).strip()
+        en  = str(r.get('Name','')).strip()
+        if not (cn or en): continue
+        dob = r.get('Date of Birth')
+        emps.append({
+            'cn': cn, 'en': en,
+            'email': str(r.get('Company Email','')).strip(),
+            'mgr_name': str(r.get('Direct Manager','')).strip(),
+            'dob_month': dob.month-1 if hasattr(dob,'month') else None,
+            'dob_day':   dob.day     if hasattr(dob,'day')   else None,
+            'ms': {col: (v.date() if hasattr(v,'date') else None)
+                   for col,_ in MILESTONE_COLS.items()
+                   for v in [r.get(col)]},
+        })
+    return emps
+
+def find_manager_email(emps, mgr_name):
+    for e in emps:
+        if e['cn']==mgr_name or e['en']==mgr_name: return e['email']
+    return None
+
+def run_daily():
+    emps = load_employees()
+    today = date.today()
+    for e in emps:
+        cn, en, email = e['cn'], e['en'], e['email']
+        mgr = e['mgr_name']
+        mgr_email = find_manager_email(emps, mgr)
+        # Birthday
+        if e['dob_month']==today.month-1 and e['dob_day']==today.day:
+            send_dm(email, MESSAGES['birthday'](cn,en))
+            if mgr_email: send_dm(mgr_email, MESSAGES['birthday_mgr'](cn,en,mgr))
+        # Milestones
+        for col, (key, label) in MILESTONE_COLS.items():
+            d = e['ms'].get(col)
+            if d and d.year==today.year and d.month==today.month and d.day==today.day:
+                send_dm(email, MESSAGES[key](cn,en))
+                if mgr_email: send_dm(mgr_email, MESSAGES[key+'_mgr'](cn,en,mgr))
+                print(f"✅ Sent {label} reminder to {cn}")
+
+schedule.every().day.at(SEND_TIME).do(run_daily)
+print("⏰ Auto Slack reminder started")
+while True:
+    schedule.run_pending(); time.sleep(60)</div>
+    <div style="font-size:12px;color:var(--gray-mid);margin-top:10px">
+      💡 找 Santhosh 申请 Slack Bot Token（需要 <code>chat:write</code> 和 <code>users:read.email</code> 权限）
+    </div>`;
+}
+
+
+// ── EXPORT WITH DATA ──
+function exportWithData() {
+  if (!employees.length) { alert('Please upload employee data first！'); return; }
+  var hint = document.getElementById('export-hint');
+  if (hint) hint.textContent = 'Generating...';
+
+  function empToJs(e) {
+    var md = e.milestoneDates || {};
+    function d(v) {
+      if (!v) return 'null';
+      if (v instanceof Date) return 'new Date("' + v.toISOString() + '")';
+      return 'new Date("' + v + '")';
+    }
+    return '{cnName:' + JSON.stringify(e.cnName||'') +
+      ',enName:' + JSON.stringify(e.enName||'') +
+      ',dept:' + JSON.stringify(e.dept||'') +
+      ',title:' + JSON.stringify(e.title||'') +
+      ',email:' + JSON.stringify(e.email||'') +
+      ',manager:' + JSON.stringify(e.manager||'') +
+      ',onboard:' + d(e.onboard) +
+      ',milestoneDates:{reg:' + d(md.reg) +
+        ',"3y":' + d(md['3y']) +
+        ',"5y":' + d(md['5y']) +
+        ',"10y":' + d(md['10y']) + '}' +
+      ',dobMonth:' + (e.dobMonth != null ? e.dobMonth : 'null') +
+      ',dobDay:' + (e.dobDay != null ? e.dobDay : 'null') + '}';
+  }
+
+  // 把员工数组序列化成单行（避免多行处理问题）
+  var empJs = '[' + employees.map(empToJs).join(',') + ']';
+
+  var html = document.documentElement.outerHTML;
+
+  // 清理：用正则把上次注入的 let employees = [...]; 整行替换回空数组
+  // 关键：序列化成单行，所以这里只需要替换一行
+  html = html.replace(/let employees = \[.*\];/, 'let employees = [];');
+
+  // 清理 init 行
+  html = html.split('\n').filter(function(l) {
+    return l.trimLeft().indexOf('if(employees.length){showUploadResult') !== 0;
+  }).join('\n');
+
+  // 注入新数据（单行）
+  html = html.replace('let employees = [];', 'let employees = ' + empJs + ';');
+
+  // 注入 init
+  html = html.replace('goCurrentMilestoneMonth();\n', 'goCurrentMilestoneMonth();\nif(employees.length){showUploadResult(employees,"Data pre-loaded");updateBadges();}\n');
+
+  // 把Meeting Notes数据也注入到导出文件
+  try {
+    var meetingData = exportMeetingData();
+    var meetingJson = JSON.stringify(meetingData);
+    var meetingScript = '<scr'+'ipt>try{var md=JSON.parse('+JSON.stringify(meetingJson)+');' +
+      'Object.keys(md).forEach(function(k){localStorage.setItem("meeting_"+k,JSON.stringify(md[k]));});' +
+      '}catch(e){}</sc'+'ript>';
+        html = html.replace('</body>', meetingScript + '</body>');
+  } catch(e) {}
+
+  var blob = new Blob([html], {type: 'text/html;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'Conviva_HR_Tool_with_data.html';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  if (hint) { hint.textContent = '✅ Downloaded!'; setTimeout(function(){ hint.textContent = ''; }, 3000); }
+}
+
+function updateExportPanel() {
+  const ready  = document.getElementById('export-ready');
+  const nodata = document.getElementById('export-area');
+  const info   = document.getElementById('export-file-info');
+  if (employees.length) {
+    if (ready)  ready.style.display  = '';
+    if (nodata) nodata.style.display = 'none';
+    if (info)   info.textContent = 'Loaded ' + employees.length + ' employees';
+  } else {
+    if (ready)  ready.style.display  = 'none';
+    if (nodata) nodata.style.display = '';
+  }
+}
+
+
+// ════════════════════════════════════════════
+// 📋 Meeting Notes模块
+// ════════════════════════════════════════════
+
+var _meetingWeekOffset = 0; // 相对于本周的偏移
+
+// 获取某周偏移对应的Mon期chars符串 YYYY-MM-DD
+function localDateStr(d) {
+  var y = d.getFullYear();
+  var m = String(d.getMonth()+1).padStart(2,'0');
+  var dd = String(d.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + dd;
+}
+
+function getMeetingWeekMonday(offset) {
+  var china = getChinaToday();
+  var day = china.getDay();
+  var diffToMon = (day === 0) ? -6 : 1 - day;
+  var mon = new Date(china.getFullYear(), china.getMonth(), china.getDate() + diffToMon + offset * 7);
+  return localDateStr(mon);
+}
+
+function getMeetingWeekFriday(offset) {
+  var mondayStr = getMeetingWeekMonday(offset);
+  var parts = mondayStr.split('-');
+  var mon = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+  var fri = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 4);
+  return localDateStr(fri);
+}
+
+function meetingStorageKey(mondayStr) {
+  return 'meeting_' + mondayStr;
+}
+
+function loadMeetingData(mondayStr) {
+  try {
+    var raw = localStorage.getItem(meetingStorageKey(mondayStr));
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+
+function saveMeetingData(mondayStr, data) {
+  try {
+    localStorage.setItem(meetingStorageKey(mondayStr), JSON.stringify(data));
+  } catch(e) {}
+}
+
+function getAllMeetingKeys() {
+  var keys = [];
+  try {
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf('meeting_') === 0) keys.push(k);
+    }
+  } catch(e) {}
+  return keys.sort().reverse(); // 最新的在前
+}
+
+function meetingPrevWeek() { _meetingWeekOffset--; renderMeeting(); }
+function meetingNextWeek() { _meetingWeekOffset++; renderMeeting(); }
+function meetingGoThisWeek() { _meetingWeekOffset = 0; renderMeeting(); }
+
+function meetingNewWeek() {
+  var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
+  var existing = loadMeetingData(mondayStr);
+  if (existing) {
+    if (!confirm('This week already has a record. Overwrite?')) return;
+  }
+  var fridayStr = getMeetingWeekFriday(_meetingWeekOffset);
+  var d = new Date(fridayStr + 'T00:00:00');
+  var label = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+  saveMeetingData(mondayStr, { label: label, hr: '', execution: '', created: new Date().toISOString() });
+  renderMeeting();
+}
+
+function meetingAutoFill() {
+  var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
+  var data = loadMeetingData(mondayStr);
+  if (!data) {
+    alert(t('Please click "New This Week" first','请先点「新建本周」创建本周记录'));
+    return;
+  }
+  if (!employees.length) {
+    alert('Please upload employee data first');
+    return;
+  }
+
+  var mon = new Date(getMeetingWeekMonday(_meetingWeekOffset) + 'T00:00:00');
+  var lines = [];
+
+  // 只收集本周转正和周 （不含生）
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(mon); d.setDate(mon.getDate() + i);
+    employees.forEach(function(emp) {
+      MILESTONES.forEach(function(m) {
+        var md = emp.milestoneDates[m.key];
+        if (md && md.getFullYear() === d.getFullYear() &&
+            md.getMonth() === d.getMonth() && md.getDate() === d.getDate()) {
+          var dateStr = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+          var name = (emp.cnName || emp.enName) + (emp.enName && emp.cnName ? '-' + emp.enName : '');
+          lines.push(m.label + '：' + name + ' ' + dateStr);
+        }
+      });
+    });
+  }
+
+  var hrText = lines.length ? lines.join('\n') : '本周无转正或周年提醒';
+  data.hr = hrText;
+  saveMeetingData(mondayStr, data);
+  renderMeeting();
+}
+
+function meetingSave() {
+  var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
+  var data = loadMeetingData(mondayStr);
+  if (!data) return;
+  var hrEl = document.getElementById('meeting-hr-input');
+  var exEl = document.getElementById('meeting-ex-input');
+  if (hrEl) data.hr = hrEl.value;
+  if (exEl) data.execution = exEl.value;
+  saveMeetingData(mondayStr, data);
+  // 同步到云端
+  if (typeof syncPush === 'function') syncPush('meeting_' + mondayStr, JSON.stringify(data));
+  // 显示Save提示
+  var btn = document.getElementById('meeting-save-btn');
+  if (btn) { btn.textContent = t('✅ Saved','✅ 已保存'); setTimeout(function(){ btn.textContent = t('💾 Save','💾 保存'); }, 1500); }
+}
+
+function meetingDelete() {
+  var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
+  if (!confirm(t("Delete this week's record?","确定删除本周记录吗？"))) return;
+  try { localStorage.removeItem(meetingStorageKey(mondayStr)); } catch(e) {}
+  if (typeof syncDelete === 'function') syncDelete('meeting_' + mondayStr);
+  renderMeeting();
+}
+
+function renderMeeting() {
+  var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
+  var fridayStr = getMeetingWeekFriday(_meetingWeekOffset);
+  var friParts = fridayStr.split('-');
+  var friDate = new Date(parseInt(friParts[0]), parseInt(friParts[1])-1, parseInt(friParts[2]));
+  var label = (friDate.getMonth()+1) + '/' + friDate.getDate() + '/' + friDate.getFullYear();
+
+  var labelEl = document.getElementById('meeting-week-label');
+  if (labelEl) labelEl.textContent = label + t(' (Fri)', ' (周五)');
+
+  var data = loadMeetingData(mondayStr);
+  var el = document.getElementById('meeting-content');
+  if (!el) return;
+
+  if (!data) {
+    // 显示History列表
+    var keys = getAllMeetingKeys();
+    var historyHtml = '';
+    if (keys.length) {
+      historyHtml = '<div class="card" style="margin-top:12px"><div class="section-title">' + t('History','历史记录') + '</div>' +
+        keys.map(function(k) {
+          var d2 = loadMeetingData(k.replace('meeting_', ''));
+          return '<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;cursor:pointer;color:var(--green-deeper)" onclick="meetingJumpTo(\'' + k.replace('meeting_','') + '\')">' +
+            (d2 ? d2.label : k.replace('meeting_','')) + '</div>';
+        }).join('') + '</div>';
+    }
+    el.innerHTML = '<div class="empty" style="margin-bottom:8px">' + t('No record this week. Click "New This Week" to start.','本周暂无记录，点击「新建本周」开始') + '</div>' + historyHtml;
+    return;
+  }
+
+  el.innerHTML =
+    '<div class="card">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
+    '<div style="font-size:15px;font-weight:700;color:var(--gray-text)">' + label + '</div>' +
+    '<button onclick="meetingEditLabel(&quot;' + mondayStr + '&quot;)" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--gray-mid)">' + t('✏️ Edit Date','✏️ 修改日期') + '</button>' +
+    '<button onclick="meetingCopyContent(&quot;' + mondayStr + '&quot;)" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--gray-mid)">' + t('📋 Copy to Another Week','📋 复制到其他周') + '</button>' +
+    '</div>' +
+    '<table style="width:100%;border-collapse:collapse">' +
+    '<thead><tr>' +
+    '<th style="background:#2e6da4;color:#fff;padding:8px 12px;text-align:left;width:120px;font-size:13px">Category</th>' +
+    '<th style="background:#2e6da4;color:#fff;padding:8px 12px;text-align:left;font-size:13px">Topics</th>' +
+    '</tr></thead>' +
+    '<tbody>' +
+    '<tr style="vertical-align:top">' +
+    '<td style="padding:10px 12px;font-weight:600;font-size:13px;border:1px solid #dee2e6">HR</td>' +
+    '<td style="padding:6px 8px;border:1px solid #dee2e6">' +
+    '<textarea id="meeting-hr-input" oninput="meetingAutoSave()" ' +
+    'style="width:100%;min-height:120px;border:none;outline:none;resize:vertical;font-size:13px;font-family:inherit;line-height:1.6">' +
+    escapeHtml(data.hr || '') + '</textarea></td>' +
+    '</tr>' +
+    '<tr style="vertical-align:top">' +
+    '<td style="padding:10px 12px;font-weight:600;font-size:13px;border:1px solid #dee2e6">Execution</td>' +
+    '<td style="padding:6px 8px;border:1px solid #dee2e6">' +
+    '<textarea id="meeting-ex-input" oninput="meetingAutoSave()" ' +
+    'style="width:100%;min-height:80px;border:none;outline:none;resize:vertical;font-size:13px;font-family:inherit;line-height:1.6">' +
+    escapeHtml(data.execution || '') + '</textarea></td>' +
+    '</tr>' +
+    '</tbody>' +
+    '</table>' +
+    '<div style="display:flex;gap:8px;margin-top:12px;align-items:center">' +
+    '<button class="btn btn-green" id="meeting-save-btn" onclick="meetingSave()">' + t('💾 Save','💾 保存') + '</button>' +
+    '<button class="btn" onclick="meetingDelete()" style="color:#e74c3c;border-color:#e74c3c">' + t('🗑 Delete This Week','🗑 删除本周') + '</button>' +
+    '<span id="meeting-autosave-hint" style="font-size:12px;color:var(--gray-mid);margin-left:8px"></span>' +
+    '</div>' +
+    '</div>';
+}
+
+var _meetingAutoSaveTimer = null;
+function meetingAutoSave() {
+  clearTimeout(_meetingAutoSaveTimer);
+  _meetingAutoSaveTimer = setTimeout(function() {
+    meetingSave();
+    var hint = document.getElementById('meeting-autosave-hint');
+    if (hint) { hint.textContent = 'Auto-saved'; setTimeout(function(){ hint.textContent = ''; }, 2000); }
+  }, 800);
+}
+
+function meetingJumpTo(mondayStr) {
+  // 计算这个周和当前周的偏移
+  var thisMon = new Date(getMeetingWeekMonday(0) + 'T00:00:00');
+  var targetMon = new Date(mondayStr + 'T00:00:00');
+  var diff = Math.round((targetMon - thisMon) / (7 * 24 * 3600 * 1000));
+  _meetingWeekOffset = diff;
+  renderMeeting();
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// 导出时把Meeting Notes一起带走
+function exportMeetingData() {
+  var allKeys = getAllMeetingKeys();
+  var result = {};
+  allKeys.forEach(function(k) {
+    var mondayStr = k.replace('meeting_', '');
+    result[mondayStr] = loadMeetingData(mondayStr);
+  });
+  return result;
+}
+
+
+function meetingEditLabel(mondayStr) {
+  var data = loadMeetingData(mondayStr);
+  if (!data) return;
+  var newLabel = prompt('Edit display date (e.g. 4/17/2026):', data.label || '');
+  if (newLabel === null) return;
+  data.label = newLabel.trim() || data.label;
+  saveMeetingData(mondayStr, data);
+  renderMeeting();
+}
+
+function meetingCopyContent(fromMondayStr) {
+  var fromData = loadMeetingData(fromMondayStr);
+  if (!fromData) return;
+
+  // 列出所有周供选择
+  var keys = getAllMeetingKeys();
+  var options = keys.filter(function(k) { return k !== 'meeting_' + fromMondayStr; });
+
+  if (!options.length) {
+    alert('No other weeks to copy to. Create one first.');
+    return;
+  }
+
+  var choices = options.map(function(k, i) {
+    var d = loadMeetingData(k.replace('meeting_',''));
+    return (i+1) + '. ' + (d ? d.label : k.replace('meeting_',''));
+  }).join('\n');
+
+  var input = prompt('Select target week (enter number):\n' + choices);
+  if (!input) return;
+  var idx = parseInt(input) - 1;
+  if (isNaN(idx) || idx < 0 || idx >= options.length) { alert('Invalid number'); return; }
+
+  var toMondayStr = options[idx].replace('meeting_', '');
+  var toData = loadMeetingData(toMondayStr) || { label: toMondayStr, hr: '', execution: '' };
+
+  var mode = prompt('Copy mode:\n1. Append\n2. Overwrite\n(Enter 1 or 2)');
+  if (!mode) return;
+
+  if (mode === '1') {
+    toData.hr = (toData.hr ? toData.hr + '\n\n' : '') + fromData.hr;
+    toData.execution = (toData.execution ? toData.execution + '\n\n' : '') + fromData.execution;
+  } else if (mode === '2') {
+    toData.hr = fromData.hr;
+    toData.execution = fromData.execution;
+  } else { alert('Invalid option'); return; }
+
+  saveMeetingData(toMondayStr, toData);
+  alert(t('Copied to','已复制到') + ' ' + (toData.label || toMondayStr));
+  renderMeeting();
+}
+
+
+// ════════════════════════════════════════════
+// 🔄 Google Sheets 实时同步模块（fetch方式，用于HTTPS页面）
+// ════════════════════════════════════════════
+
+var SYNC_URL = 'https://script.google.com/macros/s/AKfycbw6CZAsE6BXI94zUcLcXQIszbZvJ65pfb2sY8CQEPgOjlr_oSzc9f09D8yRUAFrAITKsg/exec';
+var _syncEnabled = true;
+var _syncInterval = null;
+var _pendingWrites = {};
+var _writeTimer = null;
+
+function setSyncStatus(state, msg) {
+  var el = document.getElementById('sync-status');
+  var txt = document.getElementById('sync-text');
+  if (!el) return;
+  el.className = state;
+  if (txt) txt.textContent = msg;
+}
+
+function syncFetch(url) {
+  return fetch(url, { mode: 'cors' }).then(function(r) { return r.json(); });
+}
+
+function syncPull() {
+  if (!_syncEnabled) return;
+  setSyncStatus('syncing', 'Syncing...');
+  syncFetch(SYNC_URL + '?action=read&t=' + Date.now())
+    .then(function(data) {
+      if (data.error) { setSyncStatus('error', 'Read failed'); return; }
+
+      // 更新员工数据
+      if (data['employees']) {
+        try {
+          var raw = JSON.parse(data['employees']);
+          var emps = raw.map(function(e) {
+            e.onboard = e.onboard ? new Date(e.onboard) : null;
+            var md = {};
+            Object.keys(e.milestoneDates||{}).forEach(function(k) {
+              md[k] = e.milestoneDates[k] ? new Date(e.milestoneDates[k]) : null;
+            });
+            e.milestoneDates = md;
+            return e;
+          });
+          if (emps.length > 0 && emps.length !== employees.length) {
+            employees = emps;
+            if (typeof showUploadResult === 'function') showUploadResult(employees, 'Cloud sync');
+            if (typeof updateBadges === 'function') updateBadges();
+          }
+        } catch(e) {}
+      }
+
+      // 更新Meeting Notes
+      Object.keys(data).forEach(function(key) {
+        if (key.indexOf('meeting_') === 0) {
+          try {
+            var val = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+            localStorage.setItem(key, val);
+          } catch(e) {}
+        }
+      });
+
+      setSyncStatus('synced', t('Synced','已同步') + ' ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
+      // 显示已更新通知
+      var notif = document.getElementById('sync-notif');
+      if (!notif) {
+        notif = document.createElement('div');
+        notif.id = 'sync-notif';
+        notif.style.cssText = 'position:fixed;top:60px;right:16px;background:var(--green);color:#fff;' +
+          'padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:1000;' +
+          'box-shadow:0 2px 8px rgba(0,0,0,0.15);transition:opacity 0.5s';
+        document.body.appendChild(notif);
+      }
+      notif.textContent = '✅ Updated';
+      notif.style.opacity = '1';
+      clearTimeout(window._notifTimer);
+      window._notifTimer = setTimeout(function(){ notif.style.opacity = '0'; }, 3000);
+      // Refresh employee table if visible
+      if (typeof renderEmpTable === 'function') renderEmpTable();
+      var meetingPanel = document.getElementById('tab-meeting');
+      if (meetingPanel && meetingPanel.classList.contains('active')) renderMeeting();
+    })
+    .catch(function(err) {
+      setSyncStatus('error', t('Network error','网络错误'));
+    });
+}
+
+function syncPush(key, value) {
+  if (!_syncEnabled) return;
+  _pendingWrites[key] = value;
+  clearTimeout(_writeTimer);
+  _writeTimer = setTimeout(function() {
+    var writes = Object.assign({}, _pendingWrites);
+    _pendingWrites = {};
+    Object.keys(writes).forEach(function(k) {
+      setSyncStatus('syncing', '保存中...');
+      var url = SYNC_URL + '?action=write&key=' + encodeURIComponent(k) + '&value=' + encodeURIComponent(writes[k]);
+      syncFetch(url)
+        .then(function(res) {
+          if (res && res.success) {
+            setSyncStatus('synced', 'Saved ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
+          } else {
+            setSyncStatus('error', '保存失败');
+          }
+        })
+        .catch(function() { setSyncStatus('error', '保存失败'); });
+    });
+  }, 800);
+}
+
+function syncDelete(key) {
+  if (!_syncEnabled) return;
+  syncFetch(SYNC_URL + '?action=delete&key=' + encodeURIComponent(key)).catch(function(){});
+}
+
+function startAutoSync() {
+  if (!document.getElementById('sync-status')) {
+    var div = document.createElement('div');
+    div.id = 'sync-status';
+    div.innerHTML = '<span class="sync-dot"></span><span id="sync-text">Connecting...</span>';
+    document.body.appendChild(div);
+  }
+  syncPull();
+  _syncInterval = setInterval(syncPull, 30000);
+}
+
+function syncPushEmployees() {
+  if (!employees.length) return;
+  var dataStr = JSON.stringify(employees, function(k, v) {
+    return v instanceof Date ? v.toISOString() : v;
+  });
+  syncPush('employees', dataStr);
+}
+
+
+
+function setLang(lang) {
+  var btn = document.querySelector('[onclick="toggleLang()"]');
+  if (!btn) return;
+  var currentIsEN = btn.textContent.trim() === 'EN/中';
+  var wantZH = lang === 'zh';
+  if ((wantZH && !currentIsEN) || (!wantZH && currentIsEN)) return; // already correct
+  toggleLang(); // flip to desired state
+}
+
+function toggleLang() {
+  var btn = document.querySelector('[onclick="toggleLang()"]');
+  if (!btn) return;
+  var toZH = btn.textContent.trim() === 'EN/中';
+
+  // Only EXACT whole-text-node matches — prevents partial replacements
+  var pairs = [
+    ['MEETINGS','会议'],
+    ['MAIN','主功能'],
+    ['2026 MILESTONES','2026年里程碑'],
+    ['2027 MILESTONES','2027年里程碑'],
+    ['2028 MILESTONES','2028年里程碑'],
+    ['SETTINGS','设置'],
+    ['Meeting Notes','会议记录'],
+    [t("Today's Reminders","今日提醒"),"今日提醒"],
+    ['This Week','本周提醒'],
+    ['Monthly Birthdays','本月生日'],
+    ['Birthdays','本年生日'],
+    ['Annual Regularization','本年转正'],
+    ['Annual 3-Year','本年3周年'],
+    ['Annual 5-Year','本年5周年'],
+    ['Annual 10-Year','本年10周年'],
+    ['Upload Data','上传表格'],
+    ['Export Tool','导出小程序'],
+    ['Slack Settings','Slack 设置'],
+    ['Employee Reminder Tool','员工提醒工具'],
+    ['Auto-fill This Week','自动填入本周转正&周年'],
+    ['New This Week','新建本周'],
+    ['Save','保存'],
+    ['Delete This Week','删除本周'],
+    ['Edit Date','修改日期'],
+    ['Copy to Another Week','复制到其他周'],
+    ['History','历史记录'],
+    ['This Week','本周'],
+    [t('Today','今天'),'今天'],
+    ['Settings','设置'],
+    ['Weekly Friday meeting topics · Editable by everyone · Saved in browser',
+     '每周五例会议题 · 所有人均可编辑 · 内容保存在本地浏览器'],
+    ['Select a week or create a new record','选择周次或新建本周会议记录'],
+    ['No record this week. Click "New This Week" to start.',
+     '本周暂无记录，点击「新建本周」开始'],
+    ['How to use','使用说明'],
+    ['Custom Message Templates','自定义消息模板'],
+    ['Birthday Wish','生日祝福'],
+    ['Regularization Congrats','转正祝贺'],
+    ['Anniversary Congrats','周年祝贺'],
+    ['Save Templates','保存模板'],
+    ['Reset to Default','恢复默认'],
+    ['Cancel','取消'],
+    ['Auto Reminder Script','自动提醒脚本'],
+    ['View Script','查看自动化脚本'],
+    ['Send Slack Message','发送 Slack 消息'],
+    ['Send to Employee','发给本人'],
+    ['Send to','发送给'],
+    ['Direct Manager','直属领导'],
+    ['Open in Slack','在 Slack 中打开'],
+    [t('Notify Manager','通知领导'),'通知领导'],
+    ['Congratulate / Wish the person','祝贺/祝福本人']
+  ];
+
+  function walkExact(node) {
+    if (node.nodeType === 3) {
+      var v = node.nodeValue.trim();
+      for (var pi = 0; pi < pairs.length; pi++) {
+        var from = toZH ? pairs[pi][0] : pairs[pi][1];
+        var to   = toZH ? pairs[pi][1] : pairs[pi][0];
+        if (v === from) { node.nodeValue = node.nodeValue.replace(from, to); break; }
+      }
+    } else if (node.nodeType === 1 && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE') {
+      for (var ci = 0; ci < node.childNodes.length; ci++) walkExact(node.childNodes[ci]);
+    }
+  }
+  walkExact(document.body);
+
+  // Update year milestone label
+  var msEl = document.getElementById('milestones-section-label');
+  if (msEl) {
+    var yr = new Date().getFullYear();
+    msEl.textContent = toZH ? (yr + '年里程碑') : (yr + ' MILESTONES');
+  }
+
+  _currentLang = toZH ? 'zh' : 'en';
+  updateStaticLabels();
+  btn.textContent = toZH ? '中文' : 'EN/中';
+  try { localStorage.setItem('hr_lang', toZH ? 'zh' : 'en'); } catch(e) {}
+  // Re-render dynamic content
+  if (typeof renderMeeting === 'function') renderMeeting();
+  if (typeof renderToday === 'function') renderToday();
+  if (typeof renderWeek === 'function') renderWeek();
+  if (typeof renderBirthday === 'function') renderBirthday();
+  if (typeof renderMonthly === 'function') renderMonthly();
+  if (typeof renderMilestoneMonth === 'function') renderMilestoneMonth();
+  if (typeof renderEmpTable === 'function') renderEmpTable();
+  // Update all page title labels via the showTab label map
+  var _labelMap = {
+    'pt-today':    [t("Today's Reminders","今日提醒"), ''],
+    'pt-weekly':   [t('This Week','本周提醒'), ''],
+    'pt-monthly':  [t('Monthly Birthdays','本月生日'), ''],
+    'pt-upload':   [t('📂 Upload Data','📂 上传表格'), ''],
+    'pt-export':   [t('📤 Export Tool','📤 导出小程序'), ''],
+    'pt-slack':    [t('💬 Slack Settings','💬 Slack 设置'), '']
+  };
+  Object.keys(_labelMap).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = _labelMap[id][0];
+  });
+  // Update static meeting page labels
+  var mTitle = document.getElementById('meeting-page-title');
+  if (mTitle) mTitle.innerHTML = '📋 ' + t('Meeting Notes','会议记录');
+  var mSub = document.getElementById('meeting-page-sub');
+  if (mSub) mSub.textContent = t('Weekly Friday meeting topics · Editable by everyone · Saved in browser',
+    '每周五例会议题 · 所有人均可编辑 · 内容保存在本地浏览器');
+  var btnAF = document.getElementById('btn-autofill');
+  if (btnAF) btnAF.innerHTML = t('🔄 Auto-fill This Week', '🔄 自动填入本周转正&周年');
+  var btnNW = document.getElementById('btn-newweek');
+  if (btnNW) btnNW.innerHTML = t('➕ New This Week', '➕ 新建本周');
+  var btnTW = document.getElementById('btn-thisweek');
+  if (btnTW) btnTW.textContent = t('This Week', '本周');
+  if (typeof renderToday === 'function') renderToday();
+  if (typeof renderWeek === 'function') renderWeek();
+}
+
+
+// ════════════════════════════════════════════
+// 👥 员工管理模块
+// ════════════════════════════════════════════
+
+function calcMilestoneDates(onboardDate) {
+  var d = new Date(onboardDate);
+  var reg = new Date(d); reg.setMonth(reg.getMonth() + 6);
+  var y3  = new Date(d); y3.setFullYear(y3.getFullYear() + 3);
+  var y5  = new Date(d); y5.setFullYear(y5.getFullYear() + 5);
+  var y10 = new Date(d); y10.setFullYear(y10.getFullYear() + 10);
+  return { reg: reg, '3y': y3, '5y': y5, '10y': y10 };
+}
+
+function showAddEmpForm() {
+  document.getElementById('ef-editIndex').value = '-1';
+  document.getElementById('emp-form-title').textContent = 'Add Employee';
+  ['cnName','enName','dept','title','email','manager','onboard'].forEach(function(f) {
+    document.getElementById('ef-' + f).value = '';
+  });
+  document.getElementById('ef-dobMonth').value = '';
+  document.getElementById('ef-dobDay').value = '';
+  document.getElementById('emp-form-wrap').style.display = 'block';
+  document.getElementById('ef-enName').focus();
+}
+
+function editEmpForm(idx) {
+  var e = employees[idx];
+  if (!e) return;
+  var md = e.milestoneDates || {};
+  function fmtD(v) {
+    if (!v) return '';
+    var d = v instanceof Date ? v : new Date(v);
+    if (isNaN(d)) return '';
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  var dobStr = (e.dobMonth != null && e.dobDay != null)
+    ? new Date(2000, e.dobMonth, e.dobDay).toISOString().slice(0,10)
+    : '';
+
+  var formEl = document.getElementById('emp-form-area');
+  if (!formEl) return;
+
+  function field(label, id, val, type) {
+    type = type || 'text';
+    return '<div style="margin-bottom:10px">' +
+      '<label style="display:block;font-size:12px;color:#666;margin-bottom:3px">' + label + '</label>' +
+      '<input id="ef-' + id + '" type="' + type + '" value="' + (val||'').toString().replace(/"/g,'&quot;') + '" ' +
+      'style="width:100%;border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:13px;box-sizing:border-box">' +
+      '</div>';
+  }
+
+  formEl.innerHTML =
+    '<div class="card" style="margin-top:16px">' +
+    '<div id="emp-form-title" style="font-size:15px;font-weight:700;margin-bottom:16px">' + t('Edit Employee','编辑员工') + '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px">' +
+    field('Chinese Name 中文名', 'cnName', e.cnName) +
+    field('English Name 英文名', 'enName', e.enName) +
+    field('Employee ID 工号', 'empId', e.empId) +
+    field('Office ID', 'officeId', e.officeId) +
+    field('Gender 性别', 'gender', e.gender) +
+    field('China Dept 部门', 'dept', e.dept) +
+    field('Global Dept', 'globalDept', e.globalDept) +
+    field('Title 职位', 'title', e.title) +
+    field('Direct Manager 直属领导', 'manager', e.manager) +
+    field('Company Email 公司邮箱', 'email', e.email) +
+    field('Personal Email 私人邮箱', 'personalEmail', e.personalEmail) +
+    field('Mobile 手机号', 'mobile', e.mobile) +
+    field('ID Number 身份证号', 'idNumber', e.idNumber) +
+    field('Date of Birth 生日', 'dob', dobStr, 'date') +
+    field('Onboarding Date 入职日期', 'onboard', fmtD(e.onboard), 'date') +
+    field('Regularization 转正日期', 'reg', fmtD(md.reg), 'date') +
+    field('3-Year Anniversary 三周年', 'ann3', fmtD(md['3y']), 'date') +
+    field('5-Year Anniversary 五周年', 'ann5', fmtD(md['5y']), 'date') +
+    field('10-Year Anniversary 十周年', 'ann10', fmtD(md['10y']), 'date') +
+    field('Province 籍贯省', 'province', e.province) +
+    field('City 籍贯市', 'city', e.city) +
+    '</div>' +
+    '<div style="margin-bottom:10px">' +
+    '<label style="display:block;font-size:12px;color:#666;margin-bottom:3px">Address 地址</label>' +
+    '<input id="ef-address" value="' + (e.address||'').replace(/"/g,'&quot;') + '" ' +
+    'style="width:100%;border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:13px;box-sizing:border-box">' +
+    '</div>' +
+    '<div style="display:flex;gap:10px;margin-top:8px">' +
+    '<button onclick="saveEmpForm(' + idx + ')" style="background:var(--green);color:#fff;border:none;border-radius:6px;padding:8px 20px;cursor:pointer;font-size:13px;font-weight:600">' + t('Save','保存') + '</button>' +
+    '<button onclick="cancelEmpForm()" style="background:#f0f0f0;border:none;border-radius:6px;padding:8px 20px;cursor:pointer;font-size:13px">' + t('Cancel','取消') + '</button>' +
+    '</div>' +
+    '</div>';
+
+  formEl.scrollIntoView({behavior:'smooth'});
+}
+
+
+function cancelEmpForm() { var el=document.getElementById('emp-form-area'); if(el) el.innerHTML=''; }
+function saveEmpForm(idx) {
+  var e = employees[idx];
+  if (!e) return;
+  function gv(id) { var el=document.getElementById('ef-'+id); return el ? el.value.trim() : ''; }
+  function parseD(s) { return s ? new Date(s) : null; }
+  var dobStr = gv('dob');
+  var dobD = dobStr ? new Date(dobStr) : null;
+  e.cnName = gv('cnName');
+  e.enName = gv('enName');
+  e.empId  = gv('empId');
+  e.officeId = gv('officeId');
+  e.gender = gv('gender');
+  e.dept   = gv('dept');
+  e.globalDept = gv('globalDept');
+  e.title  = gv('title');
+  e.manager = gv('manager');
+  e.email  = gv('email');
+  e.personalEmail = gv('personalEmail');
+  e.mobile = gv('mobile');
+  e.idNumber = gv('idNumber');
+  e.dobMonth = dobD ? dobD.getMonth() : null;
+  e.dobDay   = dobD ? dobD.getDate()  : null;
+  e.onboard  = parseD(gv('onboard'));
+  e.province = gv('province');
+  e.city     = gv('city');
+  e.address  = gv('address');
+  if (!e.milestoneDates) e.milestoneDates = {};
+  e.milestoneDates.reg  = parseD(gv('reg'));
+  e.milestoneDates['3y'] = parseD(gv('ann3'));
+  e.milestoneDates['5y'] = parseD(gv('ann5'));
+  e.milestoneDates['10y'] = parseD(gv('ann10'));
+  employees[idx] = e;
+  if (typeof syncPushEmployees === 'function') syncPushEmployees();
+  updateBadges();
+  renderEmpTable();
+  document.getElementById('emp-form-area').innerHTML = '';
+  var btn = event && event.target;
+  if (btn) { btn.textContent = t('✅ Saved!','✅ 已保存！'); btn.disabled = true; setTimeout(function(){ renderEmpTable(); }, 1500); }
+}
+
+function cancelEmpForm() {
+  document.getElementById('emp-form-wrap').style.display = 'none';
+}
+
+
+function cancelEmpForm() { var el=document.getElementById('emp-form-area'); if(el) el.innerHTML=''; }
+function saveEmpForm() {
+  var enName = document.getElementById('ef-enName').value.trim();
+  var onboardVal = document.getElementById('ef-onboard').value;
+  if (!enName) { alert('English Name is required'); return; }
+  if (!onboardVal) { alert('Onboard Date is required'); return; }
+
+  var onboard = new Date(onboardVal + 'T00:00:00');
+  var milestones = calcMilestoneDates(onboard);
+  var dobMonthVal = document.getElementById('ef-dobMonth').value;
+  var dobDayVal = document.getElementById('ef-dobDay').value;
+
+  var emp = {
+    cnName: document.getElementById('ef-cnName').value.trim(),
+    enName: enName,
+    dept: document.getElementById('ef-dept').value.trim(),
+    title: document.getElementById('ef-title').value.trim(),
+    email: document.getElementById('ef-email').value.trim(),
+    manager: document.getElementById('ef-manager').value.trim(),
+    onboard: onboard,
+    milestoneDates: milestones,
+    dobMonth: dobMonthVal ? parseInt(dobMonthVal) - 1 : null,
+    dobDay: dobDayVal ? parseInt(dobDayVal) : null
+  };
+
+  var editIdx = parseInt(document.getElementById('ef-editIndex').value);
+  if (editIdx >= 0) {
+    employees[editIdx] = emp;
+  } else {
+    employees.push(emp);
+  }
+
+  // 同步到云端
+  if (typeof syncPushEmployees === 'function') syncPushEmployees();
+
+  cancelEmpForm();
+  renderEmpTable();
+  updateBadges();
+
+  // 更新上传区域显示
+  var hint = document.getElementById('upload-hint-text');
+  if (hint) hint.textContent = '✅ ' + employees.length + '" + t(" employees · Click to re-upload"," 名员工 · 点击重新上传") + "';
+}
+
+function deleteEmp(idx) {
+  var emp = employees[idx];
+  if (!confirm('Delete ' + (emp.enName || emp.cnName) + '?')) return;
+  employees.splice(idx, 1);
+  if (typeof syncPushEmployees === 'function') syncPushEmployees();
+  renderEmpTable();
+  updateBadges();
+}
+
+function renderEmpTable() {
+  var wrap = document.getElementById('emp-table-wrap');
+  if (!wrap) return;
+  if (!employees.length) {
+    wrap.innerHTML = '<div class="empty">No employee data. Upload Excel or add manually.</div>';
+    return;
+  }
+  var search = (document.getElementById('emp-search') || {}).value || '';
+  search = search.toLowerCase();
+  var filtered = employees.map(function(e,i){return{e:e,i:i};}).filter(function(x){
+    var e = x.e;
+    return !search ||
+      (e.cnName||'').toLowerCase().includes(search) ||
+      (e.enName||'').toLowerCase().includes(search) ||
+      (e.dept||'').toLowerCase().includes(search) ||
+      (e.email||'').toLowerCase().includes(search) ||
+      (e.title||'').toLowerCase().includes(search) ||
+      (e.mobile||'').includes(search) ||
+      (e.officeId||'').toLowerCase().includes(search);
+  });
+
+  function fmtDate(v) {
+    if (!v) return '-';
+    var d = v instanceof Date ? v : new Date(v);
+    if (isNaN(d)) return '-';
+    return (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+  }
+  function fmtDob(e) {
+    if (e.dobMonth == null || e.dobDay == null) return '-';
+    return (e.dobMonth+1) + '/' + e.dobDay;
+  }
+
+  var rows = filtered.map(function(x) {
+    var e = x.e; var i = x.i;
+    var md = e.milestoneDates || {};
+    return '<tr style="border-bottom:1px solid #f0f0f0">' +
+      '<td style="padding:6px 8px;font-size:12px;color:#888">' + (e.empId||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:13px;white-space:nowrap"><b>' + (e.cnName||'') + '</b><br><span style="color:#888;font-size:11px">' + (e.enName||'') + '</span></td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555">' + (e.gender||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555">' + (e.officeId||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555">' + (e.dept||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555">' + (e.globalDept||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555">' + (e.title||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555;white-space:nowrap">' + (e.manager||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555">' + (e.email||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555">' + (e.personalEmail||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555;white-space:nowrap">' + (e.mobile||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555">' + (e.idNumber||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555;white-space:nowrap">' + fmtDob(e) + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555;white-space:nowrap">' + fmtDate(e.onboard) + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555;white-space:nowrap">' + fmtDate(md.reg) + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#888;white-space:nowrap">' + fmtDate(md['3y']) + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#888;white-space:nowrap">' + fmtDate(md['5y']) + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#888;white-space:nowrap">' + fmtDate(md['10y']) + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555">' + (e.province||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555">' + (e.city||'-') + '</td>' +
+      '<td style="padding:6px 8px;font-size:12px;color:#555;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + (e.address||'') + '">' + (e.address||'-') + '</td>' +
+      '<td style="padding:6px 8px;white-space:nowrap">' +
+        '<button onclick="editEmpForm(' + i + ')" style="background:none;border:1px solid #ddd;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:12px;margin-right:4px">✏️</button>' +
+        '<button onclick="deleteEmp(' + i + ')" style="background:none;border:1px solid #ffcccc;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:12px;color:#e74c3c">🗑</button>' +
+      '</td></tr>';
+  }).join('');
+
+  var th = function(label) {
+    return '<th style="padding:6px 8px;text-align:left;font-size:11px;color:#666;font-weight:600;white-space:nowrap;background:#f8f8f8;position:sticky;top:0">' + label + '</th>';
+  };
+
+  wrap.innerHTML =
+    '<div style="font-size:12px;color:#888;margin-bottom:8px">' + filtered.length + ' / ' + employees.length + ' employees</div>' +
+    '<div style="overflow-x:auto;max-height:600px;overflow-y:auto"><table style="width:100%;border-collapse:collapse;min-width:1800px">' +
+    '<thead><tr>' +
+    th('ID') + th('Name 姓名') + th('Gender 性别') + th('Office ID') +
+    th('China Dept 部门') + th('Global Dept') + th('Title 职位') + th('Manager 领导') +
+    th('Email 公司邮箱') + th('Personal Email 私人邮箱') + th('Mobile 手机') + th('ID Number 身份证') +
+    th('Birthday 生日') + th('Onboard 入职') + th('Reg 转正') +
+    th('3-Year 三周年') + th('5-Year 五周年') + th('10-Year 十周年') +
+    th('Province 籍贯省') + th('City 籍贯市') + th('Address 地址') + th('Actions') +
+    '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
+
+// Restore language preference
+(function() {
+  try {
+    var lang = localStorage.getItem('hr_lang');
+    if (lang === 'zh') {
+      setTimeout(function() { if(typeof setLang==='function') setLang('zh'); }, 100);
+    }
+  } catch(e) {}
+})();
+
+// ── 语言工具函数 ──
+var _currentLang = (function() {
+  try { return localStorage.getItem('hr_lang') || 'en'; } catch(e) { return 'en'; }
+})();
+function t(en, zh) { return _currentLang === 'zh' ? zh : en; }
+
+function updateStaticLabels() {
+  var labels = {
+    'pt-meeting':  ['📋 Meeting Notes', '📋 会议记录'],
+    'pt-today':    ['🔔 Today Reminders', '🔔 今日提醒'],
+    'pt-weekly':   ['📅 This Week', '📅 本周提醒'],
+    'pt-monthly':  ['🎂 Monthly Birthdays', '🎂 本月生日'],
+    'pt-upload':   ['📂 Upload Data', '📂 上传表格'],
+    'pt-export':   ['📤 Export Tool', '📤 导出小程序'],
+    'pt-slack':    ['💬 Slack Settings', '💬 Slack 设置'],
+  };
+  Object.keys(labels).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = t(labels[id][0], labels[id][1]);
+  });
+  // Update sub-labels
+  var subs = document.querySelectorAll('.page-sub');
+  subs.forEach(function(el) {
+    // handled by render functions via t()
+  });
+  // Update year milestone label
+  var msEl = document.getElementById('milestones-section-label');
+  if (msEl) {
+    var yr = new Date().getFullYear();
+    msEl.textContent = t(yr + ' MILESTONES', yr + ' 年里程碑');
+  }
+}
+// Init
+
+// Update milestone section label with current year
+(function(){
+  var el = document.getElementById('milestones-section-label');
+  if (el) {
+    var yr = new Date().getFullYear();
+    el.textContent = yr + ' MILESTONES';
+    el.setAttribute('data-en', yr + ' MILESTONES');
+    el.setAttribute('data-zh', yr + '年里程碑');
+  }
+})();
+// Use China time for initial date
+const _chinaInit = new Date(new Date().getTime() + (8*60 - new Date().getTimezoneOffset()) * 60000);
+document.getElementById('checkDate').value = _chinaInit.toISOString().split('T')[0];
+goCurrentMonth();
+goCurrentMilestoneMonth();
+renderMeeting();
+(function(){
+  try {
+    if (localStorage.getItem('hr_lang') === 'zh') {
+      setTimeout(function(){
+        if(typeof setLang==='function') setLang('zh');
+      }, 300);
+    }
+  } catch(e) {}
+})();
+startAutoSync();
+
+
+
+
+
+
+function showAutoGuide() {
+  const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
+  document.getElementById('email-guide').innerHTML = `<div class="card" style="margin-top:16px">
+    <div class="card-title">⚙️ 每自动发送方案</div>
+    <p style="font-size:13px;color:var(--gray-mid);margin-bottom:14px">需联系 <strong style="color:var(--gray-text)">Santhosh（IT）</strong> 帮你申请公司邮箱应用密码，然后运行以下Python脚本即可。</p>
+    <div class="code-block"># pip install openpyxl schedule python-dateutil
+
+import schedule, time, smtplib, openpyxl
+from datetime import date
+from email.mime.text import MIMEText
+
+SMTP_SERVER = "smtp.office365.com"; SMTP_PORT = 587
+FROM_EMAIL  = "${to}"; FROM_PASS = "your_app_password"
+TO_EMAIL    = "${to}"
+EXCEL_FILE  = r"C:\路径\Employee_information_list.xlsx"
+
+MILESTONE_COLS = {
+    'Date of Regularization':'转正(6个月)',
+    '3rd Anniversary':'3周年',
+    '5th Anniversary':'5周年',
+    '10th Anniversary':'10周年'
+}
+
+def load_employees():
+    wb = openpyxl.load_workbook(EXCEL_FILE, data_only=True)
+    ws = wb['Master']
+    headers = [str(c.value).strip() if c.value else '' for c in ws[2]]
+    emps = []
+    for row in ws.iter_rows(min_row=3, values_only=True):
+        r = dict(zip(headers, row))
+        cn = str(r.get('Chinese name','')).strip()
+        en = str(r.get('Name','')).strip()
+        if not (cn or en): continue
+        dob = r.get('Date of Birth')
+        ms_dates = {}
+        for col in MILESTONE_COLS:
+            v = r.get(col)
+            ms_dates[col] = v.date() if hasattr(v,'date') else None
+        emps.append({'cn':cn,'en':en,'dept':str(r.get('China-Department','')).strip(),
+                     'dob_month':dob.month-1 if hasattr(dob,'month') else None,
+                     'dob_day':dob.day if hasattr(dob,'day') else None,'ms':ms_dates})
+    return emps
+
+def send_email(subj, body):
+    msg = MIMEText(body,'plain','utf-8')
+    msg['Subject']=subj; msg['From']=FROM_EMAIL; msg['To']=TO_EMAIL
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
+        s.starttls(); s.login(FROM_EMAIL, FROM_PASS); s.send_message(msg)
+
+def check_milestones():
+    emps = load_employees(); today = date.today()
+    hits = []
+    for e in emps:
+        ms = []
+        for col, label in MILESTONE_COLS.items():
+            d = e['ms'].get(col)
+            if d and d.year==today.year and d.month==today.month and d.day==today.day:
+                ms.append(label)
+        if ms:
+            hits.append(f"• {e['cn']}（{e['en']}）[{e['dept']}] — {'、'.join(ms)}")
+    if hits:
+        send_email(f'[HR Reminder] {today} Employee Milestones',
+                   "以下员工今天有里程碑：\n\n"+("\n".join(hits)))
+
+def check_birthdays():
+    today = date.today()
+    mondays = [d for d in range(1,32)
+               if date(today.year,today.month,d).weekday()==0
+               if date(today.year,today.month,d).month==today.month]
+    if len(mondays)<2 or today.day != mondays[1]: return
+    emps = load_employees()
+    bds = [e for e in emps if e['dob_month']==today.month-1 and e['dob_day']]
+    bds.sort(key=lambda e: e['dob_day'])
+    if not bds: return
+    lines = [f"• {today.month}/{e['dob_day']} — {e['cn']}（{e['en']}）[{e['dept']}]" for e in bds]
+    send_email(f'[HR生日] {today.year}年{today.month}月生日名单',
+               f"本月过生员工（共{len(bds)}人）：\n\n" + ("\n".join(lines)) + "\n\n Please arrange gifts and cake!")
+
+schedule.every().day.at("08:30").do(check_milestones)
+schedule.every().day.at("08:30").do(check_birthdays)
+print("⏰ Started, auto-checks daily at 08:30")
+while True:
+    schedule.run_pending(); time.sleep(60)</div>
+    <div style="font-size:12px;color:var(--gray-mid);margin-top:10px">💡 把 your_app_password 替换为 Santhosh 提供的邮箱应用密码后直接运行即可</div>
+  </div>`;
+}
+</script>
+<!-- __HR_INJECT_HERE_v2__ -->
+</body>
+</htmlfunction parseEmployees(data) {
+  const XLSX_COLS = {
+    empId:    'Employee ID',
+    globalDept: 'Global-Department',
+    dept:     'China-Department',
+    title:    'Title',
+    cnName:   'Chinese name',
+    manager:  'Direct Manager',
+    enName:   'Name',
+    gender:   'Gender',
+    officeId: 'China office ID',
+    email:    'Company Email',
+    personalEmail: 'Personal Email',
+    mobile:   'Mobile Number',
+    idNumber: 'ID Number',
+    dobCol:   'Date of Birth',
+    dobMonthCol: 'Birth Month',
+    onboard:  'Onboarding Date',
+    reg:      'Date of Regularization',
+    ann3:     '3rd Anniversary',
+    ann5:     '5th Anniversary',
+    ann10:    '10th Anniversary',
+    province: 'Ancestral Province',
+    city:     'Ancestral City',
+    address:  'Address',
+  };
+
+  // Find header row (row with 'Chinese name')
+  let headerRow = -1, sheet = null;
+  const sheetNames = Object.keys(data.Sheets);
+  for (const sn of sheetNames) {
+    const ws = data.Sheets[sn];
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:A1');
+    for (let r = range.s.r; r <= Math.min(range.e.r, 5); r++) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const cell = ws[XLSX.utils.encode_cell({r,c})];
+        if (cell && cell.v === 'Chinese name') { headerRow = r; sheet = ws; break; }
+      }
+      if (headerRow >= 0) break;
+    }
+    if (headerRow >= 0) break;
+  }
+  if (!headerRow || !sheet) return [];
+
+  const range = XLSX.utils.decode_range(sheet['!ref']);
+  // Build column index map
+  const colIdx = {};
+  for (let c = range.s.c; c <= range.e.c; c++) {
+    const cell = sheet[XLSX.utils.encode_cell({r: headerRow, c})];
+    if (cell && cell.v) colIdx[cell.v] = c;
+  }
+
+  function getVal(row, colName) {
+    const c = colIdx[colName];
+    if (c === undefined) return '';
+    const cell = sheet[XLSX.utils.encode_cell({r: row, c})];
+    if (!cell) return '';
+    if (cell.t === 'n' && colName.includes('Date') || colName.includes('Anniversary') || colName.includes('Onboard') || colName.includes('Birth')) {
+      // Excel date serial
+      if (typeof cell.v === 'number') {
+        const d = XLSX.SSF.parse_date_code(cell.v);
+        if (d) return new Date(d.y, d.m-1, d.d);
+      }
+    }
+    return cell.w !== undefined ? cell.w : (cell.v !== undefined ? cell.v : '');
+  }
+
+  function toDate(v) {
+    if (!v) return null;
+    if (v instanceof Date) return v;
+    if (typeof v === 'string' && v.match(/\d{4}-\d{2}-\d{2}/)) return new Date(v);
+    if (typeof v === 'number') {
+      const d = XLSX.SSF.parse_date_code(v);
+      return d ? new Date(d.y, d.m-1, d.d) : null;
+    }
+    return null;
+  }
+
+  const emps = [];
+  for (let r = headerRow + 1; r <= range.e.r; r++) {
+    const cn = getVal(r, 'Chinese name');
+    if (!cn || String(cn).trim() === '' || String(cn).startsWith('#')) continue;
+
+    const dobRaw = getVal(r, 'Date of Birth');
+    const dobDate = toDate(dobRaw);
+    const dobMonthRaw = getVal(r, 'Birth Month');
+    let dobMonth = null, dobDay = null;
+    if (dobDate) {
+      dobMonth = dobDate.getMonth();
+      dobDay = dobDate.getDate();
+    } else if (dobMonthRaw) {
+      dobMonth = parseInt(dobMonthRaw) - 1;
+    }
+
+    emps.push({
+      empId:    String(getVal(r,'Employee ID') || '').trim(),
+      cnName:   String(cn).trim(),
+      enName:   String(getVal(r,'Name') || '').trim(),
+      globalDept: String(getVal(r,'Global-Department') || '').trim(),
+      dept:     String(getVal(r,'China-Department') || '').trim(),
+      title:    String(getVal(r,'Title') || '').trim(),
+      manager:  String(getVal(r,'Direct Manager') || '').trim(),
+      gender:   String(getVal(r,'Gender') || '').trim(),
+      officeId: String(getVal(r,'China office ID') || '').trim(),
+      email:    String(getVal(r,'Company Email') || '').trim(),
+      personalEmail: String(getVal(r,'Personal Email') || '').trim(),
+      mobile:   String(getVal(r,'Mobile Number') || '').trim(),
+      idNumber: String(getVal(r,'ID Number') || '').trim(),
+      province: String(getVal(r,'Ancestral Province') || '').trim(),
+      city:     String(getVal(r,'Ancestral City') || '').trim(),
+      address:  String(getVal(r,'Address') || '').trim(),
+      dobMonth: dobMonth,
+      dobDay:   dobDay,
+      onboard:  toDate(getVal(r,'Onboarding Date')),
+      milestoneDates: {
+        reg:  toDate(getVal(r,'Date of Regularization')),
+        '3y': toDate(getVal(r,'3rd Anniversary')),
+        '5y': toDate(getVal(r,'5th Anniversary')),
+        '10y':toDate(getVal(r,'10th Anniversary')),
+      }
+    });
+  }
+  return emps;
+}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: var(--gray-200);
+    color: var(--gray-text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--gray-text);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    height: 56px;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-dot {
+    width: 28px;
+    height: 28px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-dot svg { width: 16px; height: 16px; }
+  .header-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.2px;
+  }
+  .header-sub {
+    font-size: 11px;
+    color: var(--gray-600);
+    margin-left: 4px;
+    font-weight: 400;
+  }
+  .header-pill {
+    margin-left: auto;
+    background: rgba(156,220,0,0.15);
+    border: 1px solid rgba(156,220,0,0.3);
+    color: var(--green);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* ── LAYOUT ── */
+  .layout { display: flex; min-height: calc(100vh - 56px); }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    background: #fff;
+    border-right: 1px solid var(--gray-400);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    height: calc(100vh - 56px);
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+  }
+  .sidebar-section {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--gray-600);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    padding: 12px 20px 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-mid);
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: var(--gray-100); color: var(--gray-text); }
+  .nav-item.active {
+    background: #f0fae0;
+    color: var(--green-deeper);
+    border-left-color: var(--green);
+    font-weight: 600;
+  }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--green);
+    color: var(--gray-text);
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 1px 6px;
+    min-width: 18px;
+    text-align: center;
+    pointer-events: none;
+  }
+  .nav-divider { height: 1px; background: var(--gray-200); margin: 8px 16px; }
+
+  /* ── MAIN CONTENT ── */
+  .main { flex: 1; padding: 28px 32px; min-width: 0; }
+  .page-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-text);
+    margin-bottom: 4px;
+  }
+  .page-sub {
+    font-size: 12px;
+    color: var(--gray-mid);
+    margin-bottom: 24px;
+  }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-400);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-mid);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  /* ── UPLOAD ── */
+  .upload-area {
+    border: 2px dashed var(--gray-400);
+    border-radius: var(--radius-lg);
+    padding: 48px 32px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #fff;
+    display: block;
+  }
+  .upload-area:hover { border-color: var(--green); background: #f7fde6; }
+  .upload-icon-wrap {
+    width: 64px; height: 64px;
+    background: #f0fae0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+  }
+  .upload-icon-wrap svg { width: 28px; height: 28px; color: var(--green-deeper); }
+  .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .upload-hint { font-size: 12px; color: var(--gray-mid); }
+
+  /* ── STATS ── */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat {
+    background: #fff;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-num { font-size: 28px; font-weight: 700; line-height: 1; color: var(--gray-text); }
+  .stat-num.alert { color: var(--green-deeper); }
+  .stat-label { font-size: 11px; color: var(--gray-mid); margin-top: 4px; font-weight: 500; }
+
+  /* ── EMP ROWS ── */
+  .emp-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .emp-row:last-child { border-bottom: none; }
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #f0fae0;
+    border: 1.5px solid var(--green);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+    color: var(--green-deeper);
+    flex-shrink: 0;
+  }
+  .avatar-pink {
+    background: #fce8f2;
+    border-color: var(--pink);
+    color: var(--pink);
+  }
+  .emp-name { font-weight: 600; font-size: 14px; color: var(--gray-text); }
+  .emp-en { font-size: 12px; color: var(--gray-mid); margin-top: 1px; }
+  .emp-info { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+
+  /* ── BADGES ── */
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
+  .badge {
+    display: inline-block; font-size: 11px;
+    padding: 3px 10px; border-radius: 20px;
+    font-weight: 600; white-space: nowrap;
+    font-family: 'Poppins', sans-serif;
+  }
+  .b-reg  { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
+  .b-3y   { background: #eef4ff; color: #1a56c9; border: 1px solid #93b4f5; }
+  .b-5y   { background: #f3efff; color: #5b21b6; border: 1px solid #c4b5fd; }
+  .b-10y  { background: #fff8ed; color: #92400e; border: 1px solid #fbbf24; }
+  .b-bday { background: #fce8f2; color: var(--pink); border: 1px solid #f9a8d4; }
+
+  /* ── DATE BADGE ── */
+  .date-badge {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 3px 10px;
+    font-size: 12px;
+    color: var(--gray-mid);
+    font-weight: 500;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+
+  /* ── BUTTONS ── */
+  button.btn {
+    background: #fff;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--gray-text);
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.15s;
+  }
+  button.btn:hover { background: var(--gray-100); border-color: var(--gray-mid); }
+  button.btn-green {
+    background: var(--green);
+    color: var(--gray-text);
+    border-color: var(--green);
+    font-weight: 600;
+  }
+  button.btn-green:hover { background: var(--green-dark); border-color: var(--green-dark); }
+  button.btn-dark {
+    background: var(--gray-text);
+    color: #fff;
+    border-color: var(--gray-text);
+    font-weight: 600;
+  }
+  button.btn-dark:hover { background: #444; }
+  button.btn-pink {
+    background: var(--pink);
+    color: #fff;
+    border-color: var(--pink);
+    font-weight: 600;
+  }
+
+  /* ── CONTROLS ── */
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .controls input[type=date],
+  .controls input[type=number] {
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 7px 10px;
+    font-size: 13px;
+    color: var(--gray-text);
+    background: #fff;
+    font-family: 'Poppins', sans-serif;
+  }
+  .controls label { font-size: 13px; color: var(--gray-mid); font-weight: 500; }
+
+  /* ── MONTH NAV ── */
+  .month-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .month-nav-arrow {
+    width: 32px; height: 32px;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: var(--gray-mid);
+    transition: all 0.15s;
+  }
+  .month-nav-arrow:hover { border-color: var(--green); color: var(--green-deeper); }
+  .month-display {
+    font-size: 15px;
+    font-weight: 700;
+    min-width: 120px;
+    text-align: center;
+    color: var(--gray-text);
+  }
+
+  /* ── NOTICE ── */
+  .notice {
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .notice-green { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
+  .notice-info  { background: #eef4ff; color: #1a56c9; border: 1px solid #93b4f5; }
+  .notice-bday  { background: #fce8f2; color: var(--pink); border: 1px solid #f9a8d4; }
+  .notice-success { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
+
+  /* ── SETTING ROW ── */
+  .setting-row { margin-bottom: 14px; }
+  .setting-row label { display: block; font-size: 11px; color: var(--gray-mid); margin-bottom: 4px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+  .setting-row input {
+    width: 100%;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-size: 13px;
+    color: var(--gray-text);
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* ── EMPTY ── */
+  .empty { text-align: center; padding: 48px; color: var(--gray-600); font-size: 13px; }
+  .empty-icon { font-size: 32px; margin-bottom: 10px; }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: var(--gray-text);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    font-size: 11.5px;
+    font-family: 'Courier New', monospace;
+    color: #d4f5a0;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(34,38,41,0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    width: 560px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .modal-title { font-size: 15px; font-weight: 700; color: var(--gray-text); }
+  .modal-close {
+    width: 30px; height: 30px;
+    border: none; background: none; cursor: pointer;
+    font-size: 18px; color: var(--gray-mid);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: var(--gray-200); }
+  .modal-body { padding: 20px 24px; }
+  .modal-footer {
+    padding: 14px 24px;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .msg-target {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .msg-target-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    min-width: 52px;
+  }
+  .msg-target-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-text);
+    background: var(--gray-100);
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    padding: 5px 12px;
+  }
+  .msg-textarea {
+    width: 100%;
+    border: 1px solid var(--gray-400);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    color: var(--gray-text);
+    resize: vertical;
+    min-height: 130px;
+    line-height: 1.6;
+    transition: border-color 0.15s;
+  }
+  .msg-textarea:focus { outline: none; border-color: var(--green); }
+  .char-hint { font-size: 11px; color: var(--gray-mid); margin-top: 6px; text-align: right; }
+  .slack-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--gray-400);
+    background: #fff;
+    cursor: pointer;
+    color: var(--gray-mid);
+    font-weight: 500;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .slack-btn:hover { border-color: var(--green); color: var(--green-deeper); background: #f7fde6; }
+  .slack-btn.manager { border-color: #b7b9b8; }
+  .slack-btn.manager:hover { border-color: #717372; color: #222629; background: var(--gray-100); }
+  .slack-icon { font-size: 13px; }
+  .tab-btns { display: flex; gap: 4px; margin-bottom: 16px; }
+  .tab-btn {
+    flex: 1; padding: 8px; text-align: center;
+    font-size: 12px; font-weight: 600;
+    border: 1.5px solid var(--gray-400);
+    border-radius: var(--radius-sm);
+    cursor: pointer; background: #fff;
+    color: var(--gray-mid);
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.15s;
+  }
+  .tab-btn.active { border-color: var(--green); background: #f0fae0; color: var(--green-deeper); }
+
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <div class="logo-dot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#222629" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+      </svg>
+    </div>
+    <span class="header-title">Conviva HR</span>
+    <span class="header-sub">Employee Reminder Tool</span>
+  </div>
+  <button id="lang-toggle" onclick="toggleLang()" style="
+    background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.4);
+    color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;
+    cursor:pointer;margin-right:10px;letter-spacing:0.5px;transition:all 0.2s">
+    EN/中
+  </button>
+  <div class="header-pill">China Office</div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">MEETINGS</div>
+    <button class="nav-item active" onclick="showTab('meeting')" id="nav-meeting">
+      <span class="nav-icon">📋</span> Meeting Notes
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="sidebar-section">MAIN</div>
+    <button class="nav-item" onclick="showTab('today')" id="nav-today">
+      <span class="nav-icon">🔔</span> Today
+      <span class="nav-badge" id="today-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showTab('weekly')" id="nav-weekly">
+      <span class="nav-icon">📅</span> This Week
+      <span class="nav-badge" id="weekly-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showTab('monthly')" id="nav-monthly">
+      <span class="nav-icon">🎂</span> Monthly Birthdays
+      <span class="nav-badge" id="monthly-count-badge" style="display:none">0</span>
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="sidebar-section" id="milestones-section-label">MILESTONES</div>
+
+    <button class="nav-item" onclick="showTab('birthday')" id="nav-birthday">
+      <span class="nav-icon">🎂</span> Birthdays
+      <span class="nav-badge" id="bday-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('reg')" id="nav-reg">
+      <span class="nav-icon">✅</span> Annual Regularization
+      <span class="nav-badge" id="reg-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('3y')" id="nav-3y">
+      <span class="nav-icon">🥉</span> Annual 3-Year
+      <span class="nav-badge" id="3y-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('5y')" id="nav-5y">
+      <span class="nav-icon">🥈</span> Annual 5-Year
+      <span class="nav-badge" id="5y-count-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="showMilestoneTab('10y')" id="nav-10y">
+      <span class="nav-icon">🏆</span> Annual 10-Year
+      <span class="nav-badge" id="10y-count-badge" style="display:none">0</span>
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="sidebar-section">SETTINGS</div>
+    <button class="nav-item" onclick="showTab('upload')" id="nav-upload">
+      <span class="nav-icon">📂</span> Upload Data
+    </button>
+    <button class="nav-item" onclick="showTab('export')" id="nav-export">
+      <span class="nav-icon">📤</span> Export Tool
+    </button>
+    <button class="nav-item" onclick="showTab('email')" id="nav-email">
+      <span class="nav-icon">💬</span> Slack Settings
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- UPLOAD -->
+    <div id="tab-upload" class="panel">
+      <div class="page-title">Upload Employee Data</div>
+      <div class="page-sub">Supports Employee_information_list_xxxx.xlsx format</div>
+
+      <label class="upload-area" for="fileInput" id="upload-label">
+        <div class="upload-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="upload-title" id="upload-title-text">Click to select employee Excel file</div>
+        <div class="upload-hint" id="upload-hint-text">Drag & drop or click · .xlsx / .xls</div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(event)">
+      </label>
+
+      <div id="upload-msg"></div>
+      <div id="preview-area"></div>
+
+      <!-- 员工管理 -->
+      <div id="emp-mgmt-area" style="display:none;margin-top:24px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+          <div class="section-title" style="margin:0">Employee Management</div>
+          <button class="btn btn-green" onclick="showAddEmpForm()" style="margin-left:auto">➕ Add Employee</button>
+          <input id="emp-search" type="text" placeholder="Search name / dept..." 
+            oninput="renderEmpTable()"
+            style="padding:6px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;width:200px">
+        </div>
+        <!-- Add/Edit form -->
+        <div id="emp-form-wrap" style="display:none;background:#f8fdf2;border:1.5px solid var(--green);border-radius:12px;padding:20px;margin-bottom:20px">
+          <div class="section-title" id="emp-form-title">Add Employee</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+            <div><label style="font-size:12px;color:#666">Chinese Name</label>
+              <input id="ef-cnName" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">English Name *</label>
+              <input id="ef-enName" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Department</label>
+              <input id="ef-dept" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Title</label>
+              <input id="ef-title" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Email</label>
+              <input id="ef-email" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Manager</label>
+              <input id="ef-manager" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Onboard Date *</label>
+              <input id="ef-onboard" type="date" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666">Birthday (MM/DD)</label>
+              <div style="display:flex;gap:8px;margin-top:4px">
+                <input id="ef-dobMonth" type="number" min="1" max="12" placeholder="MM" style="width:50%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box">
+                <input id="ef-dobDay" type="number" min="1" max="31" placeholder="DD" style="width:50%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box">
+              </div>
+            </div>
+          </div>
+          <input id="ef-editIndex" type="hidden" value="-1">
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <button class="btn btn-green" onclick="saveEmpForm()">💾 Save</button>
+            <button class="btn" onclick="cancelEmpForm()">Cancel</button>
+          </div>
+        </div>
+        <!-- Employee table -->
+        <div id="emp-table-wrap"></div>
+      </div>
+    </div>
+
+    <!-- TODAY -->
+    <div id="tab-today" class="panel">
+      <div class="page-title">Today's Reminders</div>
+      <div class="page-sub">Milestones + Birthdays</div>
+      <div class="controls" style="margin-bottom:16px">
+        <label>View date:</label>
+        <input type="date" id="checkDate" onchange="renderToday()">
+        <button class="btn" onclick="goToday()">Today</button>
+      </div>
+      <div id="stats-area"></div>
+      <div id="today-list"></div>
+    </div>
+
+    <!-- BIRTHDAY -->
+    <div id="tab-birthday" class="panel">
+      <div class="page-title">Annual Birthdays</div>
+      <div class="page-sub">View all employee birthdays by month</div>
+      <div class="month-nav">
+        <button class="month-nav-arrow" onclick="changeBdayYear(-1)">◀</button>
+        <div class="month-display" id="month-display"></div>
+        <button class="month-nav-arrow" onclick="changeBdayYear(1)">▶</button>
+        <button class="btn" onclick="goCurrentBdayYear()" style="margin-left:8px">This Year</button>
+  
+      </div>
+      <div id="week2-notice"></div>
+      <div id="birthday-list"></div>
+    </div>
+
+    <!-- MILESTONE MONTH -->
+    <div id="tab-milestone" class="panel">
+      <div class="page-title" id="milestone-page-title">Annual Milestones</div>
+      <div class="page-sub" id="milestone-page-sub"></div>
+      <div class="month-nav">
+        <button class="month-nav-arrow" onclick="changeMilestoneYear(-1)">◀</button>
+        <div class="month-display" id="milestone-month-display"></div>
+        <button class="month-nav-arrow" onclick="changeMilestoneYear(1)">▶</button>
+        <button class="btn" onclick="goCurrentMilestoneYear()" style="margin-left:8px">This Year</button>
+  
+      </div>
+      <div id="milestone-month-list"></div>
+    </div>
+
+    <!-- WEEKLY PANEL -->
+    <div id="tab-weekly" class="panel">
+      <div class="page-title" id="btn-thisweek">This Week</div>
+      <div class="page-sub">This week's regularizations and anniversaries (excl. birthdays)</div>
+      <div class="month-nav" style="margin-bottom:16px">
+        <button class="month-nav-arrow" onclick="changeWeek(-1)">◀</button>
+        <div id="week-range-label" style="font-size:14px;font-weight:700;min-width:200px;text-align:center;color:var(--gray-text)"></div>
+        <button class="month-nav-arrow" onclick="changeWeek(1)">▶</button>
+        <button class="btn" onclick="goThisWeek()" style="margin-left:8px">This Week</button>
+      </div>
+      <div id="week-stats-area"></div>
+      <div id="week-list"></div>
+    </div>
+
+    <!-- MONTHLY OVERVIEW -->
+    <div id="tab-monthly" class="panel">
+      <div class="page-title">Monthly Birthdays</div>
+      <div class="page-sub">Employees with birthdays this month</div>
+      <div class="month-nav">
+        <button class="month-nav-arrow" onclick="changeMonthlyMonth(-1)">◀</button>
+        <div class="month-display" id="monthly-month-display"></div>
+        <button class="month-nav-arrow" onclick="changeMonthlyMonth(1)">▶</button>
+        <button class="btn" onclick="goCurrentMonthlyMonth()" style="margin-left:8px">This Month</button>
+      </div>
+      <div id="monthly-stats-area"></div>
+      <div id="monthly-notice"></div>
+      <div id="monthly-list"></div>
+    </div>
+
+    <!-- EXPORT PANEL -->
+    <div id="tab-export" class="panel">
+      <div class="page-title">Export Tool</div>
+      <div class="page-sub">Generate a version with employee data to share</div>
+      <div id="export-area" class="card" style="border-color:var(--green)">
+        <div style="text-align:center;padding:12px 0">
+          <div style="font-size:48px;margin-bottom:12px">📤</div>
+          <div style="font-size:15px;font-weight:600;color:var(--gray-text);margin-bottom:8px">No data uploaded yet</div>
+          <div style="font-size:13px;color:var(--gray-mid)">Please upload the employee Excel in "Upload Data" first,<br>then come back to export.</div>
+        </div>
+      </div>
+      <div id="export-ready" style="display:none">
+        <div class="card" style="border-color:var(--green);background:#f7fde6">
+          <div style="text-align:center;padding:8px 0 16px">
+            <div style="font-size:48px;margin-bottom:12px">✅</div>
+            <div style="font-size:15px;font-weight:600;color:var(--gray-text);margin-bottom:6px">Data Ready</div>
+            <div style="font-size:13px;color:var(--gray-mid);margin-bottom:6px" id="export-file-info"></div>
+            <div style="font-size:13px;color:var(--gray-mid);margin-bottom:20px">
+              Click the button below to generate a new HTML file.<br>
+              Share this file with colleagues — they can open it in<br>
+              a browser and see all the data,<strong>no re-upload needed.</strong>。
+            </div>
+            <button class="btn btn-green" style="font-size:14px;padding:10px 24px" onclick="exportWithData()">⬇️ Download with Data</button>
+            <div id="export-hint" style="font-size:12px;color:var(--green-deeper);margin-top:10px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+        <!-- MEETING NOTES -->
+    <div id="tab-meeting" class="panel active">
+      <div class="page-title" id="meeting-page-title">📋 Meeting Notes</div>
+      <div class="page-sub" id="meeting-page-sub">Weekly Friday meeting topics · Editable by everyone · Saved in browser</div>
+
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn" onclick="meetingPrevWeek()">◀</button>
+        <div id="meeting-week-label" style="font-size:14px;font-weight:700;min-width:120px;text-align:center"></div>
+        <button class="btn" onclick="meetingNextWeek()">▶</button>
+        <button class="btn" onclick="meetingGoThisWeek()" id="btn-this-week-el" style="margin-left:4px">This Week</button>
+        <button class="btn btn-green" onclick="meetingAutoFill()" id="btn-autofill-el" style="margin-left:auto" id="btn-autofill">🔄 Auto-fill This Week</button>
+        <button class="btn" onclick="meetingNewWeek()" id="btn-new-week-el" style="background:#fff;border:1.5px solid var(--green);color:var(--green-deeper)" id="btn-newweek">➕ New This Week</button>
+      </div>
+
+      <div id="meeting-content">
+        <div class="empty">Select a week or click "New This Week" to start</div>
+      </div>
+    </div>
+
+    <!-- SLACK SETTINGS -->
+    <div id="tab-email" class="panel">
+      <div class="page-title">Slack Settings</div>
+      <div class="page-sub">Configure message templates and reminders</div>
+
+      <div class="card">
+        <div class="card-title">How to use</div>
+        <div style="font-size:13px;color:var(--gray-mid);line-height:1.8">
+          On the "Today's Reminders」or t("This Week","本周提醒") page, each employee has:<br>
+          <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
+            <button class="slack-btn" style="pointer-events:none">💬 Congratulate/Wish the person</button>
+          </span> — Click to preview and edit, send to the employee<br>
+          <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
+            <button class="slack-btn manager" style="pointer-events:none">👔 Notify Manager</button>
+          </span> — Click to preview and edit, notify their manager
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Custom Message Templates</div>
+        <div style="font-size:13px;color:var(--gray-mid);margin-bottom:14px">
+          Click any template to edit. Changes apply to this session.
+        </div>
+        <div id="template-editor">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+            <button class="btn" onclick="editTemplate('birthday')" >🎂 Birthday Wish</button>
+            <button class="btn" onclick="editTemplate('reg')"     >🎉 Regularization Congrats</button>
+            <button class="btn" onclick="editTemplate('3y')"      >🥉 3Anniversary Congrats</button>
+            <button class="btn" onclick="editTemplate('5y')"      >🥈 5Anniversary Congrats</button>
+            <button class="btn" onclick="editTemplate('10y')"     >🏆 10Anniversary Congrats</button>
+          </div>
+          <div id="template-edit-area" style="display:none">
+            <div style="font-size:12px;font-weight:600;color:var(--gray-mid);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px" id="template-edit-label"></div>
+            <textarea class="msg-textarea" id="templateTextArea" style="min-height:100px"></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn btn-green" onclick="saveTemplate()">Save Templates</button>
+              <button class="btn" onclick="resetTemplate()">Reset to Default</button>
+              <button class="btn" onclick="document.getElementById('template-edit-area').style.display='none'">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Auto Reminder Script</div>
+        <p style="font-size:13px;color:var(--gray-mid);margin-bottom:12px">
+          Send daily Slack messages to employees and managers. Contact <strong style="color:var(--gray-text)">Santhosh（IT）</strong> to configure Slack Bot Token.
+        </p>
+        <button class="btn btn-dark" onclick="showSlackAutoGuide()">⚙️ View Automation Script</button>
+        <div id="slack-auto-guide" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+  </main>
+
+<!-- SLACK MODAL -->
+<div class="modal-overlay" id="slackModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">💬 Send Slack Message</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="tab-btns" id="modalTabs" style="display:none">
+        <button class="tab-btn active" id="tabEmployee" onclick="switchMsgTab('employee')">👤 Send to Employee</button>
+        <button class="tab-btn" id="tabManager" onclick="switchMsgTab('manager')">👔 Notify Manager</button>
+      </div>
+      <div class="msg-target">
+        <span class="msg-target-label">Send to</span>
+        <span class="msg-target-val" id="modalRecipient">—</span>
+      </div>
+      <div class="msg-target" id="modalManagerRow" style="display:none">
+        <span class="msg-target-label">Direct Manager</span>
+        <span class="msg-target-val" id="modalManagerName">—</span>
+      </div>
+      <textarea class="msg-textarea" id="msgText" oninput="updateCharCount(this)" placeholder="Enter message..."></textarea>
+      <div class="char-hint"><span id="charCount">0</span> chars</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-green" onclick="openInSlack()">
+        <span style="font-size:14px">💬</span> Open in Slack
+      </button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+<!-- __HR_INJECT_HERE_v2__ -->
+</body>
+</html>
