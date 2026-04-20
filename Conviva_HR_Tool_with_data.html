@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -531,12 +531,7 @@
     <span class="header-title">Conviva HR</span>
     <span class="header-sub">Employee Reminder Tool</span>
   </div>
-  <button id="lang-toggle" onclick="toggleLang()" style="
-    background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.4);
-    color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;
-    cursor:pointer;margin-right:10px;letter-spacing:0.5px;transition:all 0.2s">
-    EN/中
-  </button>
+  
   <div class="header-pill">China Office</div>
 </div>
 
@@ -595,7 +590,7 @@
       <span class="nav-icon">📂</span> Upload Data
     </button>
     <button class="nav-item" onclick="showTab('export')" id="nav-export">
-      <span class="nav-icon">📤</span> Export Tool
+      <span class="nav-icon">📥</span> Download Data
     </button>
     <button class="nav-item" onclick="showTab('email')" id="nav-email">
       <span class="nav-icon">💬</span> Slack Settings
@@ -607,8 +602,8 @@
 
     <!-- UPLOAD -->
     <div id="tab-upload" class="panel">
-      <div class="page-title">Upload Employee Data</div>
-      <div class="page-sub">Supports Employee_information_list_xxxx.xlsx format</div>
+      <div class="page-title" id="pt-upload">Upload Employee Data</div>
+      <div class="page-sub" id="sub-upload">Supports Employee_information_list_xxxx.xlsx format</div>
 
       <label class="upload-area" for="fileInput" id="upload-label">
         <div class="upload-icon-wrap">
@@ -627,8 +622,8 @@
       <!-- 员工管理 -->
       <div id="emp-mgmt-area" style="display:none;margin-top:24px">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-          <div class="section-title" style="margin:0">Employee Management</div>
-          <button class="btn btn-green" onclick="showAddEmpForm()" style="margin-left:auto">➕ Add Employee</button>
+          <div class="section-title" style="margin:0" id="lbl-empmgmt">Employee Management</div>
+          <button class="btn btn-green" onclick="showAddEmpForm()" style="margin-left:auto" id="btn-addemp">➕ Add Employee</button>
           <input id="emp-search" type="text" placeholder="Search name / dept..." 
             oninput="renderEmpTable()"
             style="padding:6px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;width:200px">
@@ -636,32 +631,34 @@
         <!-- Add/Edit form -->
         <div id="emp-form-wrap" style="display:none;background:#f8fdf2;border:1.5px solid var(--green);border-radius:12px;padding:20px;margin-bottom:20px">
           <div class="section-title" id="emp-form-title">Add Employee</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-            <div><label style="font-size:12px;color:#666">Chinese Name</label>
-              <input id="ef-cnName" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">English Name *</label>
-              <input id="ef-enName" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Department</label>
-              <input id="ef-dept" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Title</label>
-              <input id="ef-title" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Email</label>
-              <input id="ef-email" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Manager</label>
-              <input id="ef-manager" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Onboard Date *</label>
-              <input id="ef-onboard" type="date" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Birthday (MM/DD)</label>
-              <div style="display:flex;gap:8px;margin-top:4px">
-                <input id="ef-dobMonth" type="number" min="1" max="12" placeholder="MM" style="width:50%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box">
-                <input id="ef-dobDay" type="number" min="1" max="31" placeholder="DD" style="width:50%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box">
-              </div>
-            </div>
+          <input type="hidden" id="ef-editIndex" value="-1">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
+            <div><label style="font-size:12px;color:#666;display:block">Chinese Name</label><input id="ef-cnName" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">English Name</label><input id="ef-enName" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Employee ID</label><input id="ef-empId" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">China Office ID</label><input id="ef-officeId" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Gender</label><input id="ef-gender" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">China Dept</label><input id="ef-dept" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Global Dept</label><input id="ef-globalDept" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Title</label><input id="ef-title" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Direct Manager</label><input id="ef-manager" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Company Email</label><input id="ef-email" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Personal Email</label><input id="ef-personalEmail" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Mobile</label><input id="ef-mobile" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">ID Number</label><input id="ef-idNumber" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Date of Birth</label><input id="ef-dob" type="date" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Onboard Date</label><input id="ef-onboard" type="date" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Regularization Date</label><input id="ef-reg" type="date" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">3-Year Anniversary</label><input id="ef-ann3" type="date" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">5-Year Anniversary</label><input id="ef-ann5" type="date" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">10-Year Anniversary</label><input id="ef-ann10" type="date" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">Province</label><input id="ef-province" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+            <div><label style="font-size:12px;color:#666;display:block">City</label><input id="ef-city" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
           </div>
-          <input id="ef-editIndex" type="hidden" value="-1">
-          <div style="display:flex;gap:8px;margin-top:16px">
-            <button class="btn btn-green" onclick="saveEmpForm()">💾 Save</button>
-            <button class="btn" onclick="cancelEmpForm()">Cancel</button>
+          <div style="margin-top:12px"><label style="font-size:12px;color:#666;display:block">Address</label><input id="ef-address" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
+          <div style="display:flex;gap:10px;margin-top:16px">
+            <button onclick="saveEmpFormUnified()" style="background:var(--green);color:#fff;border:none;border-radius:6px;padding:8px 20px;cursor:pointer;font-size:13px;font-weight:600">💾 Save</button>
+            <button onclick="cancelEmpForm()" style="background:#f0f0f0;border:none;border-radius:6px;padding:8px 20px;cursor:pointer;font-size:13px">Cancel</button>
           </div>
         </div>
         <!-- Employee table -->
@@ -671,10 +668,10 @@
 
     <!-- TODAY -->
     <div id="tab-today" class="panel">
-      <div class="page-title">Today's Reminders</div>
-      <div class="page-sub">Milestones + Birthdays</div>
+      <div class="page-title" id="pt-today">Today's Reminders</div>
+      <div class="page-sub" id="sub-today">Milestones + Birthdays</div>
       <div class="controls" style="margin-bottom:16px">
-        <label>View date:</label>
+        <label id="lbl-viewdate">View date:</label>
         <input type="date" id="checkDate" onchange="renderToday()">
         <button class="btn" onclick="goToday()">Today</button>
       </div>
@@ -684,13 +681,13 @@
 
     <!-- BIRTHDAY -->
     <div id="tab-birthday" class="panel">
-      <div class="page-title">Annual Birthdays</div>
-      <div class="page-sub">View all employee birthdays by month</div>
+      <div class="page-title" id="pt-birthday">Annual Birthdays</div>
+      <div class="page-sub" id="sub-birthday">View all employee birthdays by month</div>
       <div class="month-nav">
         <button class="month-nav-arrow" onclick="changeBdayYear(-1)">◀</button>
         <div class="month-display" id="month-display"></div>
         <button class="month-nav-arrow" onclick="changeBdayYear(1)">▶</button>
-        <button class="btn" onclick="goCurrentBdayYear()" style="margin-left:8px">This Year</button>
+        <button class="btn" onclick="goCurrentBdayYear()" style="margin-left:8px" id="btn-thisyear">This Year</button>
   
       </div>
       <div id="week2-notice"></div>
@@ -713,8 +710,8 @@
 
     <!-- WEEKLY PANEL -->
     <div id="tab-weekly" class="panel">
-      <div class="page-title" id="btn-thisweek">This Week</div>
-      <div class="page-sub">This week's regularizations and anniversaries (excl. birthdays)</div>
+      <div class="page-title" id="pt-weekly">This Week</div>
+      <div class="page-sub" id="sub-weekly">This week's regularizations and anniversaries (excl. birthdays)</div>
       <div class="month-nav" style="margin-bottom:16px">
         <button class="month-nav-arrow" onclick="changeWeek(-1)">◀</button>
         <div id="week-range-label" style="font-size:14px;font-weight:700;min-width:200px;text-align:center;color:var(--gray-text)"></div>
@@ -727,8 +724,8 @@
 
     <!-- MONTHLY OVERVIEW -->
     <div id="tab-monthly" class="panel">
-      <div class="page-title">Monthly Birthdays</div>
-      <div class="page-sub">Employees with birthdays this month</div>
+      <div class="page-title" id="pt-monthly">Monthly Birthdays</div>
+      <div class="page-sub" id="sub-monthly">Employees with birthdays this month</div>
       <div class="month-nav">
         <button class="month-nav-arrow" onclick="changeMonthlyMonth(-1)">◀</button>
         <div class="month-display" id="monthly-month-display"></div>
@@ -742,29 +739,23 @@
 
     <!-- EXPORT PANEL -->
     <div id="tab-export" class="panel">
-      <div class="page-title">Export Tool</div>
-      <div class="page-sub">Generate a version with employee data to share</div>
-      <div id="export-area" class="card" style="border-color:var(--green)">
-        <div style="text-align:center;padding:12px 0">
-          <div style="font-size:48px;margin-bottom:12px">📤</div>
-          <div style="font-size:15px;font-weight:600;color:var(--gray-text);margin-bottom:8px">No data uploaded yet</div>
-          <div style="font-size:13px;color:var(--gray-mid)">Please upload the employee Excel in "Upload Data" first,<br>then come back to export.</div>
-        </div>
-      </div>
-      <div id="export-ready" style="display:none">
-        <div class="card" style="border-color:var(--green);background:#f7fde6">
-          <div style="text-align:center;padding:8px 0 16px">
-            <div style="font-size:48px;margin-bottom:12px">✅</div>
-            <div style="font-size:15px;font-weight:600;color:var(--gray-text);margin-bottom:6px">Data Ready</div>
-            <div style="font-size:13px;color:var(--gray-mid);margin-bottom:6px" id="export-file-info"></div>
-            <div style="font-size:13px;color:var(--gray-mid);margin-bottom:20px">
-              Click the button below to generate a new HTML file.<br>
-              Share this file with colleagues — they can open it in<br>
-              a browser and see all the data,<strong>no re-upload needed.</strong>。
-            </div>
-            <button class="btn btn-green" style="font-size:14px;padding:10px 24px" onclick="exportWithData()">⬇️ Download with Data</button>
-            <div id="export-hint" style="font-size:12px;color:var(--green-deeper);margin-top:10px"></div>
+      <div class="page-title" id="pt-export">📥 Download Data</div>
+      <div class="page-sub" id="sub-export">Download employee data as Excel file (same format as original)</div>
+
+      <div class="card" style="margin-top:16px">
+        <div style="text-align:center;padding:24px 0">
+          <div style="font-size:48px;margin-bottom:12px">📊</div>
+          <div style="font-size:16px;font-weight:700;margin-bottom:8px" id="export-data-status">
+            No data loaded
           </div>
+          <div style="font-size:13px;color:var(--gray-mid);margin-bottom:24px">
+            Download your current employee data as an Excel file.<br>
+            The file will match the original format with all columns.
+          </div>
+          <button class="btn btn-green" onclick="exportToExcel()" style="font-size:14px;padding:12px 32px">
+            📥 Download Employee Excel
+          </button>
+          <div id="export-dl-hint" style="margin-top:12px;font-size:13px;color:var(--gray-mid)"></div>
         </div>
       </div>
     </div>
@@ -779,8 +770,8 @@
         <div id="meeting-week-label" style="font-size:14px;font-weight:700;min-width:120px;text-align:center"></div>
         <button class="btn" onclick="meetingNextWeek()">▶</button>
         <button class="btn" onclick="meetingGoThisWeek()" id="btn-this-week-el" style="margin-left:4px">This Week</button>
-        <button class="btn btn-green" onclick="meetingAutoFill()" id="btn-autofill-el" style="margin-left:auto" id="btn-autofill">🔄 Auto-fill This Week</button>
-        <button class="btn" onclick="meetingNewWeek()" id="btn-new-week-el" style="background:#fff;border:1.5px solid var(--green);color:var(--green-deeper)" id="btn-newweek">➕ New This Week</button>
+        <button class="btn btn-green" onclick="meetingAutoFill()" id="btn-autofill-el" style="margin-left:auto" id="btn-autofill" id="btn-autofill">🔄 Auto-fill This Week</button>
+        <button class="btn" onclick="meetingNewWeek()" id="btn-new-week-el" style="background:#fff;border:1.5px solid var(--green);color:var(--green-deeper)" id="btn-newweek" id="btn-newweek">➕ New This Week</button>
       </div>
 
       <div id="meeting-content">
@@ -790,18 +781,18 @@
 
     <!-- SLACK SETTINGS -->
     <div id="tab-email" class="panel">
-      <div class="page-title">Slack Settings</div>
-      <div class="page-sub">Configure message templates and reminders</div>
+      <div class="page-title" id="pt-slack">Slack Settings</div>
+      <div class="page-sub" id="sub-slack">${'Configure message templates and reminders'}</div>
 
       <div class="card">
         <div class="card-title">How to use</div>
         <div style="font-size:13px;color:var(--gray-mid);line-height:1.8">
-          On the "Today's Reminders」or t("This Week","本周提醒") page, each employee has:<br>
+          On the "Today's Reminders」or "This Week" page, each employee has:<br>
           <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
             <button class="slack-btn" style="pointer-events:none">💬 Congratulate/Wish the person</button>
           </span> — Click to preview and edit, send to the employee<br>
           <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
-            <button class="slack-btn manager" style="pointer-events:none">👔 Notify Manager</button>
+            <button class="slack-btn manager" style="pointer-events:none">${'👔 Notify Manager'}</button>
           </span> — Click to preview and edit, notify their manager
         </div>
       </div>
@@ -815,9 +806,9 @@
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
             <button class="btn" onclick="editTemplate('birthday')" >🎂 Birthday Wish</button>
             <button class="btn" onclick="editTemplate('reg')"     >🎉 Regularization Congrats</button>
-            <button class="btn" onclick="editTemplate('3y')"      >🥉 3Anniversary Congrats</button>
-            <button class="btn" onclick="editTemplate('5y')"      >🥈 5Anniversary Congrats</button>
-            <button class="btn" onclick="editTemplate('10y')"     >🏆 10Anniversary Congrats</button>
+            <button class="btn" onclick="editTemplate('3y')"       id="btn-3ann">🥉 3-Year Congrats</button>
+            <button class="btn" onclick="editTemplate('5y')"       id="btn-5ann">🥈 5-Year Congrats</button>
+            <button class="btn" onclick="editTemplate('10y')"      id="btn-10ann">🏆 10-Year Congrats</button>
           </div>
           <div id="template-edit-area" style="display:none">
             <div style="font-size:12px;font-weight:600;color:var(--gray-mid);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px" id="template-edit-label"></div>
@@ -853,7 +844,7 @@
     <div class="modal-body">
       <div class="tab-btns" id="modalTabs" style="display:none">
         <button class="tab-btn active" id="tabEmployee" onclick="switchMsgTab('employee')">👤 Send to Employee</button>
-        <button class="tab-btn" id="tabManager" onclick="switchMsgTab('manager')">👔 Notify Manager</button>
+        <button class="tab-btn" id="tabManager" onclick="switchMsgTab('manager')">${'👔 Notify Manager'}</button>
       </div>
       <div class="msg-target">
         <span class="msg-target-label">Send to</span>
@@ -884,10 +875,10 @@ let currentBdayMonth = new Date().getMonth(); // 0-based
 let currentBdayYear  = new Date().getFullYear();
 
 const MILESTONES = [
-  { key:'reg', label:'转正(6个月)', dateCol:'Date of Regularization', cls:'b-reg' },
-  { key:'3y',  label:'3周年',       dateCol:'3rd Anniversary',         cls:'b-3y'  },
-  { key:'5y',  label:'5周年',       dateCol:'5th Anniversary',         cls:'b-5y'  },
-  { key:'10y', label:'10周年',      dateCol:'10th Anniversary',        cls:'b-10y' },
+  { key:'reg', label:'Regularization(6mo)', dateCol:'Date of Regularization', cls:'b-reg' },
+  { key:'3y',  label:'3-Year',       dateCol:'3rd Anniversary',         cls:'b-3y'  },
+  { key:'5y',  label:'5-Year',       dateCol:'5th Anniversary',         cls:'b-5y'  },
+  { key:'10y', label:'10-Year',      dateCol:'10th Anniversary',        cls:'b-10y' },
 ];
 
 function toJSDate(v) {
@@ -939,7 +930,12 @@ function displayName(emp) {
 
 function sameMonthDay(a, b) {
   if (!a||!b) return false;
-  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+  var da = a instanceof Date ? a : new Date(a);
+  var db = b instanceof Date ? b : new Date(b);
+  // Use UTC methods since dates are stored as UTC midnight
+  return da.getUTCFullYear()===db.getUTCFullYear() && 
+         da.getUTCMonth()===db.getUTCMonth() && 
+         da.getUTCDate()===db.getUTCDate();
 }
 
 function getMilestonesOnDate(emp, date) {
@@ -977,29 +973,32 @@ function goToday() {
 function renderToday() {
   const v = document.getElementById('checkDate').value;
   if (!v) return;
-  const date = new Date(v+'T00:00:00');
+  const date = new Date(v+'T00:00:00Z'); // Parse as UTC to match stored dates
   const listEl = document.getElementById('today-list');
   const statsEl = document.getElementById('stats-area');
   const sendBtn = document.getElementById('sendMilestoneBtn');
   if (!employees.length) {
-    statsEl.innerHTML=''; listEl.innerHTML='<div class="empty">Please upload employee data first</div>';
+    statsEl.innerHTML=''; listEl.innerHTML=`<div class="empty">${'Please upload employee data first'}</div>`;
     sendBtn.style.display='none'; return;
   }
 
   const mHits  = employees.map(emp=>({emp,ms:getMilestonesOnDate(emp,date)})).filter(h=>h.ms.length);
-  const bdHits = employees.filter(emp => emp.dobMonth===date.getMonth() && emp.dobDay===date.getDate());
+  const bdHits = employees.filter(emp => emp.dobMonth===date.getUTCMonth() && emp.dobDay===date.getUTCDate());
   const counts = {reg:0,'3y':0,'5y':0,'10y':0};
   mHits.forEach(h=>h.ms.forEach(m=>counts[m.key]++));
   const totalPeople = mHits.length + bdHits.length;
 
-  statsEl.innerHTML = `<div class="stats" style="grid-template-columns:repeat(6,1fr)">
-    <div class="stat"><div class="stat-num${totalPeople?' alert':''}">${totalPeople}</div><div class="stat-label">今合计</div></div>
-    <div class="stat"><div class="stat-num">${counts.reg}</div><div class="stat-label">Regularization</div></div>
-    <div class="stat"><div class="stat-num">${counts['3y']}</div><div class="stat-label">3周年</div></div>
-    <div class="stat"><div class="stat-num">${counts['5y']}</div><div class="stat-label">5周年</div></div>
-    <div class="stat"><div class="stat-num">${counts['10y']}</div><div class="stat-label">10周年</div></div>
-    <div class="stat"><div class="stat-num">${bdHits.length}</div><div class="stat-label">🎂 生</div></div>
-  </div>`;
+  // Only show stats with count > 0
+  var statsCards = [];
+  if (totalPeople > 0) statsCards.push(`<div class="stat"><div class="stat-num alert">${totalPeople}</div><div class="stat-label">Total</div></div>`);
+  if (counts.reg > 0) statsCards.push(`<div class="stat"><div class="stat-num">${counts.reg}</div><div class="stat-label">Regularization</div></div>`);
+  if (counts['3y'] > 0) statsCards.push(`<div class="stat"><div class="stat-num">${counts['3y']}</div><div class="stat-label">3-Year</div></div>`);
+  if (counts['5y'] > 0) statsCards.push(`<div class="stat"><div class="stat-num">${counts['5y']}</div><div class="stat-label">5-Year</div></div>`);
+  if (counts['10y'] > 0) statsCards.push(`<div class="stat"><div class="stat-num">${counts['10y']}</div><div class="stat-label">10-Year</div></div>`);
+  if (bdHits.length > 0) statsCards.push(`<div class="stat"><div class="stat-num">${bdHits.length}</div><div class="stat-label">🎂 Birthday</div></div>`);
+  statsEl.innerHTML = statsCards.length
+    ? `<div class="stats">${statsCards.join('')}</div>`
+    : '';
 
   // send btn removed
 
@@ -1010,20 +1009,20 @@ function renderToday() {
   // Birthday section
   if (bdHits.length) {
     html += `<div class="card">
-      <div class="section-title" style="color:#c2185b">🎂 生 Today's Reminders</div>
+      <div class="section-title" style="color:#c2185b">🎂 ${"Today's Birthdays"}</div>
       ${bdHits.map(emp=>{
         const idx = employees.indexOf(emp);
         return `<div class="emp-row">
           <div class="avatar avatar-pink">${avatarChar(emp)}</div>
           <div style="flex:1;min-width:0">
-            <div class="emp-name">${emp.cnName||emp.enName}</div>
-            <div class="emp-en">${emp.cnName&&emp.enName?emp.enName:''}</div>
+            <div class="emp-name">${emp.enName||emp.cnName}</div>
+            <div class="emp-en">${emp.cnName&&emp.enName?emp.cnName:''}</div>
             <div class="emp-info">${[emp.dept,emp.title].filter(Boolean).join(' · ')}</div>
           </div>
           <div class="badges">
             <span class="badge b-bday">🎂 生快乐</span>
-            <button class="slack-btn" onclick="openSlackByIdx(${idx},'birthday')">💬 祝福本人</button>
-            ${emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'birthday_mgr')">👔 Notify Manager</button>`:''}
+            <button class="slack-btn" onclick="openSlackByIdx(${idx},'birthday')">💬 Wish Employee</button>
+            ${emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'birthday_mgr')">${'👔 Notify Manager'}</button>`:''}
           </div>
         </div>`;
       }).join('')}
@@ -1033,21 +1032,21 @@ function renderToday() {
   // Milestone section
   if (mHits.length) {
     html += `<div class="card">
-      <div class="section-title">🏆 今里程碑</div>
+      <div class="section-title">🏆 Today's Milestones</div>
       ${mHits.map(h=>{
         const empJson = JSON.stringify(h.emp).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
         return `<div class="emp-row">
           <div class="avatar">${avatarChar(h.emp)}</div>
           <div style="flex:1;min-width:0">
-            <div class="emp-name">${h.emp.cnName||h.emp.enName}</div>
-            <div class="emp-en">${h.emp.cnName&&h.emp.enName?h.emp.enName:''}</div>
+            <div class="emp-name">${h.emp.enName||h.emp.cnName}</div>
+            <div class="emp-en">${h.emp.cnName&&h.emp.enName?h.emp.cnName:''}</div>
             <div class="emp-info">${[h.emp.dept,h.emp.title].filter(Boolean).join(' · ')}</div>
           </div>
           <div class="badges">
             ${h.ms.map(m=>`<span class="badge ${m.cls}">${m.label}</span>`).join('')}
             ${h.ms.map(m=>`
-              <button class="slack-btn" onclick="openSlackModal(${empJson},'${m.key}')">💬 祝贺本人</button>
-              ${h.emp.manager?`<button class="slack-btn manager" onclick="openSlackModal(${empJson},'${m.key}_mgr')">👔 Notify Manager</button>`:''}
+              <button class="slack-btn" onclick="openSlackModal(${empJson},'${m.key}')">💬 Congratulate</button>
+              ${h.emp.manager?`<button class="slack-btn manager" onclick="openSlackModal(${empJson},'${m.key}_mgr')">${'👔 Notify Manager'}</button>`:''}
             `).join('')}
           </div>
         </div>`;
@@ -1060,10 +1059,9 @@ function renderToday() {
 
 
 function getChinaToday() {
-  const now = new Date();
-  const chinaOffset = 8 * 60;
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-  return new Date(utc + chinaOffset * 60000);
+  // Returns a Date object whose UTC year/month/day == China local date
+  var d = new Date(new Date().getTime() + 8 * 3600000);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
 
 function getWeekRange(refDate) {
@@ -1096,7 +1094,6 @@ function showTab(t) {
   if (t==='weekly')  { _weekOffset = 0; renderWeek(); }
   if (t==='birthday') goCurrentBdayYear();
   if (t==='monthly')  goCurrentMonthlyMonth();
-  updateStaticLabels();
 }
 
 function showMilestoneTab(key) {
@@ -1115,11 +1112,11 @@ function setMilestoneSub(key) {
   const navEl = document.getElementById('nav-'+key);
   if (navEl) navEl.classList.add('active');
   // Update page title and subtitle
-  const titleMap = { reg:t('Annual Regularization List','本年转正名单'), '3y':t('Annual 3-Year List','本年3周年名单'), '5y':t('Annual 5-Year List','本年5周年名单'), '10y':t('Annual 10-Year List','本年10周年名单') };
-  const subMap   = { reg:'入职满6个月转为正式员工', '3y':'入职满3周年', '5y':'入职满5周年', '10y':'入职满10周年' };
+  const titleMap = { reg:'Annual Regularization List', '3y':'Annual 3-Year List', '5y':'Annual 5-Year List', '10y':'Annual 10-Year List' };
+  const subMap   = { reg:'Completed 6-month probation', '3y':'3-Year Anniversary', '5y':'5-Year Anniversary', '10y':'10-Year Anniversary' };
   const ptEl = document.getElementById('milestone-page-title');
   const psEl = document.getElementById('milestone-page-sub');
-  if (ptEl) ptEl.textContent = titleMap[key] || t('Annual Milestones','本年里程碑');
+  if (ptEl) ptEl.textContent = titleMap[key] || 'Annual Milestones';
   if (psEl) psEl.textContent = subMap[key]  || '';
   // Update any inline sub-tab buttons if present
   ['reg','3y','5y','10y'].forEach(k => {
@@ -1144,14 +1141,14 @@ function changeMilestoneYear(delta) {
 function changeMilestoneMonth(delta) { changeMilestoneYear(delta); }
 
 function renderMilestoneMonth() {
-  const monthNames = [t('Jan','1月'),t('Feb','2月'),t('Mar','3月'),t('Apr','4月'),t('May','5月'),t('Jun','6月'),t('Jul','7月'),t('Aug','8月'),t('Sep','9月'),t('Oct','10月'),'1Jan','1Feb'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','1Jan','1Feb'];
   document.getElementById('milestone-month-display').textContent = currentMilestoneYear + ' ';
 
   const m = MILESTONES.find(x => x.key === currentMilestoneKey);
   const listEl = document.getElementById('milestone-month-list');
 
   if (!employees.length) {
-    listEl.innerHTML = '<div class="empty">Please upload employee data first</div>';
+    listEl.innerHTML = `<div class="empty">${'Please upload employee data first'}</div>`;
     return;
   }
 
@@ -1172,7 +1169,7 @@ function renderMilestoneMonth() {
   const total = months.reduce((s, mo) => s + byMonth[mo].length, 0);
 
   if (!months.length) {
-    listEl.innerHTML = `<div class="empty">${currentMilestoneYear} 没有员工达到${m.label}</div>`;
+    listEl.innerHTML = `<div class="empty">${currentMilestoneYear} No employees reached ${m.label}</div>`;
     return;
   }
 
@@ -1181,7 +1178,7 @@ function renderMilestoneMonth() {
     const entries = byMonth[mo].sort((a,b) => a.date.getDate() - b.date.getDate());
     return `<div class="card" style="${isCurrentMonth ? 'border-color:var(--green);border-width:1.5px' : ''}">
       <div class="section-title" style="${isCurrentMonth ? 'color:var(--green-deeper)' : ''}">
-        ${isCurrentMonth ? '📍 本月 · ' : ''}${monthNames[mo]}（${entries.length}人）
+        ${isCurrentMonth ? '📍 This Month · ' : ''}${monthNames[mo]}（${entries.length}人）
       </div>
       ${entries.map(({ emp, date }) => {
         const idx = employees.indexOf(emp);
@@ -1189,14 +1186,14 @@ function renderMilestoneMonth() {
         return `<div class="emp-row">
           <div class="avatar">${avatarChar(emp)}</div>
           <div style="flex:1;min-width:0">
-            <div class="emp-name">${emp.cnName || emp.enName}</div>
-            <div class="emp-en">${emp.cnName && emp.enName ? emp.enName : ''}</div>
+            <div class="emp-name">${emp.enName || emp.cnName}</div>
+            <div class="emp-en">${emp.cnName && emp.enName ? emp.cnName : ''}</div>
             <div class="emp-info">${[emp.dept, emp.title].filter(Boolean).join(' · ')}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
             <span class="bday-date-badge"><span class="badge ${m.cls}">${m.label}</span> ${dateStr}</span>
-            <button class="slack-btn" onclick="openSlackByIdx(${idx},'${m.key}')">💬 祝贺本人</button>
-            ${emp.manager ? `<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'${m.key}_mgr')">👔 Notify Manager</button>` : ''}
+            <button class="slack-btn" onclick="openSlackByIdx(${idx},'${m.key}')">💬 Congratulate</button>
+            ${emp.manager ? `<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'${m.key}_mgr')">${'👔 Notify Manager'}</button>` : ''}
           </div>
         </div>`;
       }).join('')}
@@ -1206,19 +1203,19 @@ function renderMilestoneMonth() {
 
 function sendMilestoneMonthEmail() {
   const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
-  const monthNames = [t('Jan','1月'),t('Feb','2月'),t('Mar','3月'),t('Apr','4月'),t('May','5月'),t('Jun','6月'),t('Jul','7月'),t('Aug','8月'),t('Sep','9月'),t('Oct','10月'),'1Jan','1Feb'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','1Jan','1Feb'];
   const m = MILESTONES.find(x => x.key === currentMilestoneKey);
   const hits = employees.filter(emp => {
     const d = emp.milestoneDates[m.key];
     return d && d.getFullYear()===currentMilestoneYear && d.getMonth()===currentMilestoneMonth;
   }).sort((a,b) => a.milestoneDates[m.key].getDate() - b.milestoneDates[m.key].getDate());
-  if (!hits.length) { alert('本月没有Relevant People！'); return; }
+  if (!hits.length) { alert('No relevant people this month!'); return; }
   const lines = hits.map(emp => {
     const d = emp.milestoneDates[m.key];
     return `• ${currentMilestoneMonth+1}/${d.getDate()} — ${emp.cnName||''}${emp.enName?'（'+emp.enName+'）':''}${emp.dept?' ['+emp.dept+']':''}`;
   });
   const body = 'Hello,\n\nThis week (' + monStr + ' — ' + sunStr + ') Employee Reminder Summary:\n\n' + lines.join('\n') + '\n\n— Conviva HR Reminder Tool';
-  const subj = `[HR提醒] 本周（${monStr}-${sunStr}）员工提醒`;
+  const subj = `[HR Reminder] This week (${monStr}-${sunStr}) Employee Milestones`;
   window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
 }
 
@@ -1281,13 +1278,13 @@ function renderWeek() {
   const statsEl = document.getElementById('week-stats-area');
   const rangeEl = document.getElementById('week-range-label');
 
-  const fmt = d => d.toLocaleDateString('zh-CN', {month:'long', day:'numeric', weekday:'short'});
+  const fmt = d => d.toLocaleDateString('en-US', {month:'short', day:'numeric', weekday:'short'});
   const isCurrentWeek = _weekOffset === 0;
-  rangeEl.textContent = (isCurrentWeek ? t('This week: ','本周：') : '') + fmt(mon) + ' — ' + fmt(sun) + t('(China Time)','(中国时间)');
+  rangeEl.textContent = (isCurrentWeek ? 'This week: ' : '') + fmt(mon) + ' — ' + fmt(sun) + '(China Time)';
 
   if (!employees.length) {
     statsEl.innerHTML = '';
-    listEl.innerHTML = '<div class="empty">Please upload employee data first</div>';
+    listEl.innerHTML = `<div class="empty">${'Please upload employee data first'}</div>`;
     return;
   }
 
@@ -1306,11 +1303,11 @@ function renderWeek() {
   const cnt10y = days.reduce((s,d)=>s+d.mHits.filter(h=>h.ms.some(m=>m.key==='10y')).length,0);
 
   statsEl.innerHTML = `<div class="stats" style="grid-template-columns:repeat(5,1fr);margin-bottom:16px">
-    <div class="stat"><div class="stat-num${total?' alert':''}">${total}</div><div class="stat-label">本周合计</div></div>
-    <div class="stat"><div class="stat-num">${cntReg}</div><div class="stat-label">转正</div></div>
-    <div class="stat"><div class="stat-num">${cnt3y}</div><div class="stat-label">3周年</div></div>
-    <div class="stat"><div class="stat-num">${cnt5y}</div><div class="stat-label">5周年</div></div>
-    <div class="stat"><div class="stat-num">${cnt10y}</div><div class="stat-label">10周年</div></div>
+    <div class="stat"><div class="stat-num${total?' alert':''}">${total}</div><div class="stat-label">This Week Total</div></div>
+    <div class="stat"><div class="stat-num">${cntReg}</div><div class="stat-label">Regularization</div></div>
+    <div class="stat"><div class="stat-num">${cnt3y}</div><div class="stat-label">3-Year</div></div>
+    <div class="stat"><div class="stat-num">${cnt5y}</div><div class="stat-label">5-Year</div></div>
+    <div class="stat"><div class="stat-num">${cnt10y}</div><div class="stat-label">10-Year</div></div>
   </div>`;
 
   if (!days.length) {
@@ -1341,14 +1338,14 @@ function renderWeek() {
         return `<div class="emp-row">
           <div class="avatar">${avatarChar(h.emp)}</div>
           <div style="flex:1;min-width:0">
-            <div class="emp-name">${h.emp.cnName||h.emp.enName}</div>
-            <div class="emp-en">${h.emp.cnName&&h.emp.enName?h.emp.enName:''}</div>
+            <div class="emp-name">${h.emp.enName||h.emp.cnName}</div>
+            <div class="emp-en">${h.emp.cnName&&h.emp.enName?h.emp.cnName:''}</div>
             <div class="emp-info">${[h.emp.dept,h.emp.title].filter(Boolean).join(' · ')}</div>
           </div>
           <div class="badges">
             ${h.ms.map(m=>`<span class="badge ${m.cls}">${m.label}</span>`).join('')}
             ${h.ms.map(m=>`
-              <button class="slack-btn" onclick="openSlackByIdx(${idx},'${m.key}')">💬 祝贺本人</button>
+              <button class="slack-btn" onclick="openSlackByIdx(${idx},'${m.key}')">💬 Congratulate</button>
               ${h.emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'${m.key}_mgr')">👔 Notify Manager</button>`:''}
             `).join('')}
           </div>
@@ -1395,8 +1392,8 @@ function showUploadResult(emps, fileName) {
   const titleEl = document.getElementById('upload-title-text');
   const hintEl  = document.getElementById('upload-hint-text');
   const labelEl = document.getElementById('upload-label');
-  if (titleEl) titleEl.textContent = fileName || t('Uploaded','已上传');
-  if (hintEl)  hintEl.textContent  = t('✅ Loaded','✅ 已加载') + ' ' + emps.length + t(' employees · Click to re-upload',' 名员工 · 点击重新上传');
+  if (titleEl) titleEl.textContent = fileName || 'Uploaded';
+  if (hintEl)  hintEl.textContent  = '✅ Loaded' + ' ' + emps.length + ' employees · Click to re-upload';
   if (labelEl) { labelEl.style.borderColor = 'var(--green)'; labelEl.style.background = '#f7fde6'; }
   // Show export, hide placeholder
   const ea = document.getElementById('export-area');
@@ -1404,7 +1401,7 @@ function showUploadResult(emps, fileName) {
   if (ea) ea.style.display = '';
   if (ep) ep.style.display = 'none';
   document.getElementById('upload-msg').innerHTML =
-    `<div class="notice">✅ ${t('Loaded','已加载')} ${emps.length} ${t('employees','名员工')}</div>`;
+    `<div class="notice">✅ ${'Loaded'} ${emps.length} ${'employees'}</div>`;
   document.getElementById('preview-area').innerHTML = '';
 }
 
@@ -1470,7 +1467,7 @@ function changeMonthlyMonth(delta) {
 }
 
 function renderMonthly() {
-  const monthNames = [t('Jan','1月'),t('Feb','2月'),t('Mar','3月'),t('Apr','4月'),t('May','5月'),t('Jun','6月'),t('Jul','7月'),t('Aug','8月'),t('Sep','9月'),t('Oct','10月'),'1Jan','1Feb'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','1Jan','1Feb'];
   document.getElementById('monthly-month-display').textContent = _monthlyYear + '  ' + monthNames[_monthlyMonth];
 
   const listEl  = document.getElementById('monthly-list');
@@ -1478,7 +1475,7 @@ function renderMonthly() {
 
   if (!employees.length) {
     statsEl.innerHTML = '';
-    listEl.innerHTML = '<div class="empty">Please upload employee data first</div>';
+    listEl.innerHTML = `<div class="empty">${'Please upload employee data first'}</div>`;
     return;
   }
 
@@ -1492,12 +1489,12 @@ function renderMonthly() {
   const total = bdEmps.length;
 
   statsEl.innerHTML = `<div class="stats" style="grid-template-columns:repeat(2,1fr);max-width:300px;margin-bottom:16px">
-    <div class="stat"><div class="stat-num">${monthNames[_monthlyMonth]}</div><div class="stat-label">当前/份</div></div>
-    <div class="stat"><div class="stat-num${total?' alert':''}">${total}</div><div class="stat-label">" + t('Monthly Birthdays','本月生日人数') + "</div></div>
+    <div class="stat"><div class="stat-num">${monthNames[_monthlyMonth]}</div><div class="stat-label">Current Month</div></div>
+    <div class="stat"><div class="stat-num${total?' alert':''}">${total}</div><div class="stat-label">No. of birthdays</div></div>
   </div>`;
 
   if (!bdEmps.length) {
-    listEl.innerHTML = '<div class="empty">🎉 本月没有员工生</div>';
+    listEl.innerHTML = '<div class="empty">🎉 No birthdays this month</div>';
     return;
   }
 
@@ -1511,9 +1508,9 @@ function renderMonthly() {
     if (secondMonday && bdEmps.length) {
       const smStr = secondMonday.toLocaleDateString('zh-CN', {month:'long', day:'numeric', weekday:'long'});
       if (isTodaySecondMonday) {
-        noticeEl.innerHTML = '<div class="week2-banner"><div class="week2-banner-title">🎉 今天就是第二周周一！记得安排生日礼物和蛋糕！</div><div class="week2-banner-sub">本月共 ' + bdEmps.length + ' 人过生日</div></div>';
+        noticeEl.innerHTML = '<div class="week2-banner"><div class="week2-banner-title">🎉 Today is the 2nd Monday! Arrange birthday gifts and cake!</div><div class="week2-banner-sub">本月共 ' + bdEmps.length + ' birthdays</div></div>';
       } else {
-        noticeEl.innerHTML = '<div class="notice notice-info" style="margin-bottom:12px">📅 建议在第二周Mon（<strong>' + smStr + '</strong>) arrange gifts & cake (total ' + bdEmps.length + '人）</div>';
+        noticeEl.innerHTML = '<div class="notice notice-info" style="margin-bottom:12px">📅 Suggest arranging on 2nd Monday (<strong>' + smStr + '</strong>) arrange gifts & cake (total ' + bdEmps.length + ' people)</div>';
       }
     } else {
       noticeEl.innerHTML = '';
@@ -1521,25 +1518,73 @@ function renderMonthly() {
   }
 
   listEl.innerHTML = `<div class="card">
-    <div class="section-title">🎂 ${monthNames[_monthlyMonth]}生名单（${bdEmps.length}人）</div>
+    <div class="section-title">🎂 ${monthNames[_monthlyMonth]} Birthday List (${bdEmps.length} people)</div>
     ${bdEmps.map(emp => {
       const dayStr = (_monthlyMonth + 1) + '/' + emp.dobDay + '';
       const idx = employees.indexOf(emp);
       return `<div class="emp-row">
         <div class="avatar avatar-pink">${avatarChar(emp)}</div>
         <div style="flex:1;min-width:0">
-          <div class="emp-name">${emp.cnName||emp.enName}</div>
-          <div class="emp-en">${emp.cnName&&emp.enName?emp.enName:''}</div>
+          <div class="emp-name">${emp.enName||emp.cnName}</div>
+          <div class="emp-en">${emp.cnName&&emp.enName?emp.cnName:''}</div>
           <div class="emp-info">${[emp.dept,emp.title].filter(Boolean).join(' · ')}</div>
         </div>
         <div class="badges">
           <span class="bday-date-badge">🎂 ${dayStr}</span>
-          <button class="slack-btn" onclick="openSlackByIdx(${idx},'birthday')">💬 祝福本人</button>
+          <button class="slack-btn" onclick="openSlackByIdx(${idx},'birthday')">💬 Wish Employee</button>
           ${emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'birthday_mgr')">👔 Notify Manager</button>`:''}
+          
         </div>
       </div>`;
     }).join('')}
   </div>`;
+
+  // Auto-write birthdays to 2nd Monday meeting of this month
+  autoWriteBirthdayToMeeting(bdEmps, _monthlyMonth, _monthlyYear);
+}
+
+function autoWriteBirthdayToMeeting(bdEmps, month, year) {
+  if (!bdEmps.length) return;
+
+  // Find 2nd Monday of the month
+  var firstDay = new Date(year, month, 1);
+  var dayOfWeek = firstDay.getDay();
+  var firstMonday = dayOfWeek <= 1 ? 1 + (1 - dayOfWeek) : 1 + (8 - dayOfWeek);
+  var secondMonday = firstMonday + 7;
+  var secondMondayDate = new Date(year, month, secondMonday);
+
+  // Get the Friday of that week (meeting day)
+  var meetingFriday = new Date(secondMondayDate);
+  meetingFriday.setDate(secondMondayDate.getDate() + 4);
+
+  // Format monday key
+  function pad(n) { return String(n).padStart(2,'0'); }
+  var mondayStr = secondMondayDate.getFullYear() + '-' + pad(secondMondayDate.getMonth()+1) + '-' + pad(secondMondayDate.getDate());
+  var fridayLabel = (meetingFriday.getMonth()+1) + '/' + meetingFriday.getDate() + '/' + meetingFriday.getFullYear();
+
+  // Build birthday text
+  var names = bdEmps.map(function(e) {
+    return (e.enName||e.cnName) + ' ' + (month+1) + '/' + e.dobDay;
+  }).join(', ');
+  var bdText = '🎂 Birthdays this month: ' + names;
+
+  // Load or create meeting data for that week
+  var data = loadMeetingData(mondayStr);
+  if (!data) {
+    data = { label: fridayLabel, hr: '', execution: '', created: new Date().toISOString() };
+  }
+
+  // Only add if not already there
+  if (data.hr.indexOf('🎂 Birthdays this month') === -1) {
+    data.hr = data.hr ? data.hr + '\n' + bdText : bdText;
+    saveMeetingData(mondayStr, data);
+    if (typeof syncPush === 'function') syncPush('meeting_' + mondayStr, JSON.stringify(data));
+    // If currently viewing this week in Meeting Notes, re-render
+    var currentMon = getMeetingWeekMonday(_meetingWeekOffset);
+    if (currentMon === mondayStr && typeof renderMeeting === 'function') {
+      renderMeeting();
+    }
+  }
 }
 
 // ---- BIRTHDAY ----
@@ -1566,11 +1611,11 @@ function renderBirthday() {
   noticeEl.innerHTML = '';
 
   if (!employees.length) {
-    listEl.innerHTML = '<div class="empty">Please upload employee data first</div>';
+    listEl.innerHTML = `<div class="empty">${'Please upload employee data first'}</div>`;
     return;
   }
 
-  const monthNames = [t('Jan','1月'),t('Feb','2月'),t('Mar','3月'),t('Apr','4月'),t('May','5月'),t('Jun','6月'),t('Jul','7月'),t('Aug','8月'),t('Sep','9月'),t('Oct','10月'),'1Jan','1Feb'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','1Jan','1Feb'];
   const today = new Date(); today.setHours(0,0,0,0);
 
   // Group by month
@@ -1587,7 +1632,7 @@ function renderBirthday() {
   }
 
   if (!sections.length) {
-    listEl.innerHTML = '<div class="empty">没有员工生日数据</div>';
+    listEl.innerHTML = '<div class="empty">No birthday data</div>';
     return;
   }
 
@@ -1595,15 +1640,15 @@ function renderBirthday() {
     const isCurrentMonth = sec.month === today.getMonth() && currentBdayYear === today.getFullYear();
     return `<div class="card" style="${isCurrentMonth ? 'border-color:var(--green);border-width:1.5px' : ''}">
       <div class="section-title" style="${isCurrentMonth ? 'color:var(--green-deeper)' : ''}">
-        ${isCurrentMonth ? '📍 本月 · ' : ''}🎂 ${monthNames[sec.month]}（${sec.emps.length}人）
+        ${isCurrentMonth ? '📍 This Month · ' : ''}🎂 ${monthNames[sec.month]}（${sec.emps.length}人）
       </div>
       ${sec.emps.map(emp => {
         const dayStr = (sec.month + 1) + '/' + emp.dobDay + '';
         return `<div class="emp-row">
           <div class="avatar avatar-pink">${avatarChar(emp)}</div>
           <div style="flex:1;min-width:0">
-            <div class="emp-name">${emp.cnName || emp.enName}</div>
-            <div class="emp-en">${emp.cnName && emp.enName ? emp.enName : ''}</div>
+            <div class="emp-name">${emp.enName || emp.cnName}</div>
+            <div class="emp-en">${emp.cnName && emp.enName ? emp.cnName : ''}</div>
             <div class="emp-info">${[emp.dept, emp.title].filter(Boolean).join(' · ')}</div>
           </div>
           <span class="bday-date-badge">🎂 ${dayStr}</span>
@@ -1620,17 +1665,17 @@ function renderBirthday() {
 
 function sendBirthdayEmail() {
   const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
-  const monthNames = [t('Jan','1月'),t('Feb','2月'),t('Mar','3月'),t('Apr','4月'),t('May','5月'),t('Jun','6月'),t('Jul','7月'),t('Aug','8月'),t('Sep','9月'),t('Oct','10月'),'1Jan','1Feb'];
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','1Jan','1Feb'];
   const mName = monthNames[currentBdayMonth];
   const bdEmps = employees
     .filter(emp=>emp.dobMonth===currentBdayMonth&&emp.dobDay!==null)
     .sort((a,b)=>a.dobDay-b.dobDay);
-  if (!bdEmps.length) { alert('本月没有生！'); return; }
+  if (!bdEmps.length) { alert('No birthdays this month!'); return; }
   const secondMonday = getSecondMondayOfMonth(currentBdayYear, currentBdayMonth);
   const smStr = secondMonday ? secondMonday.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'}) : 'TBD';
   const lines = bdEmps.map(emp=>`• ${mName.replace('/','')}/${emp.dobDay} — ${emp.cnName||''}${emp.enName?'（'+emp.enName+'）':''}${emp.dept?' ['+emp.dept+']':''}`);
-  const body = `你好，\n\n${currentBdayYear} ${mName}过生的员工名单如下：\n\n${lines.join('\n')}\n\n共 ${bdEmps.length} 人。\n\n📅 建议在第二周Mon（${smStr}）统一安排礼物和蛋糕。\n\n— Conviva HR Reminder Tool`;
-  const subj = `[HR生] ${currentBdayYear} ${mName}生名单 — ${bdEmps.length}人`;
+  const body = `Hello,\n\nEmployees with birthdays in ${currentBdayYear} ${mName}:\n\n${lines.join('\n')}\n\nTotal: ${bdEmps.length} people.\n\n📅 Suggest arranging gifts and cake on 2nd Monday (${smStr}).\n\n— Conviva HR Reminder Tool`;
+  const subj = `[HR Birthday] ${currentBdayYear} ${mName} Birthday List — ${bdEmps.length} people`;
   window.location.href = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`;
 }
 
@@ -1652,25 +1697,25 @@ let _modalCurrentTab = 'employee';
 
 const MSG_TEMPLATES = {
   birthday: (emp) =>
-    `Hi ${emp.cnName||emp.enName}！\n\n今天是你的生 🎂，祝你生快乐！希望新的一岁平安健康、万事顺意！\n\n— HR团队`,
+    `Hi ${emp.enName||emp.cnName}！\n\ntoday is your birthday 🎂! Wishing you a wonderful day, good health, and happiness! \n\n— HR Team`,
   birthday_manager: (emp) =>
-    `Hi ${emp.manager||'领导'}，\n\n今天是 ${emp.cnName||emp.enName} 的生 🎂，请别忘了送上祝福！\n\n— HR`,
+    `Hi ${emp.manager||'Manager'}，\n\ntoday is ${emp.enName||emp.cnName}'s birthday 🎂! Please don't forget to send your wishes!\n\n— HR`,
   reg: (emp) =>
-    `Hi ${emp.cnName||emp.enName}！\n\n恭喜你今天正式转正 🎉！感谢你这6个月的努力与付出，欢迎成为Conviva的正式员工！\n\n— HR团队`,
+    `Hi ${emp.enName||emp.cnName}！\n\nCongratulations on completing your probation today 🎉! Thank you for your 6 months of hard work. Welcome as a full Conviva employee!\n\n— HR Team`,
   reg_manager: (emp) =>
-    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天正式转正 🎉，请记得与他/她沟通转正情况！\n\n— HR`,
+    `Hi ${emp.manager||'Manager'}，\n\n${emp.enName||emp.cnName} has completed probation today 🎉. Please remember to follow up on their况！\n\n— HR`,
   '3y': (emp) =>
-    `Hi ${emp.cnName||emp.enName}！\n\n恭喜你入职满3周年 🥉！感谢你3 来对Conviva的贡献与坚守，期待与你共同成长！\n\n— HR团队`,
+    `Hi ${emp.enName||emp.cnName}！\n\nCongratulations on your 3-Year Anniversary 🥉! Thank you for 3 years of dedication to Conviva.Looking forward to growing together!\n\n— HR Team`,
   '3y_manager': (emp) =>
-    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天入职满3周年 🥉，欢迎致以祝贺！\n\n— HR`,
+    `Hi ${emp.manager||'Manager'}，\n\n${emp.enName||emp.cnName} has reached their 3-Year Anniversary today 🥉. Please extend your congratulations!\n\n— HR`,
   '5y': (emp) =>
-    `Hi ${emp.cnName||emp.enName}！\n\n恭喜你入职满5周年 🥈！五 同行，感谢你一路以来的坚持与贡献！\n\n— HR团队`,
+    `Hi ${emp.enName||emp.cnName}！\n\nCongratulations on your 5-Year Anniversary 🥈! Five years of journey together — thank you for your dedication!\n\n— HR Team`,
   '5y_manager': (emp) =>
-    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天入职满5周年 🥈，欢迎致以祝贺！\n\n— HR`,
+    `Hi ${emp.manager||'Manager'}，\n\n${emp.enName||emp.cnName} has reached their 5-Year Anniversary today 🥈. Please extend your congratulations!\n\n— HR`,
   '10y': (emp) =>
-    `Hi ${emp.cnName||emp.enName}！\n\n热烈祝贺你入职满10周年 🏆！十 相伴，你是Conviva最宝贵的财富！\n\n— HR团队`,
+    `Hi ${emp.enName||emp.cnName}！\n\nCongratulations on your 10-Year Anniversary 🏆! Ten years together — you are one of Conviva's most valuable assets！\n\n— HR Team`,
   '10y_manager': (emp) =>
-    `Hi ${emp.manager||'领导'}，\n\n${emp.cnName||emp.enName} 今天入职满10周年 🏆，这是一个重要里程碑，欢迎特别祝贺！\n\n— HR`,
+    `Hi ${emp.manager||'Manager'}，\n\n${emp.enName||emp.cnName} has reached their 10-Year Anniversary today 🏆. This is an important milestone — please give special congratulations!\n\n— HR`,
 };
 
 
@@ -1684,7 +1729,7 @@ function openSlackModal(emp, type) {
   _modalCurrentTab = 'employee';
   const isEmployee = true;
   const cleanType = type.replace('_mgr','');
-  const titles = { birthday:t('🎂 Birthday Wish','🎂 生日祝福'), reg:t('🎉 Regularization Congrats','🎉 转正祝贺'), "3y":t('🥉 3-Year Congrats','🥉 3周年祝贺'), "5y":t('🥈 5-Year Congrats','🥈 5周年祝贺'), "10y":t('🏆 10-Year Congrats','🏆 10周年祝贺') };
+  const titles = { birthday:'🎂 Birthday Wish', reg:'🎉 Regularization Congrats', "3y":'🥉 3-Year Congrats', "5y":'🥈 5-Year Congrats', "10y":'🏆 10-Year Congrats' };
   const startTab = type.endsWith('_mgr') ? 'manager' : 'employee';
   document.getElementById('slackModal').dataset.type = cleanType;
   document.getElementById('modalTitle').textContent = titles[type] || '💬 Send Slack Message';
@@ -1709,7 +1754,7 @@ function openSlackModal(emp, type) {
   document.getElementById('modalManagerName').textContent = mgr || 'N/A';
 
   // Set recipient & message for employee tab
-  document.getElementById('modalRecipient').textContent = `${emp.cnName||emp.enName}${emp.email ? ' · ' + emp.email : ''}`;
+  document.getElementById('modalRecipient').textContent = `${emp.enName||emp.cnName}${emp.email ? ' · ' + emp.email : ''}`;
   const tmpl = MSG_TEMPLATES[type];
   const txt = tmpl ? tmpl(emp) : '';
   document.getElementById('msgText').value = txt;
@@ -1725,11 +1770,11 @@ function switchMsgTab(tab) {
   document.getElementById('tabManager').classList.toggle('active', tab==='manager');
 
   if (tab === 'employee') {
-    document.getElementById('modalRecipient').textContent = `${emp.cnName||emp.enName}${emp.email ? ' · '+emp.email : ''}`;
+    document.getElementById('modalRecipient').textContent = `${emp.enName||emp.cnName}${emp.email ? ' · '+emp.email : ''}`;
     const tmpl = MSG_TEMPLATES[type];
     document.getElementById('msgText').value = tmpl ? tmpl(emp) : '';
   } else {
-    const mgr = emp.manager || '领导';
+    const mgr = emp.manager || 'Manager';
     document.getElementById('modalRecipient').textContent = mgr;
     const tmpl = MSG_TEMPLATES[type+'_manager'];
     document.getElementById('msgText').value = tmpl ? tmpl(emp) : '';
@@ -1792,14 +1837,14 @@ let _editingTemplateKey = null;
 const TEMPLATE_LABELS = {
   birthday: '🎂 Birthday Wish（Send to Employee）',
   reg: '🎉 Regularization Congrats（Send to Employee）',
-  '3y': '🥉 3Anniversary Congrats（Send to Employee）',
-  '5y': '🥈 5Anniversary Congrats（Send to Employee）',
-  '10y': '🏆 10Anniversary Congrats（Send to Employee）',
+  '3y': '🥉 3-Year Congrats',
+  '5y': '🥈 5-Year Congrats',
+  '10y': '🏆 10-Year Congrats',
 };
 
 function editTemplate(key) {
   _editingTemplateKey = key;
-  const emp = { cnName:'张三', enName:'San Zhang', dept:'HR', manager:'Ningning Hu' };
+  const emp = { cnName:'Sample Name', enName:'San Zhang', dept:'HR', manager:'Ningning Hu' };
   const tpl = MSG_TEMPLATES[key];
   document.getElementById('template-edit-label').textContent = TEMPLATE_LABELS[key] || key;
   document.getElementById('templateTextArea').value = tpl ? tpl(emp) : '';
@@ -1813,14 +1858,14 @@ function saveTemplate() {
   // but still substitutes the employee name
   const saved = newText;
   MSG_TEMPLATES[key] = (emp) => saved
-    .replace(/张三/g, emp.cnName||emp.enName)
+    .replace(/Sample Name/g, emp.cnName||emp.enName)
     .replace(/San Zhang/g, emp.enName||emp.cnName)
-    .replace(/Ningning Hu/g, emp.manager||'领导');
+    .replace(/Ningning Hu/g, emp.manager||'Manager');
   document.getElementById('template-edit-area').style.display = 'none';
   // Show success
   const btn = document.querySelector('[onclick="saveTemplate()"]');
   const orig = btn.textContent;
-  btn.textContent = t('✅ Saved!','✅ 已保存！'); btn.disabled = true;
+  btn.textContent = '✅ Saved!'; btn.disabled = true;
   setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
 }
 
@@ -1847,23 +1892,23 @@ SEND_TIME   = "08:30"
 client = WebClient(token=SLACK_TOKEN)
 
 MILESTONE_COLS = {
-    'Date of Regularization': ('reg',  '转正(6个月)'),
-    '3rd Anniversary':        ('3y',   '3周年'),
-    '5th Anniversary':        ('5y',   '5周年'),
-    '10th Anniversary':       ('10y',  '10周年'),
+    'Date of Regularization': ('reg',  'Regularization(6mo)'),
+    '3rd Anniversary':        ('3y',   '3-Year'),
+    '5th Anniversary':        ('5y',   '5-Year'),
+    '10th Anniversary':       ('10y',  '10-Year'),
 }
 
 MESSAGES = {
-    'birthday': lambda cn,en: f"Hi {cn}！今天是你的生日 🎂，祝你生日快乐！— HR",
-    'birthday_mgr': lambda cn,en,mgr: f"Hi {mgr}，今天是 {cn} 的生日 🎂，请送上祝福！— HR",
-    'reg':  lambda cn,en: f"Hi {cn}！恭喜你今天正式转正 🎉！欢迎成为Conviva正式员工！— HR",
-    'reg_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天正式转正 🎉，请记得沟通！— HR",
-    '3y':   lambda cn,en: f"Hi {cn}！恭喜入职满3周年 🥉！感谢你的贡献！— HR",
-    '3y_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天入职满3周年 🥉！— HR",
-    '5y':   lambda cn,en: f"Hi {cn}！恭喜入职满5周年 🥈！五 同行，感谢你！— HR",
-    '5y_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天入职满5周年 🥈！— HR",
-    '10y':  lambda cn,en: f"Hi {cn}！热烈祝贺入职满10周年 🏆！你是Conviva最宝贵的财富！— HR",
-    '10y_mgr': lambda cn,en,mgr: f"Hi {mgr}，{cn} 今天入职满10周年 🏆，请特别祝贺！— HR",
+    'birthday': lambda cn,en: f"Hi {cn}! Happy Birthday! 🎂 Wishing you a wonderful day! — HR",
+    'birthday_mgr': lambda cn,en,mgr: f"Hi {mgr}, today is {cn}'s birthday 🎂! Please send your wishes! — HR",
+    'reg':  lambda cn,en: f"Hi {cn}! Congratulations on completing your probation! 🎉 Welcome as a full-time Conviva employee! — HR",
+    'reg_mgr': lambda cn,en,mgr: f"Hi {mgr}, {cn} has completed their probation today 🎉. Please remember to follow up! — HR",
+    '3y':   lambda cn,en: f"Hi {cn}! Congratulations on your 3-Year Anniversary! 🥉 Thank you for your contributions! — HR",
+    '3y_mgr': lambda cn,en,mgr: f"Hi {mgr}, {cn} has reached their 3-Year Anniversary today 🥉! — HR",
+    '5y':   lambda cn,en: f"Hi {cn}! Congratulations on your 5-Year Anniversary! 🥈 Thank you for five great years! — HR",
+    '5y_mgr': lambda cn,en,mgr: f"Hi {mgr}, {cn} has reached their 5-Year Anniversary today 🥈! — HR",
+    '10y':  lambda cn,en: f"Hi {cn}! Congratulations on your 10-Year Anniversary! 🏆 You are one of Conviva's most valuable assets! — HR",
+    '10y_mgr': lambda cn,en,mgr: f"Hi {mgr}, {cn} is celebrating their 10-Year Anniversary today 🏆. Please give special congratulations! — HR",
 }
 
 def find_user(email):
@@ -1928,7 +1973,7 @@ print("⏰ Auto Slack reminder started")
 while True:
     schedule.run_pending(); time.sleep(60)</div>
     <div style="font-size:12px;color:var(--gray-mid);margin-top:10px">
-      💡 找 Santhosh 申请 Slack Bot Token（需要 <code>chat:write</code> 和 <code>users:read.email</code> 权限）
+      💡 找 Santhosh to get a Slack Bot Token (requires <code>chat:write</code> 和 <code>users:read.email</code> 权限）
     </div>`;
 }
 
@@ -2094,7 +2139,7 @@ function meetingAutoFill() {
   var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
   var data = loadMeetingData(mondayStr);
   if (!data) {
-    alert(t('Please click "New This Week" first','请先点「新建本周」创建本周记录'));
+    alert('Please click "New This Week" first');
     return;
   }
   if (!employees.length) {
@@ -2102,28 +2147,71 @@ function meetingAutoFill() {
     return;
   }
 
-  var mon = new Date(getMeetingWeekMonday(_meetingWeekOffset) + 'T00:00:00');
-  var lines = [];
+  // Parse monday as UTC to match stored dates
+  var parts = mondayStr.split('-');
+  var mon = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])));
+  var milestoneLines = [];
 
-  // 只收集本周转正和周 （不含生）
+  // Collect this week's milestones (excl. birthdays)
   for (var i = 0; i < 7; i++) {
-    var d = new Date(mon); d.setDate(mon.getDate() + i);
+    var d = new Date(mon.getTime() + i * 86400000);
     employees.forEach(function(emp) {
       MILESTONES.forEach(function(m) {
         var md = emp.milestoneDates[m.key];
-        if (md && md.getFullYear() === d.getFullYear() &&
-            md.getMonth() === d.getMonth() && md.getDate() === d.getDate()) {
-          var dateStr = (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
-          var name = (emp.cnName || emp.enName) + (emp.enName && emp.cnName ? '-' + emp.enName : '');
-          lines.push(m.label + '：' + name + ' ' + dateStr);
+        if (!md) return;
+        var mdate = md instanceof Date ? md : new Date(md);
+        if (mdate.getUTCFullYear() === d.getUTCFullYear() &&
+            mdate.getUTCMonth() === d.getUTCMonth() &&
+            mdate.getUTCDate() === d.getUTCDate()) {
+          var dateStr = (d.getUTCMonth()+1) + '/' + d.getUTCDate() + '/' + d.getUTCFullYear();
+          var name = (emp.enName || emp.cnName) + (emp.cnName && emp.enName ? ' (' + emp.cnName + ')' : '');
+          milestoneLines.push(m.label + ': ' + name + ' ' + dateStr);
         }
       });
     });
   }
 
-  var hrText = lines.length ? lines.join('\n') : '本周无转正或周年提醒';
-  data.hr = hrText;
+  // Build this week's milestone text
+  var milestoneText = milestoneLines.length
+    ? milestoneLines.join('\n')
+    : 'No regularizations or anniversaries this week';
+
+  // Preserve existing birthday info (keep 🎂 lines)
+  var existingHr = data.hr || '';
+  var bdLines = existingHr.split('\n').filter(function(line) {
+    return line.indexOf('🎂') !== -1;
+  });
+
+  // Combine: milestones first, then birthday info
+  var newHr = milestoneText;
+  if (bdLines.length) {
+    newHr = newHr + '\n' + bdLines.join('\n');
+  }
+
+  // Also ensure current month birthday info is written for this week if it's the 2nd Monday
+  var weekMonth = mon.getUTCMonth();
+  var weekYear = mon.getUTCFullYear();
+  var firstDay = new Date(Date.UTC(weekYear, weekMonth, 1));
+  var dow = firstDay.getUTCDay();
+  var firstMonday = dow <= 1 ? 1 + (1 - dow) : 1 + (8 - dow);
+  var secondMonday = firstMonday + 7;
+  var isSecondMonday = mon.getUTCDate() === secondMonday;
+
+  if (isSecondMonday) {
+    var bdEmps = employees.filter(function(e) {
+      return e.dobMonth === weekMonth && e.dobDay != null;
+    });
+    if (bdEmps.length && newHr.indexOf('🎂 Birthdays this month') === -1) {
+      var names = bdEmps.map(function(e) {
+        return (e.enName || e.cnName) + ' ' + (weekMonth+1) + '/' + e.dobDay;
+      }).join(', ');
+      newHr = newHr + '\n🎂 Birthdays this month: ' + names;
+    }
+  }
+
+  data.hr = newHr;
   saveMeetingData(mondayStr, data);
+  if (typeof syncPush === 'function') syncPush('meeting_' + mondayStr, JSON.stringify(data));
   renderMeeting();
 }
 
@@ -2140,12 +2228,12 @@ function meetingSave() {
   if (typeof syncPush === 'function') syncPush('meeting_' + mondayStr, JSON.stringify(data));
   // 显示Save提示
   var btn = document.getElementById('meeting-save-btn');
-  if (btn) { btn.textContent = t('✅ Saved','✅ 已保存'); setTimeout(function(){ btn.textContent = t('💾 Save','💾 保存'); }, 1500); }
+  if (btn) { btn.textContent = '✅ Saved'; setTimeout(function(){ btn.textContent = '💾 Save'; }, 1500); }
 }
 
 function meetingDelete() {
   var mondayStr = getMeetingWeekMonday(_meetingWeekOffset);
-  if (!confirm(t("Delete this week's record?","确定删除本周记录吗？"))) return;
+  if (!confirm("Delete this week's record?")) return;
   try { localStorage.removeItem(meetingStorageKey(mondayStr)); } catch(e) {}
   if (typeof syncDelete === 'function') syncDelete('meeting_' + mondayStr);
   renderMeeting();
@@ -2159,7 +2247,7 @@ function renderMeeting() {
   var label = (friDate.getMonth()+1) + '/' + friDate.getDate() + '/' + friDate.getFullYear();
 
   var labelEl = document.getElementById('meeting-week-label');
-  if (labelEl) labelEl.textContent = label + t(' (Fri)', ' (周五)');
+  if (labelEl) labelEl.textContent = label + ' (Fri)';
 
   var data = loadMeetingData(mondayStr);
   var el = document.getElementById('meeting-content');
@@ -2170,14 +2258,14 @@ function renderMeeting() {
     var keys = getAllMeetingKeys();
     var historyHtml = '';
     if (keys.length) {
-      historyHtml = '<div class="card" style="margin-top:12px"><div class="section-title">' + t('History','历史记录') + '</div>' +
+      historyHtml = '<div class="card" style="margin-top:12px"><div class="section-title">' + 'History' + '</div>' +
         keys.map(function(k) {
           var d2 = loadMeetingData(k.replace('meeting_', ''));
           return '<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;cursor:pointer;color:var(--green-deeper)" onclick="meetingJumpTo(\'' + k.replace('meeting_','') + '\')">' +
             (d2 ? d2.label : k.replace('meeting_','')) + '</div>';
         }).join('') + '</div>';
     }
-    el.innerHTML = '<div class="empty" style="margin-bottom:8px">' + t('No record this week. Click "New This Week" to start.','本周暂无记录，点击「新建本周」开始') + '</div>' + historyHtml;
+    el.innerHTML = '<div class="empty" style="margin-bottom:8px">' + 'No record this week. Click "New This Week" to start.' + '</div>' + historyHtml;
     return;
   }
 
@@ -2185,14 +2273,14 @@ function renderMeeting() {
     '<div class="card">' +
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">' +
     '<div style="font-size:15px;font-weight:700;color:var(--gray-text)">' + label + '</div>' +
-    '<button onclick="meetingEditLabel(&quot;' + mondayStr + '&quot;)" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--gray-mid)">' + t('✏️ Edit Date','✏️ 修改日期') + '</button>' +
-    '<button onclick="meetingCopyContent(&quot;' + mondayStr + '&quot;)" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--gray-mid)">' + t('📋 Copy to Another Week','📋 复制到其他周') + '</button>' +
+    '<button onclick="meetingEditLabel(&quot;' + mondayStr + '&quot;)" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--gray-mid)">' + '✏️ Edit Date' + '</button>' +
+    '<button onclick="meetingCopyContent(&quot;' + mondayStr + '&quot;)" style="font-size:11px;background:none;border:1px solid #ddd;border-radius:4px;padding:2px 8px;cursor:pointer;color:var(--gray-mid)">' + '📋 Copy to Another Week' + '</button>' +
     '</div>' +
     '<table style="width:100%;border-collapse:collapse">' +
     '<thead><tr>' +
-    '<th style="background:#2e6da4;color:#fff;padding:8px 12px;text-align:left;width:120px;font-size:13px">Category</th>' +
+    '<th style="background:#2e6da4;color:#fff;padding:8px 12px;text-align:left;width:110px;font-size:13px">Category</th>' +
     '<th style="background:#2e6da4;color:#fff;padding:8px 12px;text-align:left;font-size:13px">Topics</th>' +
-    '</tr></thead>' +
+        '</tr></thead>' +
     '<tbody>' +
     '<tr style="vertical-align:top">' +
     '<td style="padding:10px 12px;font-weight:600;font-size:13px;border:1px solid #dee2e6">HR</td>' +
@@ -2200,6 +2288,7 @@ function renderMeeting() {
     '<textarea id="meeting-hr-input" oninput="meetingAutoSave()" ' +
     'style="width:100%;min-height:120px;border:none;outline:none;resize:vertical;font-size:13px;font-family:inherit;line-height:1.6">' +
     escapeHtml(data.hr || '') + '</textarea></td>' +
+
     '</tr>' +
     '<tr style="vertical-align:top">' +
     '<td style="padding:10px 12px;font-weight:600;font-size:13px;border:1px solid #dee2e6">Execution</td>' +
@@ -2211,8 +2300,8 @@ function renderMeeting() {
     '</tbody>' +
     '</table>' +
     '<div style="display:flex;gap:8px;margin-top:12px;align-items:center">' +
-    '<button class="btn btn-green" id="meeting-save-btn" onclick="meetingSave()">' + t('💾 Save','💾 保存') + '</button>' +
-    '<button class="btn" onclick="meetingDelete()" style="color:#e74c3c;border-color:#e74c3c">' + t('🗑 Delete This Week','🗑 删除本周') + '</button>' +
+    '<button class="btn btn-green" id="meeting-save-btn" onclick="meetingSave()">' + '💾 Save' + '</button>' +
+    '<button class="btn" onclick="meetingDelete()" style="color:#e74c3c;border-color:#e74c3c">' + '🗑 Delete This Week' + '</button>' +
     '<span id="meeting-autosave-hint" style="font-size:12px;color:var(--gray-mid);margin-left:8px"></span>' +
     '</div>' +
     '</div>';
@@ -2301,7 +2390,7 @@ function meetingCopyContent(fromMondayStr) {
   } else { alert('Invalid option'); return; }
 
   saveMeetingData(toMondayStr, toData);
-  alert(t('Copied to','已复制到') + ' ' + (toData.label || toMondayStr));
+  alert('Copied to' + ' ' + (toData.label || toMondayStr));
   renderMeeting();
 }
 
@@ -2324,8 +2413,32 @@ function setSyncStatus(state, msg) {
   if (txt) txt.textContent = msg;
 }
 
+var _jsonpCount = 0;
 function syncFetch(url) {
-  return fetch(url, { mode: 'cors' }).then(function(r) { return r.json(); });
+  // Try fetch first (works on HTTPS), fall back to JSONP
+  return new Promise(function(resolve, reject) {
+    // Use JSONP which works reliably with Google Apps Script
+    var cbName = '_scb' + (++_jsonpCount);
+    var script = document.createElement('script');
+    var done = false;
+    var timer = setTimeout(function() {
+      if (!done) { done = true; cleanup(); reject(new Error('timeout')); }
+    }, 10000);
+    window[cbName] = function(data) {
+      if (!done) { done = true; cleanup(); resolve(data); }
+    };
+    function cleanup() {
+      clearTimeout(timer);
+      if (script.parentNode) script.parentNode.removeChild(script);
+      delete window[cbName];
+    }
+    var sep = url.indexOf('?') >= 0 ? '&' : '?';
+    script.src = url + sep + 'callback=' + cbName;
+    script.onerror = function() {
+      if (!done) { done = true; cleanup(); reject(new Error('script error')); }
+    };
+    document.head.appendChild(script);
+  });
 }
 
 function syncPull() {
@@ -2366,7 +2479,7 @@ function syncPull() {
         }
       });
 
-      setSyncStatus('synced', t('Synced','已同步') + ' ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
+      setSyncStatus('synced', 'Synced' + ' ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
       // 显示已更新通知
       var notif = document.getElementById('sync-notif');
       if (!notif) {
@@ -2387,7 +2500,7 @@ function syncPull() {
       if (meetingPanel && meetingPanel.classList.contains('active')) renderMeeting();
     })
     .catch(function(err) {
-      setSyncStatus('error', t('Network error','网络错误'));
+      setSyncStatus('error', 'Network error');
     });
 }
 
@@ -2399,17 +2512,17 @@ function syncPush(key, value) {
     var writes = Object.assign({}, _pendingWrites);
     _pendingWrites = {};
     Object.keys(writes).forEach(function(k) {
-      setSyncStatus('syncing', '保存中...');
+      setSyncStatus('syncing', 'Saving...');
       var url = SYNC_URL + '?action=write&key=' + encodeURIComponent(k) + '&value=' + encodeURIComponent(writes[k]);
       syncFetch(url)
         .then(function(res) {
           if (res && res.success) {
             setSyncStatus('synced', 'Saved ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
           } else {
-            setSyncStatus('error', '保存失败');
+            setSyncStatus('error', 'Save failed');
           }
         })
-        .catch(function() { setSyncStatus('error', '保存失败'); });
+        .catch(function() { setSyncStatus('error', 'Save failed'); });
     });
   }, 800);
 }
@@ -2440,136 +2553,9 @@ function syncPushEmployees() {
 
 
 
-function setLang(lang) {
-  var btn = document.querySelector('[onclick="toggleLang()"]');
-  if (!btn) return;
-  var currentIsEN = btn.textContent.trim() === 'EN/中';
-  var wantZH = lang === 'zh';
-  if ((wantZH && !currentIsEN) || (!wantZH && currentIsEN)) return; // already correct
-  toggleLang(); // flip to desired state
-}
 
-function toggleLang() {
-  var btn = document.querySelector('[onclick="toggleLang()"]');
-  if (!btn) return;
-  var toZH = btn.textContent.trim() === 'EN/中';
 
-  // Only EXACT whole-text-node matches — prevents partial replacements
-  var pairs = [
-    ['MEETINGS','会议'],
-    ['MAIN','主功能'],
-    ['2026 MILESTONES','2026年里程碑'],
-    ['2027 MILESTONES','2027年里程碑'],
-    ['2028 MILESTONES','2028年里程碑'],
-    ['SETTINGS','设置'],
-    ['Meeting Notes','会议记录'],
-    [t("Today's Reminders","今日提醒"),"今日提醒"],
-    ['This Week','本周提醒'],
-    ['Monthly Birthdays','本月生日'],
-    ['Birthdays','本年生日'],
-    ['Annual Regularization','本年转正'],
-    ['Annual 3-Year','本年3周年'],
-    ['Annual 5-Year','本年5周年'],
-    ['Annual 10-Year','本年10周年'],
-    ['Upload Data','上传表格'],
-    ['Export Tool','导出小程序'],
-    ['Slack Settings','Slack 设置'],
-    ['Employee Reminder Tool','员工提醒工具'],
-    ['Auto-fill This Week','自动填入本周转正&周年'],
-    ['New This Week','新建本周'],
-    ['Save','保存'],
-    ['Delete This Week','删除本周'],
-    ['Edit Date','修改日期'],
-    ['Copy to Another Week','复制到其他周'],
-    ['History','历史记录'],
-    ['This Week','本周'],
-    [t('Today','今天'),'今天'],
-    ['Settings','设置'],
-    ['Weekly Friday meeting topics · Editable by everyone · Saved in browser',
-     '每周五例会议题 · 所有人均可编辑 · 内容保存在本地浏览器'],
-    ['Select a week or create a new record','选择周次或新建本周会议记录'],
-    ['No record this week. Click "New This Week" to start.',
-     '本周暂无记录，点击「新建本周」开始'],
-    ['How to use','使用说明'],
-    ['Custom Message Templates','自定义消息模板'],
-    ['Birthday Wish','生日祝福'],
-    ['Regularization Congrats','转正祝贺'],
-    ['Anniversary Congrats','周年祝贺'],
-    ['Save Templates','保存模板'],
-    ['Reset to Default','恢复默认'],
-    ['Cancel','取消'],
-    ['Auto Reminder Script','自动提醒脚本'],
-    ['View Script','查看自动化脚本'],
-    ['Send Slack Message','发送 Slack 消息'],
-    ['Send to Employee','发给本人'],
-    ['Send to','发送给'],
-    ['Direct Manager','直属领导'],
-    ['Open in Slack','在 Slack 中打开'],
-    [t('Notify Manager','通知领导'),'通知领导'],
-    ['Congratulate / Wish the person','祝贺/祝福本人']
-  ];
 
-  function walkExact(node) {
-    if (node.nodeType === 3) {
-      var v = node.nodeValue.trim();
-      for (var pi = 0; pi < pairs.length; pi++) {
-        var from = toZH ? pairs[pi][0] : pairs[pi][1];
-        var to   = toZH ? pairs[pi][1] : pairs[pi][0];
-        if (v === from) { node.nodeValue = node.nodeValue.replace(from, to); break; }
-      }
-    } else if (node.nodeType === 1 && node.tagName !== 'SCRIPT' && node.tagName !== 'STYLE') {
-      for (var ci = 0; ci < node.childNodes.length; ci++) walkExact(node.childNodes[ci]);
-    }
-  }
-  walkExact(document.body);
-
-  // Update year milestone label
-  var msEl = document.getElementById('milestones-section-label');
-  if (msEl) {
-    var yr = new Date().getFullYear();
-    msEl.textContent = toZH ? (yr + '年里程碑') : (yr + ' MILESTONES');
-  }
-
-  _currentLang = toZH ? 'zh' : 'en';
-  updateStaticLabels();
-  btn.textContent = toZH ? '中文' : 'EN/中';
-  try { localStorage.setItem('hr_lang', toZH ? 'zh' : 'en'); } catch(e) {}
-  // Re-render dynamic content
-  if (typeof renderMeeting === 'function') renderMeeting();
-  if (typeof renderToday === 'function') renderToday();
-  if (typeof renderWeek === 'function') renderWeek();
-  if (typeof renderBirthday === 'function') renderBirthday();
-  if (typeof renderMonthly === 'function') renderMonthly();
-  if (typeof renderMilestoneMonth === 'function') renderMilestoneMonth();
-  if (typeof renderEmpTable === 'function') renderEmpTable();
-  // Update all page title labels via the showTab label map
-  var _labelMap = {
-    'pt-today':    [t("Today's Reminders","今日提醒"), ''],
-    'pt-weekly':   [t('This Week','本周提醒'), ''],
-    'pt-monthly':  [t('Monthly Birthdays','本月生日'), ''],
-    'pt-upload':   [t('📂 Upload Data','📂 上传表格'), ''],
-    'pt-export':   [t('📤 Export Tool','📤 导出小程序'), ''],
-    'pt-slack':    [t('💬 Slack Settings','💬 Slack 设置'), '']
-  };
-  Object.keys(_labelMap).forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = _labelMap[id][0];
-  });
-  // Update static meeting page labels
-  var mTitle = document.getElementById('meeting-page-title');
-  if (mTitle) mTitle.innerHTML = '📋 ' + t('Meeting Notes','会议记录');
-  var mSub = document.getElementById('meeting-page-sub');
-  if (mSub) mSub.textContent = t('Weekly Friday meeting topics · Editable by everyone · Saved in browser',
-    '每周五例会议题 · 所有人均可编辑 · 内容保存在本地浏览器');
-  var btnAF = document.getElementById('btn-autofill');
-  if (btnAF) btnAF.innerHTML = t('🔄 Auto-fill This Week', '🔄 自动填入本周转正&周年');
-  var btnNW = document.getElementById('btn-newweek');
-  if (btnNW) btnNW.innerHTML = t('➕ New This Week', '➕ 新建本周');
-  var btnTW = document.getElementById('btn-thisweek');
-  if (btnTW) btnTW.textContent = t('This Week', '本周');
-  if (typeof renderToday === 'function') renderToday();
-  if (typeof renderWeek === 'function') renderWeek();
-}
 
 
 // ════════════════════════════════════════════
@@ -2588,13 +2574,43 @@ function calcMilestoneDates(onboardDate) {
 function showAddEmpForm() {
   document.getElementById('ef-editIndex').value = '-1';
   document.getElementById('emp-form-title').textContent = 'Add Employee';
-  ['cnName','enName','dept','title','email','manager','onboard'].forEach(function(f) {
-    document.getElementById('ef-' + f).value = '';
+  // Clear ALL fields
+  var fields = ['cnName','enName','empId','officeId','gender','dept','globalDept','title',
+    'manager','email','personalEmail','mobile','idNumber','dob','onboard','reg',
+    'ann3','ann5','ann10','province','city','address'];
+  fields.forEach(function(f) {
+    var el = document.getElementById('ef-' + f);
+    if (el) el.value = '';
   });
-  document.getElementById('ef-dobMonth').value = '';
-  document.getElementById('ef-dobDay').value = '';
+  // Auto-calculate milestones when onboard date changes
+  var onboardEl = document.getElementById('ef-onboard');
+  if (onboardEl) {
+    onboardEl.onchange = function() { autoCalcMilestones(); };
+  }
   document.getElementById('emp-form-wrap').style.display = 'block';
-  document.getElementById('ef-enName').focus();
+  document.getElementById('emp-form-wrap').scrollIntoView({behavior:'smooth'});
+}
+
+function autoCalcMilestones() {
+  var onboardVal = document.getElementById('ef-onboard').value;
+  if (!onboardVal) return;
+  var d = new Date(onboardVal);
+  if (isNaN(d)) return;
+  function addMonths(date, months) {
+    var r = new Date(date); r.setMonth(r.getMonth() + months); return r;
+  }
+  function addYears(date, years) {
+    var r = new Date(date); r.setFullYear(r.getFullYear() + years); return r;
+  }
+  function fmt(date) { return date.toISOString().split('T')[0]; }
+  var regEl = document.getElementById('ef-reg');
+  var ann3El = document.getElementById('ef-ann3');
+  var ann5El = document.getElementById('ef-ann5');
+  var ann10El = document.getElementById('ef-ann10');
+  if (regEl && !regEl.value) regEl.value = fmt(addMonths(d, 6));
+  if (ann3El && !ann3El.value) ann3El.value = fmt(addYears(d, 3));
+  if (ann5El && !ann5El.value) ann5El.value = fmt(addYears(d, 5));
+  if (ann10El && !ann10El.value) ann10El.value = fmt(addYears(d, 10));
 }
 
 function editEmpForm(idx) {
@@ -2608,109 +2624,78 @@ function editEmpForm(idx) {
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
   var dobStr = (e.dobMonth != null && e.dobDay != null)
-    ? new Date(2000, e.dobMonth, e.dobDay).toISOString().slice(0,10)
-    : '';
+    ? new Date(2000, e.dobMonth, e.dobDay).toISOString().slice(0,10) : '';
 
-  var formEl = document.getElementById('emp-form-area');
-  if (!formEl) return;
+  document.getElementById('ef-editIndex').value = String(idx);
+  document.getElementById('emp-form-title').textContent = 'Edit Employee';
 
-  function field(label, id, val, type) {
-    type = type || 'text';
-    return '<div style="margin-bottom:10px">' +
-      '<label style="display:block;font-size:12px;color:#666;margin-bottom:3px">' + label + '</label>' +
-      '<input id="ef-' + id + '" type="' + type + '" value="' + (val||'').toString().replace(/"/g,'&quot;') + '" ' +
-      'style="width:100%;border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:13px;box-sizing:border-box">' +
-      '</div>';
-  }
+  var vals = {
+    cnName: e.cnName||'', enName: e.enName||'', empId: e.empId||'',
+    officeId: e.officeId||'', gender: e.gender||'', dept: e.dept||'',
+    globalDept: e.globalDept||'', title: e.title||'', manager: e.manager||'',
+    email: e.email||'', personalEmail: e.personalEmail||'', mobile: e.mobile||'',
+    idNumber: e.idNumber||'', dob: dobStr, onboard: fmtD(e.onboard),
+    reg: fmtD(md.reg), ann3: fmtD(md['3y']), ann5: fmtD(md['5y']), ann10: fmtD(md['10y']),
+    province: e.province||'', city: e.city||'', address: e.address||''
+  };
+  Object.keys(vals).forEach(function(f) {
+    var el = document.getElementById('ef-' + f);
+    if (el) el.value = vals[f];
+  });
 
-  formEl.innerHTML =
-    '<div class="card" style="margin-top:16px">' +
-    '<div id="emp-form-title" style="font-size:15px;font-weight:700;margin-bottom:16px">' + t('Edit Employee','编辑员工') + '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px">' +
-    field('Chinese Name 中文名', 'cnName', e.cnName) +
-    field('English Name 英文名', 'enName', e.enName) +
-    field('Employee ID 工号', 'empId', e.empId) +
-    field('Office ID', 'officeId', e.officeId) +
-    field('Gender 性别', 'gender', e.gender) +
-    field('China Dept 部门', 'dept', e.dept) +
-    field('Global Dept', 'globalDept', e.globalDept) +
-    field('Title 职位', 'title', e.title) +
-    field('Direct Manager 直属领导', 'manager', e.manager) +
-    field('Company Email 公司邮箱', 'email', e.email) +
-    field('Personal Email 私人邮箱', 'personalEmail', e.personalEmail) +
-    field('Mobile 手机号', 'mobile', e.mobile) +
-    field('ID Number 身份证号', 'idNumber', e.idNumber) +
-    field('Date of Birth 生日', 'dob', dobStr, 'date') +
-    field('Onboarding Date 入职日期', 'onboard', fmtD(e.onboard), 'date') +
-    field('Regularization 转正日期', 'reg', fmtD(md.reg), 'date') +
-    field('3-Year Anniversary 三周年', 'ann3', fmtD(md['3y']), 'date') +
-    field('5-Year Anniversary 五周年', 'ann5', fmtD(md['5y']), 'date') +
-    field('10-Year Anniversary 十周年', 'ann10', fmtD(md['10y']), 'date') +
-    field('Province 籍贯省', 'province', e.province) +
-    field('City 籍贯市', 'city', e.city) +
-    '</div>' +
-    '<div style="margin-bottom:10px">' +
-    '<label style="display:block;font-size:12px;color:#666;margin-bottom:3px">Address 地址</label>' +
-    '<input id="ef-address" value="' + (e.address||'').replace(/"/g,'&quot;') + '" ' +
-    'style="width:100%;border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:13px;box-sizing:border-box">' +
-    '</div>' +
-    '<div style="display:flex;gap:10px;margin-top:8px">' +
-    '<button onclick="saveEmpForm(' + idx + ')" style="background:var(--green);color:#fff;border:none;border-radius:6px;padding:8px 20px;cursor:pointer;font-size:13px;font-weight:600">' + t('Save','保存') + '</button>' +
-    '<button onclick="cancelEmpForm()" style="background:#f0f0f0;border:none;border-radius:6px;padding:8px 20px;cursor:pointer;font-size:13px">' + t('Cancel','取消') + '</button>' +
-    '</div>' +
-    '</div>';
-
-  formEl.scrollIntoView({behavior:'smooth'});
+  document.getElementById('emp-form-wrap').style.display = 'block';
+  document.getElementById('emp-form-wrap').scrollIntoView({behavior:'smooth'});
 }
 
 
-function cancelEmpForm() { var el=document.getElementById('emp-form-area'); if(el) el.innerHTML=''; }
-function saveEmpForm(idx) {
-  var e = employees[idx];
-  if (!e) return;
+function cancelEmpForm() { var el=document.getElementById('emp-form-wrap'); if(el) el.style.display='none'; }
+function saveEmpFormUnified() {
+  var idxVal = document.getElementById('ef-editIndex').value;
+  var idx = parseInt(idxVal);
   function gv(id) { var el=document.getElementById('ef-'+id); return el ? el.value.trim() : ''; }
   function parseD(s) { return s ? new Date(s) : null; }
   var dobStr = gv('dob');
   var dobD = dobStr ? new Date(dobStr) : null;
-  e.cnName = gv('cnName');
-  e.enName = gv('enName');
-  e.empId  = gv('empId');
-  e.officeId = gv('officeId');
-  e.gender = gv('gender');
-  e.dept   = gv('dept');
-  e.globalDept = gv('globalDept');
-  e.title  = gv('title');
-  e.manager = gv('manager');
-  e.email  = gv('email');
-  e.personalEmail = gv('personalEmail');
-  e.mobile = gv('mobile');
-  e.idNumber = gv('idNumber');
-  e.dobMonth = dobD ? dobD.getMonth() : null;
-  e.dobDay   = dobD ? dobD.getDate()  : null;
-  e.onboard  = parseD(gv('onboard'));
-  e.province = gv('province');
-  e.city     = gv('city');
-  e.address  = gv('address');
-  if (!e.milestoneDates) e.milestoneDates = {};
-  e.milestoneDates.reg  = parseD(gv('reg'));
-  e.milestoneDates['3y'] = parseD(gv('ann3'));
-  e.milestoneDates['5y'] = parseD(gv('ann5'));
-  e.milestoneDates['10y'] = parseD(gv('ann10'));
-  employees[idx] = e;
+  var empData = {
+    cnName: gv('cnName'), enName: gv('enName'), empId: gv('empId'),
+    officeId: gv('officeId'), gender: gv('gender'), dept: gv('dept'),
+    globalDept: gv('globalDept'), title: gv('title'), manager: gv('manager'),
+    email: gv('email'), personalEmail: gv('personalEmail'), mobile: gv('mobile'),
+    idNumber: gv('idNumber'),
+    dobMonth: dobD ? dobD.getMonth() : null,
+    dobDay:   dobD ? dobD.getDate()  : null,
+    onboard:  parseD(gv('onboard')),
+    province: gv('province'), city: gv('city'), address: gv('address'),
+    milestoneDates: {
+      reg:   parseD(gv('reg')),
+      '3y':  parseD(gv('ann3')),
+      '5y':  parseD(gv('ann5')),
+      '10y': parseD(gv('ann10')),
+    }
+  };
+  if (!empData.cnName && !empData.enName) {
+    alert('Please enter at least a name.');
+    return;
+  }
+  if (idx >= 0 && idx < employees.length) {
+    employees[idx] = Object.assign(employees[idx], empData);
+  } else {
+    employees.push(empData);
+  }
   if (typeof syncPushEmployees === 'function') syncPushEmployees();
   updateBadges();
   renderEmpTable();
-  document.getElementById('emp-form-area').innerHTML = '';
-  var btn = event && event.target;
-  if (btn) { btn.textContent = t('✅ Saved!','✅ 已保存！'); btn.disabled = true; setTimeout(function(){ renderEmpTable(); }, 1500); }
+  cancelEmpForm();
 }
+
+function saveEmpForm(idx) { saveEmpFormUnified(); }
 
 function cancelEmpForm() {
   document.getElementById('emp-form-wrap').style.display = 'none';
 }
 
 
-function cancelEmpForm() { var el=document.getElementById('emp-form-area'); if(el) el.innerHTML=''; }
+function cancelEmpForm() { var el=document.getElementById('emp-form-wrap'); if(el) el.style.display='none'; }
 function saveEmpForm() {
   var enName = document.getElementById('ef-enName').value.trim();
   var onboardVal = document.getElementById('ef-onboard').value;
@@ -2751,7 +2736,7 @@ function saveEmpForm() {
 
   // 更新上传区域显示
   var hint = document.getElementById('upload-hint-text');
-  if (hint) hint.textContent = '✅ ' + employees.length + '" + t(" employees · Click to re-upload"," 名员工 · 点击重新上传") + "';
+  if (hint) hint.textContent = '✅ ' + employees.length + '" + " employees · Click to re-upload" + "';
 }
 
 function deleteEmp(idx) {
@@ -2834,58 +2819,204 @@ function renderEmpTable() {
     '<div style="font-size:12px;color:#888;margin-bottom:8px">' + filtered.length + ' / ' + employees.length + ' employees</div>' +
     '<div style="overflow-x:auto;max-height:600px;overflow-y:auto"><table style="width:100%;border-collapse:collapse;min-width:1800px">' +
     '<thead><tr>' +
-    th('ID') + th('Name 姓名') + th('Gender 性别') + th('Office ID') +
-    th('China Dept 部门') + th('Global Dept') + th('Title 职位') + th('Manager 领导') +
-    th('Email 公司邮箱') + th('Personal Email 私人邮箱') + th('Mobile 手机') + th('ID Number 身份证') +
-    th('Birthday 生日') + th('Onboard 入职') + th('Reg 转正') +
-    th('3-Year 三周年') + th('5-Year 五周年') + th('10-Year 十周年') +
-    th('Province 籍贯省') + th('City 籍贯市') + th('Address 地址') + th('Actions') +
+    th('ID') + th('Name') + th('Gender') + th('Office ID') +
+    th('China Dept') + th('Global Dept') + th('Title') + th('Manager') +
+    th('Company Email') + th('Personal Email') + th('Mobile') + th('ID Number') +
+    th('Birthday') + th('Onboard') + th('Regularization') +
+    th('3-Year') + th('5-Year') + th('10-Year') +
+    th('Province') + th('City') + th('Address') + th('Actions') +
     '</tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
 
 
-// Restore language preference
-(function() {
-  try {
-    var lang = localStorage.getItem('hr_lang');
-    if (lang === 'zh') {
-      setTimeout(function() { if(typeof setLang==='function') setLang('zh'); }, 100);
-    }
-  } catch(e) {}
-})();
+
 
 // ── 语言工具函数 ──
-var _currentLang = (function() {
-  try { return localStorage.getItem('hr_lang') || 'en'; } catch(e) { return 'en'; }
-})();
-function t(en, zh) { return _currentLang === 'zh' ? zh : en; }
 
-function updateStaticLabels() {
-  var labels = {
-    'pt-meeting':  ['📋 Meeting Notes', '📋 会议记录'],
-    'pt-today':    ['🔔 Today Reminders', '🔔 今日提醒'],
-    'pt-weekly':   ['📅 This Week', '📅 本周提醒'],
-    'pt-monthly':  ['🎂 Monthly Birthdays', '🎂 本月生日'],
-    'pt-upload':   ['📂 Upload Data', '📂 上传表格'],
-    'pt-export':   ['📤 Export Tool', '📤 导出小程序'],
-    'pt-slack':    ['💬 Slack Settings', '💬 Slack 设置'],
-  };
-  Object.keys(labels).forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = t(labels[id][0], labels[id][1]);
-  });
-  // Update sub-labels
-  var subs = document.querySelectorAll('.page-sub');
-  subs.forEach(function(el) {
-    // handled by render functions via t()
-  });
-  // Update year milestone label
-  var msEl = document.getElementById('milestones-section-label');
-  if (msEl) {
-    var yr = new Date().getFullYear();
-    msEl.textContent = t(yr + ' MILESTONES', yr + ' 年里程碑');
+
+
+
+// ════════════════════════════════════════════
+// ✅ Task Status Module (todo/done toggles)
+// ════════════════════════════════════════════
+
+function taskKey(type, empEmail, dateStr) {
+  return 'task_' + type + '_' + (empEmail||'').replace(/[@.]/g,'_') + '_' + dateStr;
+}
+
+function getTaskStatus(type, empEmail, dateStr) {
+  try { return localStorage.getItem(taskKey(type, empEmail, dateStr)) || 'todo'; }
+  catch(e) { return 'todo'; }
+}
+
+function toggleTask(type, empEmail, dateStr, btnEl) {
+  var current = getTaskStatus(type, empEmail, dateStr);
+  var next = current === 'done' ? 'todo' : 'done';
+  try { localStorage.setItem(taskKey(type, empEmail, dateStr), next); } catch(e) {}
+  updateTaskBtn(btnEl, next);
+  // sync to sheets
+  if (typeof syncPush === 'function') syncPush(taskKey(type, empEmail, dateStr), next);
+}
+
+function updateTaskBtn(btnEl, status) {
+  if (!btnEl) return;
+  var isDone = status === 'done';
+  btnEl.textContent = isDone ? '✅ ' + btnEl.getAttribute('data-label') : '⬜ ' + btnEl.getAttribute('data-label');
+  btnEl.style.background = isDone ? '#e8f5e9' : '#fff';
+  btnEl.style.borderColor = isDone ? 'var(--green)' : '#ddd';
+  btnEl.style.color = isDone ? 'var(--green-deeper)' : '#666';
+}
+
+function makeTaskBtn(type, empEmail, dateStr, label) {
+  var status = getTaskStatus(type, empEmail, dateStr);
+  var isDone = status === 'done';
+  var k = taskKey(type, empEmail, dateStr);
+  return '<button data-label="' + label + '" ' +
+    'onclick="toggleTask(' + JSON.stringify(type) + ',' + JSON.stringify(empEmail) + ',' + JSON.stringify(dateStr) + ',this)" ' +
+    'style="display:inline-flex;align-items:center;gap:4px;border:1.5px solid ' + (isDone ? 'var(--green)' : '#ddd') + ';' +
+    'border-radius:20px;padding:3px 10px;font-size:12px;cursor:pointer;background:' + (isDone ? '#e8f5e9' : '#fff') + ';' +
+    'color:' + (isDone ? 'var(--green-deeper)' : '#666') + ';white-space:nowrap">' +
+    (isDone ? '✅ ' : '⬜ ') + label + '</button>';
+}
+
+
+// ════════════════════════════════════════════
+// 📥 Export to Excel (same format as original)
+// ════════════════════════════════════════════
+
+function updateExportPanel() {
+  var el = document.getElementById('export-data-status');
+  if (!el) return;
+  if (employees.length) {
+    el.textContent = employees.length + ' employees ready to download';
+    el.style.color = 'var(--green-deeper)';
+  } else {
+    el.textContent = 'No data loaded — please upload Excel first';
+    el.style.color = 'var(--gray-mid)';
   }
 }
+
+function exportToExcel() {
+  if (!employees.length) {
+    alert('Please upload employee data first.');
+    return;
+  }
+
+  var hint = document.getElementById('export-dl-hint');
+  if (hint) hint.textContent = 'Generating...';
+
+  function fmtDate(v) {
+    if (!v) return '';
+    var d = v instanceof Date ? v : new Date(v);
+    if (isNaN(d)) return '';
+    return (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+  }
+  function fmtDob(e) {
+    if (e.dobMonth == null || e.dobDay == null) return '';
+    // Return as date string in current year for Excel
+    return (e.dobMonth+1) + '/' + e.dobDay;
+  }
+
+  // Build rows matching original Excel columns:
+  // Serial Number, Employee ID, Global-Department, China-Department, Title,
+  // Chinese name, Direct Manager, Name, Gender, China office ID,
+  // Company Email, (col12 empty), Personal Email, Mobile Number, ID Number,
+  // (col16 empty), Date of Birth, Birth Month, Onboarding Date,
+  // Date of Regularization, 3rd Anniversary, 5th Anniversary, 10th Anniversary,
+  // Ancestral Province, Ancestral City, Address
+
+  var headers = [
+    'Serial Number', 'Employee ID', 'Global-Department', 'China-Department', 'Title',
+    'Chinese name', 'Direct Manager', 'Name', 'Gender', 'China office ID',
+    'Company Email', '', 'Personal Email', 'Mobile Number', 'ID Number',
+    '', 'Date of Birth', 'Birth Month', 'Onboarding Date',
+    'Date of Regularization', '3rd Anniversary', '5th Anniversary', '10th Anniversary',
+    'Ancestral Province', 'Ancestral City', 'Address'
+  ];
+
+  var rows = [headers];
+
+  employees.forEach(function(e, i) {
+    var md = e.milestoneDates || {};
+    var dobStr = '';
+    if (e.dobMonth != null && e.dobDay != null) {
+      dobStr = (e.dobMonth+1) + '/' + e.dobDay + '/2000'; // placeholder year
+    }
+    rows.push([
+      i + 1,                    // Serial Number
+      e.empId || '',            // Employee ID
+      e.globalDept || '',       // Global-Department
+      e.dept || '',             // China-Department
+      e.title || '',            // Title
+      e.cnName || '',           // Chinese name
+      e.manager || '',          // Direct Manager
+      e.enName || '',           // Name
+      e.gender || '',           // Gender
+      e.officeId || '',         // China office ID
+      e.email || '',            // Company Email
+      '',                       // (empty col)
+      e.personalEmail || '',    // Personal Email
+      e.mobile || '',           // Mobile Number
+      e.idNumber || '',         // ID Number
+      '',                       // (empty col)
+      dobStr,                   // Date of Birth
+      e.dobMonth != null ? (e.dobMonth+1) : '', // Birth Month
+      fmtDate(e.onboard),       // Onboarding Date
+      fmtDate(md.reg),          // Date of Regularization
+      fmtDate(md['3y']),        // 3rd Anniversary
+      fmtDate(md['5y']),        // 5th Anniversary
+      fmtDate(md['10y']),       // 10th Anniversary
+      e.province || '',         // Ancestral Province
+      e.city || '',             // Ancestral City
+      e.address || ''           // Address
+    ]);
+  });
+
+  // Create workbook using SheetJS
+  var wb = XLSX.utils.book_new();
+  var ws = XLSX.utils.aoa_to_sheet(rows);
+
+  // Style header row
+  var headerRange = XLSX.utils.decode_range(ws['!ref']);
+  for (var c = headerRange.s.c; c <= headerRange.e.c; c++) {
+    var cellAddr = XLSX.utils.encode_cell({r: 0, c: c});
+    if (!ws[cellAddr]) continue;
+    ws[cellAddr].s = {
+      font: { bold: true, color: { rgb: 'FFFFFF' } },
+      fill: { fgColor: { rgb: '2E6DA4' } }
+    };
+  }
+
+  // Set column widths
+  ws['!cols'] = [
+    {wch:8},{wch:10},{wch:20},{wch:20},{wch:20},
+    {wch:12},{wch:15},{wch:18},{wch:8},{wch:10},
+    {wch:22},{wch:5},{wch:22},{wch:14},{wch:22},
+    {wch:5},{wch:12},{wch:8},{wch:14},
+    {wch:16},{wch:16},{wch:16},{wch:16},
+    {wch:10},{wch:10},{wch:30}
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, '总表');
+
+  // Generate filename with today's date
+  var today = new Date();
+  var dateStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  var filename = 'Employee_information_list_' + dateStr + '.xlsx';
+
+  XLSX.writeFile(wb, filename);
+
+  if (hint) {
+    hint.textContent = '✅ Downloaded: ' + filename;
+    setTimeout(function() { hint.textContent = ''; }, 4000);
+  }
+}
+
+
+
+
+
+
 // Init
 
 // Update milestone section label with current year
@@ -2895,25 +3026,30 @@ function updateStaticLabels() {
     var yr = new Date().getFullYear();
     el.textContent = yr + ' MILESTONES';
     el.setAttribute('data-en', yr + ' MILESTONES');
-    el.setAttribute('data-zh', yr + '年里程碑');
+    el.setAttribute('data-zh', yr + ' Milestones');
   }
 })();
-// Use China time for initial date
-const _chinaInit = new Date(new Date().getTime() + (8*60 - new Date().getTimezoneOffset()) * 60000);
-document.getElementById('checkDate').value = _chinaInit.toISOString().split('T')[0];
+// Use China time (UTC+8) for initial date
+var _chinaDate = new Date(new Date().getTime() + 8 * 3600000);
+var _chinaInit = _chinaDate.getUTCFullYear() + '-' +
+  String(_chinaDate.getUTCMonth()+1).padStart(2,'0') + '-' +
+  String(_chinaDate.getUTCDate()).padStart(2,'0');
+document.getElementById('checkDate').value = _chinaInit;
 goCurrentMonth();
 goCurrentMilestoneMonth();
 if(employees.length){showUploadResult(employees,"Data pre-loaded");updateBadges();}
-renderMeeting();
-(function(){
-  try {
-    if (localStorage.getItem('hr_lang') === 'zh') {
-      setTimeout(function(){
-        if(typeof setLang==='function') setLang('zh');
-      }, 300);
-    }
-  } catch(e) {}
+// Auto-write current month birthdays to 2nd week meeting on startup
+(function() {
+  var now = new Date();
+  var curMonth = now.getMonth();
+  var curYear = now.getFullYear();
+  var bdEmps = employees.filter(function(e) {
+    return e.dobMonth === curMonth && e.dobDay != null;
+  });
+  if (bdEmps.length) autoWriteBirthdayToMeeting(bdEmps, curMonth, curYear);
 })();
+renderMeeting();
+renderToday();
 startAutoSync();
 
 
@@ -2924,8 +3060,8 @@ startAutoSync();
 function showAutoGuide() {
   const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
   document.getElementById('email-guide').innerHTML = `<div class="card" style="margin-top:16px">
-    <div class="card-title">⚙️ 每自动发送方案</div>
-    <p style="font-size:13px;color:var(--gray-mid);margin-bottom:14px">需联系 <strong style="color:var(--gray-text)">Santhosh（IT）</strong> 帮你申请公司邮箱应用密码，然后运行以下Python脚本即可。</p>
+    <div class="card-title">⚙️ Auto-send setup</div>
+    <p style="font-size:13px;color:var(--gray-mid);margin-bottom:14px">Please contact <strong style="color:var(--gray-text)">Santhosh（IT）</strong> 帮你申请公司邮箱应用密码，然后运行以下Python脚本即可。</p>
     <div class="code-block"># pip install openpyxl schedule python-dateutil
 
 import schedule, time, smtplib, openpyxl
@@ -2938,10 +3074,10 @@ TO_EMAIL    = "${to}"
 EXCEL_FILE  = r"C:\路径\Employee_information_list.xlsx"
 
 MILESTONE_COLS = {
-    'Date of Regularization':'转正(6个月)',
-    '3rd Anniversary':'3周年',
-    '5th Anniversary':'5周年',
-    '10th Anniversary':'10周年'
+    'Date of Regularization':'Regularization(6mo)',
+    '3rd Anniversary':'3-Year',
+    '5th Anniversary':'5-Year',
+    '10th Anniversary':'10-Year'
 }
 
 def load_employees():
@@ -2965,7 +3101,7 @@ def load_employees():
     return emps
 
 def send_email(subj, body):
-    msg = MIMEText(body,'plain','utf-8')
+    msg = MIMEText(body,'plain'
     msg['Subject']=subj; msg['From']=FROM_EMAIL; msg['To']=TO_EMAIL
     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
         s.starttls(); s.login(FROM_EMAIL, FROM_PASS); s.send_message(msg)
@@ -2983,7 +3119,7 @@ def check_milestones():
             hits.append(f"• {e['cn']}（{e['en']}）[{e['dept']}] — {'、'.join(ms)}")
     if hits:
         send_email(f'[HR Reminder] {today} Employee Milestones',
-                   "以下员工今天有里程碑：\n\n"+("\n".join(hits)))
+                   "The following employees have milestones today:\n\n"+("\n".join(hits)))
 
 def check_birthdays():
     today = date.today()
@@ -2996,15 +3132,15 @@ def check_birthdays():
     bds.sort(key=lambda e: e['dob_day'])
     if not bds: return
     lines = [f"• {today.month}/{e['dob_day']} — {e['cn']}（{e['en']}）[{e['dept']}]" for e in bds]
-    send_email(f'[HR生日] {today.year}年{today.month}月生日名单',
-               f"本月过生员工（共{len(bds)}人）：\n\n" + ("\n".join(lines)) + "\n\n Please arrange gifts and cake!")
+    send_email(f'[HR Birthday] {today.year}/{today.month} Birthday List',
+               f"Employees with birthdays this month ({len(bds)} total):\n\n" + ("\n".join(lines)) + "\n\n Please arrange gifts and cake!")
 
 schedule.every().day.at("08:30").do(check_milestones)
 schedule.every().day.at("08:30").do(check_birthdays)
 print("⏰ Started, auto-checks daily at 08:30")
 while True:
     schedule.run_pending(); time.sleep(60)</div>
-    <div style="font-size:12px;color:var(--gray-mid);margin-top:10px">💡 把 your_app_password 替换为 Santhosh 提供的邮箱应用密码后直接运行即可</div>
+    <div style="font-size:12px;color:var(--gray-mid);margin-top:10px">💡 Replace your_app_password with the app password provided by Santhosh and run directly</div>
   </div>`;
 }
 </script>
@@ -3641,12 +3777,7 @@ while True:
     <span class="header-title">Conviva HR</span>
     <span class="header-sub">Employee Reminder Tool</span>
   </div>
-  <button id="lang-toggle" onclick="toggleLang()" style="
-    background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.4);
-    color:#fff;border-radius:20px;padding:4px 14px;font-size:12px;font-weight:700;
-    cursor:pointer;margin-right:10px;letter-spacing:0.5px;transition:all 0.2s">
-    EN/中
-  </button>
+  
   <div class="header-pill">China Office</div>
 </div>
 
@@ -3705,7 +3836,7 @@ while True:
       <span class="nav-icon">📂</span> Upload Data
     </button>
     <button class="nav-item" onclick="showTab('export')" id="nav-export">
-      <span class="nav-icon">📤</span> Export Tool
+      <span class="nav-icon">📥</span> Download Data
     </button>
     <button class="nav-item" onclick="showTab('email')" id="nav-email">
       <span class="nav-icon">💬</span> Slack Settings
@@ -3718,7 +3849,7 @@ while True:
     <!-- UPLOAD -->
     <div id="tab-upload" class="panel">
       <div class="page-title">Upload Employee Data</div>
-      <div class="page-sub">Supports Employee_information_list_xxxx.xlsx format</div>
+      <div class="page-sub" id="sub-upload">Supports Employee_information_list_xxxx.xlsx format</div>
 
       <label class="upload-area" for="fileInput" id="upload-label">
         <div class="upload-icon-wrap">
@@ -3781,8 +3912,8 @@ while True:
 
     <!-- TODAY -->
     <div id="tab-today" class="panel">
-      <div class="page-title">Today's Reminders</div>
-      <div class="page-sub">Milestones + Birthdays</div>
+      <div class="page-title" id="pt-today">Today's Reminders</div>
+      <div class="page-sub" id="sub-today">Milestones + Birthdays</div>
       <div class="controls" style="margin-bottom:16px">
         <label>View date:</label>
         <input type="date" id="checkDate" onchange="renderToday()">
@@ -3795,7 +3926,7 @@ while True:
     <!-- BIRTHDAY -->
     <div id="tab-birthday" class="panel">
       <div class="page-title">Annual Birthdays</div>
-      <div class="page-sub">View all employee birthdays by month</div>
+      <div class="page-sub" id="sub-birthday">View all employee birthdays by month</div>
       <div class="month-nav">
         <button class="month-nav-arrow" onclick="changeBdayYear(-1)">◀</button>
         <div class="month-display" id="month-display"></div>
@@ -3823,7 +3954,7 @@ while True:
 
     <!-- WEEKLY PANEL -->
     <div id="tab-weekly" class="panel">
-      <div class="page-title" id="btn-thisweek">This Week</div>
+      <div class="page-title" id="pt-weekly">This Week</div>
       <div class="page-sub">This week's regularizations and anniversaries (excl. birthdays)</div>
       <div class="month-nav" style="margin-bottom:16px">
         <button class="month-nav-arrow" onclick="changeWeek(-1)">◀</button>
@@ -3837,7 +3968,7 @@ while True:
 
     <!-- MONTHLY OVERVIEW -->
     <div id="tab-monthly" class="panel">
-      <div class="page-title">Monthly Birthdays</div>
+      <div class="page-title" id="pt-monthly">Monthly Birthdays</div>
       <div class="page-sub">Employees with birthdays this month</div>
       <div class="month-nav">
         <button class="month-nav-arrow" onclick="changeMonthlyMonth(-1)">◀</button>
@@ -3852,7 +3983,7 @@ while True:
 
     <!-- EXPORT PANEL -->
     <div id="tab-export" class="panel">
-      <div class="page-title">Export Tool</div>
+      <div class="page-title" id="pt-export">Export Tool</div>
       <div class="page-sub">Generate a version with employee data to share</div>
       <div id="export-area" class="card" style="border-color:var(--green)">
         <div style="text-align:center;padding:12px 0">
@@ -3900,18 +4031,18 @@ while True:
 
     <!-- SLACK SETTINGS -->
     <div id="tab-email" class="panel">
-      <div class="page-title">Slack Settings</div>
-      <div class="page-sub">Configure message templates and reminders</div>
+      <div class="page-title" id="pt-slack">Slack Settings</div>
+      <div class="page-sub" id="sub-slack">${'Configure message templates and reminders'}</div>
 
       <div class="card">
         <div class="card-title">How to use</div>
         <div style="font-size:13px;color:var(--gray-mid);line-height:1.8">
-          On the "Today's Reminders」or t("This Week","本周提醒") page, each employee has:<br>
+          On the "Today's Reminders」or "This Week" page, each employee has:<br>
           <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
             <button class="slack-btn" style="pointer-events:none">💬 Congratulate/Wish the person</button>
           </span> — Click to preview and edit, send to the employee<br>
           <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
-            <button class="slack-btn manager" style="pointer-events:none">👔 Notify Manager</button>
+            <button class="slack-btn manager" style="pointer-events:none">${'👔 Notify Manager'}</button>
           </span> — Click to preview and edit, notify their manager
         </div>
       </div>
@@ -3925,9 +4056,9 @@ while True:
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
             <button class="btn" onclick="editTemplate('birthday')" >🎂 Birthday Wish</button>
             <button class="btn" onclick="editTemplate('reg')"     >🎉 Regularization Congrats</button>
-            <button class="btn" onclick="editTemplate('3y')"      >🥉 3Anniversary Congrats</button>
-            <button class="btn" onclick="editTemplate('5y')"      >🥈 5Anniversary Congrats</button>
-            <button class="btn" onclick="editTemplate('10y')"     >🏆 10Anniversary Congrats</button>
+            <button class="btn" onclick="editTemplate('3y')"      >🥉 '3-Year Congrats'</button>
+            <button class="btn" onclick="editTemplate('5y')"      >🥈 '5-Year Congrats'</button>
+            <button class="btn" onclick="editTemplate('10y')"     >🏆 '10-Year Congrats'</button>
           </div>
           <div id="template-edit-area" style="display:none">
             <div style="font-size:12px;font-weight:600;color:var(--gray-mid);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px" id="template-edit-label"></div>
@@ -3963,7 +4094,7 @@ while True:
     <div class="modal-body">
       <div class="tab-btns" id="modalTabs" style="display:none">
         <button class="tab-btn active" id="tabEmployee" onclick="switchMsgTab('employee')">👤 Send to Employee</button>
-        <button class="tab-btn" id="tabManager" onclick="switchMsgTab('manager')">👔 Notify Manager</button>
+        <button class="tab-btn" id="tabManager" onclick="switchMsgTab('manager')">${'👔 Notify Manager'}</button>
       </div>
       <div class="msg-target">
         <span class="msg-target-label">Send to</span>
