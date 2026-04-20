@@ -2270,7 +2270,7 @@ function meetingCopyContent(fromMondayStr) {
 
 
 // ════════════════════════════════════════════
-// 🔄 Google Sheets 实时同步模块（JSONP方式，支持本地文件）
+// 🔄 Google Sheets 实时同步模块（fetch方式，用于HTTPS页面）
 // ════════════════════════════════════════════
 
 var SYNC_URL = 'https://script.google.com/macros/s/AKfycbw6CZAsE6BXI94zUcLcXQIszbZvJ65pfb2sY8CQEPgOjlr_oSzc9f09D8yRUAFrAITKsg/exec';
@@ -2278,7 +2278,6 @@ var _syncEnabled = true;
 var _syncInterval = null;
 var _pendingWrites = {};
 var _writeTimer = null;
-var _jsonpCallbackCount = 0;
 
 function setSyncStatus(state, msg) {
   var el = document.getElementById('sync-status');
@@ -2288,75 +2287,57 @@ function setSyncStatus(state, msg) {
   if (txt) txt.textContent = msg;
 }
 
-// JSONP 请求（绕过 CORS，支持 file:// 协议）
-function jsonpRequest(url, callback) {
-  var cbName = '_syncCb' + (++_jsonpCallbackCount);
-  var script = document.createElement('script');
-  var done = false;
-  var timer = setTimeout(function() {
-    if (!done) { done = true; cleanup(); callback(null, 'timeout'); }
-  }, 10000);
-  window[cbName] = function(data) {
-    if (!done) { done = true; cleanup(); callback(data, null); }
-  };
-  function cleanup() {
-    clearTimeout(timer);
-    if (script.parentNode) script.parentNode.removeChild(script);
-    delete window[cbName];
-  }
-  script.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + cbName;
-  script.onerror = function() {
-    if (!done) { done = true; cleanup(); callback(null, 'script error'); }
-  };
-  document.head.appendChild(script);
+function syncFetch(url) {
+  return fetch(url, { mode: 'cors' }).then(function(r) { return r.json(); });
 }
 
-// 从 Sheets 读取所有数据
 function syncPull() {
   if (!_syncEnabled) return;
   setSyncStatus('syncing', '同步中...');
-  jsonpRequest(SYNC_URL + '?action=read', function(data, err) {
-    if (err || !data) { setSyncStatus('error', '网络错误'); return; }
-    if (data.error) { setSyncStatus('error', '读取失败'); return; }
+  syncFetch(SYNC_URL + '?action=read&t=' + Date.now())
+    .then(function(data) {
+      if (data.error) { setSyncStatus('error', '读取失败'); return; }
 
-    // 更新员工数据
-    if (data['employees']) {
-      try {
-        var raw = JSON.parse(data['employees']);
-        var emps = raw.map(function(e) {
-          e.onboard = e.onboard ? new Date(e.onboard) : null;
-          var md = {};
-          Object.keys(e.milestoneDates||{}).forEach(function(k) {
-            md[k] = e.milestoneDates[k] ? new Date(e.milestoneDates[k]) : null;
-          });
-          e.milestoneDates = md;
-          return e;
-        });
-        if (emps.length > 0 && emps.length !== employees.length) {
-          employees = emps;
-          if (typeof showUploadResult === 'function') showUploadResult(employees, '云端同步');
-          if (typeof updateBadges === 'function') updateBadges();
-        }
-      } catch(e) {}
-    }
-
-    // 更新会议记录
-    Object.keys(data).forEach(function(key) {
-      if (key.indexOf('meeting_') === 0) {
+      // 更新员工数据
+      if (data['employees']) {
         try {
-          var val = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
-          localStorage.setItem(key, val);
+          var raw = JSON.parse(data['employees']);
+          var emps = raw.map(function(e) {
+            e.onboard = e.onboard ? new Date(e.onboard) : null;
+            var md = {};
+            Object.keys(e.milestoneDates||{}).forEach(function(k) {
+              md[k] = e.milestoneDates[k] ? new Date(e.milestoneDates[k]) : null;
+            });
+            e.milestoneDates = md;
+            return e;
+          });
+          if (emps.length > 0 && emps.length !== employees.length) {
+            employees = emps;
+            if (typeof showUploadResult === 'function') showUploadResult(employees, '云端同步');
+            if (typeof updateBadges === 'function') updateBadges();
+          }
         } catch(e) {}
       }
-    });
 
-    setSyncStatus('synced', '已同步 ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
-    var meetingPanel = document.getElementById('tab-meeting');
-    if (meetingPanel && meetingPanel.classList.contains('active')) renderMeeting();
-  });
+      // 更新会议记录
+      Object.keys(data).forEach(function(key) {
+        if (key.indexOf('meeting_') === 0) {
+          try {
+            var val = typeof data[key] === 'string' ? data[key] : JSON.stringify(data[key]);
+            localStorage.setItem(key, val);
+          } catch(e) {}
+        }
+      });
+
+      setSyncStatus('synced', '已同步 ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
+      var meetingPanel = document.getElementById('tab-meeting');
+      if (meetingPanel && meetingPanel.classList.contains('active')) renderMeeting();
+    })
+    .catch(function(err) {
+      setSyncStatus('error', '网络错误');
+    });
 }
 
-// 写入数据到 Sheets
 function syncPush(key, value) {
   if (!_syncEnabled) return;
   _pendingWrites[key] = value;
@@ -2367,25 +2348,24 @@ function syncPush(key, value) {
     Object.keys(writes).forEach(function(k) {
       setSyncStatus('syncing', '保存中...');
       var url = SYNC_URL + '?action=write&key=' + encodeURIComponent(k) + '&value=' + encodeURIComponent(writes[k]);
-      jsonpRequest(url, function(res, err) {
-        if (!err && res && res.success) {
-          setSyncStatus('synced', '已保存 ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
-        } else {
-          setSyncStatus('error', '保存失败');
-        }
-      });
+      syncFetch(url)
+        .then(function(res) {
+          if (res && res.success) {
+            setSyncStatus('synced', '已保存 ' + new Date().toLocaleTimeString('zh-CN', {hour:'2-digit', minute:'2-digit'}));
+          } else {
+            setSyncStatus('error', '保存失败');
+          }
+        })
+        .catch(function() { setSyncStatus('error', '保存失败'); });
     });
   }, 800);
 }
 
-// 删除 Sheets 里的数据
 function syncDelete(key) {
   if (!_syncEnabled) return;
-  var url = SYNC_URL + '?action=delete&key=' + encodeURIComponent(key);
-  jsonpRequest(url, function() {});
+  syncFetch(SYNC_URL + '?action=delete&key=' + encodeURIComponent(key)).catch(function(){});
 }
 
-// 启动自动同步（每30秒）
 function startAutoSync() {
   if (!document.getElementById('sync-status')) {
     var div = document.createElement('div');
@@ -2397,7 +2377,6 @@ function startAutoSync() {
   _syncInterval = setInterval(syncPull, 30000);
 }
 
-// 上传员工数据后推送到云端
 function syncPushEmployees() {
   if (!employees.length) return;
   var dataStr = JSON.stringify(employees, function(k, v) {
@@ -2406,176 +2385,6 @@ function syncPushEmployees() {
   syncPush('employees', dataStr);
 }
 
-
-
-// ════════════════════════════════════════════
-// 🌐 双语切换模块
-// ════════════════════════════════════════════
-
-var _lang = localStorage.getItem('hr_lang') || 'zh';
-
-var I18N = {
-  zh: {
-    'header-title': 'Conviva HR',
-    'header-sub': '员工提醒工具',
-    'nav-upload': '上传表格',
-    'nav-today': '今日提醒',
-    'nav-weekly': '本周提醒',
-    'nav-monthly': '本月生日',
-    'nav-birthday': '本年生日',
-    'nav-reg': '本年转正',
-    'nav-3y': '本年3周年',
-    'nav-5y': '本年5周年',
-    'nav-10y': '本年10周年',
-    'nav-email': 'Slack 设置',
-    'nav-export': '导出小程序',
-    'nav-meeting': '会议记录',
-    'sec-meeting': '会议',
-    'sec-main': '主功能',
-    'sec-milestone': '里程碑',
-    'sec-settings': '设置',
-    'page-meeting-title': '📋 会议记录',
-    'page-meeting-sub': '每周五例会议题 · 所有人均可编辑，内容保存在本地浏览器',
-    'btn-autofill': '🔄 自动填入本周转正&周年',
-    'btn-new-week': '➕ 新建本周',
-    'btn-this-week': '本周',
-    'btn-save': '💾 保存',
-    'btn-delete-week': '🗑 删除本周',
-    'btn-edit-label': '✏️ 修改日期',
-    'btn-copy-week': '📋 复制到其他周',
-    'nameField': 'cnName',
-  },
-  en: {
-    'header-title': 'Conviva HR',
-    'header-sub': 'Employee Reminder',
-    'nav-upload': 'Upload Sheet',
-    'nav-today': 'Today',
-    'nav-weekly': 'This Week',
-    'nav-monthly': 'Birthdays',
-    'nav-birthday': 'Birthdays',
-    'nav-reg': 'Regularization',
-    'nav-3y': '3-Year Anniv.',
-    'nav-5y': '5-Year Anniv.',
-    'nav-10y': '10-Year Anniv.',
-    'nav-email': 'Slack Settings',
-    'nav-export': 'Export App',
-    'nav-meeting': 'Meeting Notes',
-    'sec-meeting': 'Meeting',
-    'sec-main': 'Main',
-    'sec-milestone': 'Milestones',
-    'sec-settings': 'Settings',
-    'page-meeting-title': '📋 Meeting Notes',
-    'page-meeting-sub': 'Weekly Friday meeting topics · Everyone can edit, saved locally',
-    'btn-autofill': '🔄 Auto-fill This Week',
-    'btn-new-week': '➕ New Week',
-    'btn-this-week': 'This Week',
-    'btn-save': '💾 Save',
-    'btn-delete-week': '🗑 Delete Week',
-    'btn-edit-label': '✏️ Edit Date',
-    'btn-copy-week': '📋 Copy to Another Week',
-    'nameField': 'enName',
-  }
-};
-
-function t(key) {
-  return (I18N[_lang] && I18N[_lang][key]) || (I18N['zh'] && I18N['zh'][key]) || key;
-}
-
-function applyLang() {
-  var lang = _lang;
-  var d = I18N[lang];
-  if (!d) return;
-
-  // Header
-  var ht = document.querySelector('.header-title');
-  if (ht) ht.textContent = d['header-title'];
-  var hs = document.querySelector('.header-sub');
-  if (hs) hs.textContent = d['header-sub'];
-
-  // Nav items (text node is the last child after badge span)
-  var navMap = {
-    'nav-upload': d['nav-upload'],
-    'nav-today': d['nav-today'],
-    'nav-weekly': d['nav-weekly'],
-    'nav-monthly': d['nav-monthly'],
-    'nav-birthday': d['nav-birthday'],
-    'nav-reg': d['nav-reg'],
-    'nav-3y': d['nav-3y'],
-    'nav-5y': d['nav-5y'],
-    'nav-10y': d['nav-10y'],
-    'nav-email': d['nav-email'],
-    'nav-export': d['nav-export'],
-    'nav-meeting': d['nav-meeting'],
-  };
-  Object.keys(navMap).forEach(function(id) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    // Find text node (last child or after icon span)
-    var nodes = el.childNodes;
-    for (var i = nodes.length - 1; i >= 0; i--) {
-      if (nodes[i].nodeType === 3 && nodes[i].textContent.trim()) {
-        nodes[i].textContent = ' ' + navMap[id];
-        break;
-      }
-    }
-  });
-
-  // Sidebar section labels
-  var sections = document.querySelectorAll('.sidebar-section');
-  var sectionKeys = ['sec-meeting', 'sec-main', 'sec-milestone', 'sec-settings'];
-  sections.forEach(function(el, i) {
-    if (sectionKeys[i]) el.textContent = d[sectionKeys[i]] || el.textContent;
-  });
-
-  // Meeting page title and sub
-  var mt = document.getElementById('meeting-page-title');
-  if (mt) mt.textContent = d['page-meeting-title'];
-  var ms = document.getElementById('meeting-page-sub');
-  if (ms) ms.textContent = d['page-meeting-sub'];
-
-  // Meeting buttons
-  var btnMap = {
-    'btn-autofill-el': d['btn-autofill'],
-    'btn-new-week-el': d['btn-new-week'],
-    'btn-this-week-el': d['btn-this-week'],
-  };
-  Object.keys(btnMap).forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = btnMap[id];
-  });
-
-  // Lang toggle button
-  var lb = document.getElementById('lang-toggle');
-  if (lb) lb.textContent = lang === 'zh' ? '中/EN' : 'EN/中';
-
-  // Re-render current tab to update employee names
-  var activePanel = document.querySelector('.panel.active');
-  if (activePanel) {
-    var tabId = activePanel.id.replace('tab-', '');
-    if (typeof showTab === 'function' && tabId !== 'meeting') {
-      var renderFns = {
-        'today': renderToday,
-        'weekly': renderWeek,
-        'monthly': renderBirthday,
-      };
-      if (renderFns[tabId]) renderFns[tabId]();
-    }
-    if (tabId === 'meeting') renderMeeting();
-  }
-}
-
-function toggleLang() {
-  _lang = (_lang === 'zh') ? 'en' : 'zh';
-  localStorage.setItem('hr_lang', _lang);
-  applyLang();
-}
-
-// 获取员工显示名（根据当前语言）
-function getEmpName(emp) {
-  if (!emp) return '';
-  if (_lang === 'en') return emp.enName || emp.cnName || '';
-  return emp.cnName || emp.enName || '';
-}
 
 // Init
 // Use China time for initial date
