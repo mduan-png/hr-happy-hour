@@ -207,7 +207,7 @@
   .upload-hint { font-size: 12px; color: var(--gray-mid); }
 
   /* ── STATS ── */
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stats { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
   .stat {
     background: #fff;
     border: 1px solid var(--gray-400);
@@ -517,6 +517,7 @@
   .tab-btn.active { border-color: var(--green); background: #f0fae0; color: var(--green-deeper); }
 
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 </head>
 <body>
 
@@ -586,6 +587,9 @@
 
     <div class="nav-divider"></div>
     <div class="sidebar-section">SETTINGS</div>
+    <button class="nav-item" onclick="showTab('orgchart')" id="nav-orgchart">
+      <span class="nav-icon">🏢</span> Org Chart
+    </button>
     <button class="nav-item" onclick="showTab('upload')" id="nav-upload">
       <span class="nav-icon">📂</span> Upload Data
     </button>
@@ -601,6 +605,39 @@
   <main class="main">
 
     <!-- UPLOAD -->
+    <div id="tab-orgchart" class="panel" style="padding:0;overflow:hidden">
+      <div style="background:#001B2D;padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:white">🏢 Org Chart</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.45)">Click + to expand · Scroll to zoom · Drag to pan</div>
+        </div>
+        <div style="position:relative;display:flex;align-items:center">
+          <span style="position:absolute;left:9px;color:rgba(255,255,255,0.5);font-size:13px;pointer-events:none">⦿</span>
+          <input id="org-search" placeholder="Search..." oninput="orgDoSearch(this.value)"
+            style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:18px;padding:5px 14px 5px 28px;color:white;font-size:12px;width:180px;outline:none">
+        </div>
+        <div style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap">
+          <button onclick="orgExpandAll()" style="border:none;border-radius:14px;padding:5px 12px;background:#9CDC00;color:#001B2D;font-size:11px;font-weight:600;cursor:pointer">Expand All</button>
+          <button onclick="orgCollapseAll()" style="border:none;border-radius:14px;padding:5px 12px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.8);font-size:11px;font-weight:600;cursor:pointer">Collapse</button>
+          <button onclick="orgResetView()" style="border:none;border-radius:14px;padding:5px 12px;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.8);font-size:11px;font-weight:600;cursor:pointer">⟳ Reset</button>
+        </div>
+      </div>
+      <div id="org-wrap" style="width:100%;height:calc(100vh - 200px);position:relative">
+        <svg id="org-svg" style="width:100%;height:100%;cursor:grab">
+          <defs>
+            <filter id="org-sh" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="rgba(0,27,45,0.13)"/>
+            </filter>
+            <filter id="org-sh2" x="-25%" y="-25%" width="150%" height="150%">
+              <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(157,220,0,0.25)"/>
+            </filter>
+          </defs>
+          <g id="org-scene"></g>
+        </svg>
+        <div id="org-sbar" style="position:absolute;bottom:12px;right:16px;background:white;border-radius:16px;padding:5px 14px;font-size:11px;color:#6B7C8D;box-shadow:0 2px 10px rgba(0,0,0,.08)">Loading...</div>
+      </div>
+    </div>
+
     <div id="tab-upload" class="panel">
       <div class="page-title" id="pt-upload">Upload Employee Data</div>
       <div class="page-sub" id="sub-upload">Supports Employee_information_list_xxxx.xlsx format</div>
@@ -870,7 +907,7 @@
 
 <script>
 
-let employees = [{cnName:"胡宁宁",enName:"Ningning Hu",empId:"10346",globalDept:"Enginnering",dept:"Conviva",title:"总经理",manager:"",gender:"Male",officeId:"C001",email:"nhu@conviva.com",personalEmail:"",mobile:"15701233144",idNumber:"宁宁320311197604271218",province:"山东",city:"曹县",address:"北京市朝阳区望京国风北京609-3-602",dobMonth:3,dobDay:27,onboard:new Date("2017-07-24T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-01-24T00:00:00.000Z"),"3y":new Date("2020-07-24T00:00:00.000Z"),"5y":new Date("2022-07-24T00:00:00.000Z"),"10y":new Date("2027-07-24T00:00:00.000Z")}},{cnName:"李大超",enName:"Dachao Li",empId:"20004",globalDept:"380 - Content Insights Engineering",dept:"China Frondend team",title:"IOS高级前端开发工程师",manager:"Dylan",gender:"Male",officeId:"C005",email:"dli@conviva.com",personalEmail:"",mobile:"18511870285",idNumber:"大超412727198807132016",province:"河南",city:"周口",address:"北京市昌平区北七家镇名佳花园3区58号楼4单元",dobMonth:6,dobDay:13,onboard:new Date("2017-09-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-03-11T00:00:00.000Z"),"3y":new Date("2020-09-11T00:00:00.000Z"),"5y":new Date("2022-09-11T00:00:00.000Z"),"10y":new Date("2027-09-11T00:00:00.000Z")}},{cnName:"杨展",enName:"Zhan Yang",empId:"20005",globalDept:"345 - Data Platform",dept:"China Frondend team",title:"高级前端开发工程师",manager:"许文龙",gender:"Male",officeId:"C006",email:"zyang@conviva.com",personalEmail:"",mobile:"18610864576",idNumber:"杨展141027199309130018",province:"山西",city:"临汾",address:"北京市朝阳区北京建工双合家园C区4号楼",dobMonth:8,dobDay:13,onboard:new Date("2017-11-27T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-05-27T00:00:00.000Z"),"3y":new Date("2020-11-27T00:00:00.000Z"),"5y":new Date("2022-11-27T00:00:00.000Z"),"10y":new Date("2027-11-27T00:00:00.000Z")}},{cnName:"朱天明",enName:"Tianming Zhu",empId:"20017",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"高级软件测试工程师",manager:"胡宁宁",gender:"Male",officeId:"C017",email:"tzhu@conviva.com",personalEmail:"",mobile:"13718606560",idNumber:"天明32021119830313071X",province:"江苏",city:"无锡",address:"北京市朝阳区枣营北里36号楼",dobMonth:2,dobDay:13,onboard:new Date("2018-10-22T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-04-22T00:00:00.000Z"),"3y":new Date("2021-10-22T00:00:00.000Z"),"5y":new Date("2023-10-22T00:00:00.000Z"),"10y":new Date("2028-10-22T00:00:00.000Z")}},{cnName:"王超",enName:"Chao Wang",empId:"20020",globalDept:"385 - Social Insights Engineering",dept:"China Frondend team",title:"前端工程师",manager:"许文龙",gender:"Male",officeId:"C020",email:"cwang@conviva.com",personalEmail:"mattwg@163.com",mobile:"15601376228",idNumber:"王超231083199010086713",province:"吉林",city:"农安",address:"北京市西城区宣武门东大街22号楼3门",dobMonth:9,dobDay:8,onboard:new Date("2018-12-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-06-13T00:00:00.000Z"),"3y":new Date("2021-12-13T00:00:00.000Z"),"5y":new Date("2023-12-13T00:00:00.000Z"),"10y":new Date("2028-12-13T00:00:00.000Z")}},{cnName:"郭江",enName:"Jiang Guo",empId:"20021",globalDept:"380 - Content Insights Engineering",dept:"China Frondend team",title:"高级前端工程师",manager:"许文龙",gender:"Male",officeId:"C022",email:"jguo@conviva.com",personalEmail:"guo493@163.com",mobile:"15101155132",idNumber:"郭江370784198512093817",province:"山东",city:"潍坊",address:"北京市海淀区海淀嘉郡4号楼3单元",dobMonth:11,dobDay:9,onboard:new Date("2019-01-02T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-07-02T00:00:00.000Z"),"3y":new Date("2022-01-02T00:00:00.000Z"),"5y":new Date("2024-01-02T00:00:00.000Z"),"10y":new Date("2029-01-02T00:00:00.000Z")}},{cnName:"杨懿",enName:"Yi Yang",empId:"20025",globalDept:"230 - Product Management",dept:"Product",title:"产品设计师",manager:"Goldfoot, Matthew（）",gender:"Female",officeId:"C025",email:"yyang@conviva.com",personalEmail:"18810375466@163.com",mobile:"18810375466",idNumber:"杨懿420111199211104023",province:"湖北",city:"武汉",address:"北京市朝阳区瞰都嘉园3号楼",dobMonth:10,dobDay:10,onboard:new Date("2019-01-14T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-07-14T00:00:00.000Z"),"3y":new Date("2022-01-14T00:00:00.000Z"),"5y":new Date("2024-01-14T00:00:00.000Z"),"10y":new Date("2029-01-14T00:00:00.000Z")}},{cnName:"徐仙子",enName:"Sarah Xu",empId:"20028",globalDept:"230 - Product Management",dept:"Product",title:"产品经理",manager:"Caldeira De Jesus, Jose（）",gender:"Female",officeId:"C028",email:"sxu@conviva.com",personalEmail:"18001153201@163.com",mobile:"18001153201",idNumber:"仙子370684198812290083",province:"黑龙江",city:"加格达奇",address:"北京市朝阳区定福家园南里三号院一号楼二单元",dobMonth:11,dobDay:29,onboard:new Date("2019-03-25T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-09-25T00:00:00.000Z"),"3y":new Date("2022-03-25T00:00:00.000Z"),"5y":new Date("2024-03-25T00:00:00.000Z"),"10y":new Date("2029-03-25T00:00:00.000Z")}},{cnName:"林博",enName:"Bo Lin",empId:"20032",globalDept:"345 - Data Platform",dept:"Backend  Engineering",title:"软件开发工程师（全栈）",manager:"尉顶",gender:"Male",officeId:"C032",email:"blin@conviva.com",personalEmail:"implipala@gmail.com",mobile:"18611852805",idNumber:"林博44058319880118453X",province:"广东",city:"汕头",address:"北京市朝阳区青年路青年汇佳园4号楼",dobMonth:0,dobDay:18,onboard:new Date("2019-04-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-10-23T00:00:00.000Z"),"3y":new Date("2022-04-23T00:00:00.000Z"),"5y":new Date("2024-04-23T00:00:00.000Z"),"10y":new Date("2029-04-23T00:00:00.000Z")}},{cnName:"杨东晓",enName:"Dongxiao Yang",empId:"20036",globalDept:"345 - Data Platform",dept:"Platform",title:"高级大数据开发",manager:"谢林",gender:"Male",officeId:"C036",email:"dyang@conviva.com",personalEmail:"821785057@qq.com",mobile:"18866997376",idNumber:"东晓370612198710032516",province:"山东",city:"烟台",address:"北京市昌平区东小口肿瘤医院宿舍4单元3号楼",dobMonth:9,dobDay:3,onboard:new Date("2019-06-10T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-12-10T00:00:00.000Z"),"3y":new Date("2022-06-10T00:00:00.000Z"),"5y":new Date("2024-06-10T00:00:00.000Z"),"10y":new Date("2029-06-10T00:00:00.000Z")}},{cnName:"王巍",enName:"Wei Wang",empId:"20042",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"高级后端开发工程师",manager:"Dylan",gender:"Male",officeId:"C043",email:"wwang@conviva.com",personalEmail:"ww045004120@163.com",mobile:"15210986560",idNumber:"王巍150204198702151811",province:"内蒙",city:"包头",address:"北京市西城区柳巷15号9门",dobMonth:1,dobDay:15,onboard:new Date("2019-08-05T00:00:00.000Z"),milestoneDates:{reg:new Date("2020-02-05T00:00:00.000Z"),"3y":new Date("2022-08-05T00:00:00.000Z"),"5y":new Date("2024-08-05T00:00:00.000Z"),"10y":new Date("2029-08-05T00:00:00.000Z")}},{cnName:"马晓睿",enName:"Xiaorui Ma",empId:"20044",globalDept:"335 - Program Management",dept:"Product-TPM",title:"高级项目经理",manager:"Aditya（胡宁宁）",gender:"Female",officeId:"C045",email:"xima@conviva.com",personalEmail:"xr.ma.tokyo@gmail.com",mobile:"18611648820",idNumber:"晓睿110106197303023324",province:"湖北",city:"武汉",address:"北京市朝阳区拂林园16",dobMonth:2,dobDay:2,onboard:new Date("2019-10-21T00:00:00.000Z"),milestoneDates:{reg:new Date("2020-04-21T00:00:00.000Z"),"3y":new Date("2022-10-21T00:00:00.000Z"),"5y":new Date("2024-10-21T00:00:00.000Z"),"10y":new Date("2029-10-21T00:00:00.000Z")}},{cnName:"袁志强",enName:"Zhiqiang Yuan",empId:"20046",globalDept:"320 - Network Operations",dept:"OPS",title:"运维工程师",manager:"刘晗昭",gender:"Male",officeId:"C047",email:"zyuan@conviva.com",personalEmail:"yuanzq426@163.com",mobile:"18601203134",idNumber:"志强230123199004262870",province:"黑龙江",city:"哈尔滨",address:"北京市丰台区东罗园2号楼6单元",dobMonth:3,dobDay:26,onboard:new Date("2020-03-02T00:00:00.000Z"),milestoneDates:{reg:new Date("2020-09-02T00:00:00.000Z"),"3y":new Date("2023-03-02T00:00:00.000Z"),"5y":new Date("2025-03-02T00:00:00.000Z"),"10y":new Date("2030-03-02T00:00:00.000Z")}},{cnName:"李忠芯",enName:"Zhongxin Li",empId:"20050",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"测试工程师",manager:"朱天明",gender:"Female",officeId:"C051",email:"zli@conviva.com",personalEmail:"13021212972@163.com",mobile:"13021212972",idNumber:"忠芯612422199008196666",province:"陕西",city:"安康",address:"北京市丰台区马家堡角门16号院1号楼1单元",dobMonth:7,dobDay:19,onboard:new Date("2020-08-03T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-02-03T00:00:00.000Z"),"3y":new Date("2023-08-03T00:00:00.000Z"),"5y":new Date("2025-08-03T00:00:00.000Z"),"10y":new Date("2030-08-03T00:00:00.000Z")}},{cnName:"仝嘉亮",enName:"Jialiang Tong",empId:"20054",globalDept:"385 - Social Insights Engineering",dept:"China Frondend team",title:"前端工程师",manager:"许文龙",gender:"Male",officeId:"C055",email:"jiatong@conviva.com",personalEmail:"rememhe@outlook.com",mobile:"17338131094",idNumber:"嘉亮120102199503310614",province:"河北",city:"石家庄",address:"北京市顺义区满庭芳嘉园 7 号楼 1 单元",dobMonth:2,dobDay:31,onboard:new Date("2020-11-04T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-05-04T00:00:00.000Z"),"3y":new Date("2023-11-04T00:00:00.000Z"),"5y":new Date("2025-11-04T00:00:00.000Z"),"10y":new Date("2030-11-04T00:00:00.000Z")}},{cnName:"章胜国",enName:"Shengguo Zhang",empId:"20055",globalDept:"345 - Data Platform",dept:"Backend  Engineering",title:"后端工程师 (Staff)",manager:"尉顶",gender:"Male",officeId:"C056",email:"szhang@conviva.com",personalEmail:"samozihu@qq.com",mobile:"15210265026",idNumber:"胜国342921198310220234",province:"安徽",city:"池州",address:"北京市西城区双槐里小区4号楼7单元",dobMonth:9,dobDay:22,onboard:new Date("2020-11-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-05-23T00:00:00.000Z"),"3y":new Date("2023-11-23T00:00:00.000Z"),"5y":new Date("2025-11-23T00:00:00.000Z"),"10y":new Date("2030-11-23T00:00:00.000Z")}},{cnName:"孙振",enName:"Zhen Sun",empId:"20056",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"高级测试工程师",manager:"朱天明",gender:"Female",officeId:"C057",email:"zsun@conviva.com",personalEmail:"sunzhen1110@163.com",mobile:"18669739636",idNumber:"孙振371523198709204426",province:"山东",city:"聊城",address:"北京市朝阳区望京阳光自如寓",dobMonth:8,dobDay:20,onboard:new Date("2020-11-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-05-23T00:00:00.000Z"),"3y":new Date("2023-11-23T00:00:00.000Z"),"5y":new Date("2025-11-23T00:00:00.000Z"),"10y":new Date("2030-11-23T00:00:00.000Z")}},{cnName:"张婧媛",enName:"Jingyuan Zhang",empId:"10343",globalDept:"Global reporting",dept:"Platform",title:"大数据开发工程师",manager:"(谢林)",gender:"Female",officeId:"10343",email:"jzhang@conviva.com",personalEmail:"",mobile:"18613673966",idNumber:"婧媛370802199111072121",province:"山东",city:"济宁",address:"北京市丰台区亚林西公租房3单元1号楼",dobMonth:10,dobDay:7,onboard:new Date("2017-07-17T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-01-17T00:00:00.000Z"),"3y":new Date("2020-07-17T00:00:00.000Z"),"5y":new Date("2022-07-17T00:00:00.000Z"),"10y":new Date("2027-07-17T00:00:00.000Z")}},{cnName:"段梦杰",enName:"Mengjie Duan",empId:"20060",globalDept:"130 - Facilities",dept:"HR",title:"人事行政专员",manager:"Lenietta()",gender:"Female",officeId:"C061",email:"mduan@conviva.com",personalEmail:"1010599629@qq.com",mobile:"17600379629",idNumber:"梦杰411281199311250523",province:"河南",city:"义马市",address:"北京市昌平区回龙观龙腾苑6区25号楼",dobMonth:10,dobDay:25,onboard:new Date("2021-03-01T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-09-01T00:00:00.000Z"),"3y":new Date("2024-03-01T00:00:00.000Z"),"5y":new Date("2026-03-01T00:00:00.000Z"),"10y":new Date("2031-03-01T00:00:00.000Z")}},{cnName:"王丽",enName:"Li Wang",empId:"20062",globalDept:"345 - Data Platform",dept:"TLB",title:"测试工程师",manager:"朱天明",gender:"Female",officeId:"C063",email:"liwang1@conviva.com",personalEmail:"wl7555699@126.com",mobile:"18210500616",idNumber:"王丽231083198607296823",province:"黑龙江",city:"牡丹江市",address:"北京市朝阳区望京西苑3区328号楼",dobMonth:6,dobDay:29,onboard:new Date("2021-03-29T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-09-29T00:00:00.000Z"),"3y":new Date("2024-03-29T00:00:00.000Z"),"5y":new Date("2026-03-29T00:00:00.000Z"),"10y":new Date("2031-03-29T00:00:00.000Z")}},{cnName:"王骞赐",enName:"Qianci Wang",empId:"20063",globalDept:"345 - Data Platform",dept:"EMP",title:"Software engineer",manager:"Dylan",gender:"Male",officeId:"C064",email:"qwang@conviva.com",personalEmail:"wangqianci@126.com",mobile:"18092862706",idNumber:"骞赐612501199311144539",province:"陕西",city:"商洛",address:"北京市朝阳区定福家园三号院一号楼三单元",dobMonth:10,dobDay:14,onboard:new Date("2021-04-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-10-13T00:00:00.000Z"),"3y":new Date("2024-04-13T00:00:00.000Z"),"5y":new Date("2026-04-13T00:00:00.000Z"),"10y":new Date("2031-04-13T00:00:00.000Z")}},{cnName:"兰菊",enName:"Ju Lan",empId:"20064",globalDept:"385 - Social Insights Engineering",dept:"China Frondend team",title:"Test engineer",manager:"朱天明",gender:"Female",officeId:"C065",email:"jlan@conviva.com",personalEmail:"1127667312@qq.com",mobile:"13980093431",idNumber:"兰菊510129199612140020",province:"四川",city:"成都",address:"北京市海淀区学院路街道西王庄小区17号楼3单元",dobMonth:11,dobDay:14,onboard:new Date("2021-04-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-10-13T00:00:00.000Z"),"3y":new Date("2024-04-13T00:00:00.000Z"),"5y":new Date("2026-04-13T00:00:00.000Z"),"10y":new Date("2031-04-13T00:00:00.000Z")}},{cnName:"肖禅",enName:"Chan Xiao",empId:"20067",globalDept:"385 - Social Insights Engineering",dept:"China Frondend team",title:"Senior Frontend Engineer",manager:"许文龙",gender:"Male",officeId:"C068",email:"cxiao@conviva.com",personalEmail:"",mobile:"13718023787",idNumber:"肖禅420984199405044753",province:"湖北",city:"孝感",address:"北京市朝阳区将台路芳园里9号楼1单元2楼",dobMonth:4,dobDay:4,onboard:new Date("2021-07-08T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-01-08T00:00:00.000Z"),"3y":new Date("2024-07-08T00:00:00.000Z"),"5y":new Date("2026-07-08T00:00:00.000Z"),"10y":new Date("2031-07-08T00:00:00.000Z")}},{cnName:"张鸥",enName:"Ou Zhang",empId:"20068",globalDept:"345 - Data Platform",dept:"TLB",title:"Senior Software Engineer",manager:"尉顶",gender:"Female",officeId:"C069",email:"ozhang@conviva.com",personalEmail:"",mobile:"13810008871",idNumber:"张欧210104198604043164",province:"辽宁",city:"沈阳",address:"北京市朝阳区来广营北路88号院5号楼4单元",dobMonth:3,dobDay:4,onboard:new Date("2021-07-15T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-01-15T00:00:00.000Z"),"3y":new Date("2024-07-15T00:00:00.000Z"),"5y":new Date("2026-07-15T00:00:00.000Z"),"10y":new Date("2031-07-15T00:00:00.000Z")}},{cnName:"单姗",enName:"Shan Shan",empId:"20072",globalDept:"140- Human Resources",dept:"HR",title:"HR Generalist",manager:"Lenietta()",gender:"Female",officeId:"C073",email:"shshan@conviva.com",personalEmail:"18842612330@163.com",mobile:"18842612330",idNumber:"单姗21020219920601172X",province:"山东",city:"青岛",address:"北京市朝阳区枣营南里5号楼",dobMonth:5,dobDay:1,onboard:new Date("2021-11-08T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-05-08T00:00:00.000Z"),"3y":new Date("2024-11-08T00:00:00.000Z"),"5y":new Date("2026-11-08T00:00:00.000Z"),"10y":new Date("2031-11-08T00:00:00.000Z")}},{cnName:"吴雅荣",enName:"Yarong Wu",empId:"20073",globalDept:"345 - Data Platform",dept:"Backend  Engineering",title:"Test Engineer",manager:"朱天明",gender:"Female",officeId:"C074",email:"ywu@conviva.com",personalEmail:"2390126672@qq.com",mobile:"13293516075",idNumber:"雅荣142233199602030541",province:"山西",city:"忻州",address:"北京市朝阳区崔各庄镇来广营北路88号院东洲家园",dobMonth:1,dobDay:3,onboard:new Date("2021-11-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-05-23T00:00:00.000Z"),"3y":new Date("2024-11-23T00:00:00.000Z"),"5y":new Date("2026-11-23T00:00:00.000Z"),"10y":new Date("2031-11-23T00:00:00.000Z")}},{cnName:"王琳",enName:"Lin Wang",empId:"20075",globalDept:"335 - Program Management",dept:"Product-TPM",title:"Technical Program Manager",manager:"马晓睿",gender:"Female",officeId:"C076",email:"linwang@conviva.com",personalEmail:"linwang0919@hotmai.com",mobile:"18518361085",idNumber:"王琳110228198909190045",province:"北京",city:"北京",address:"北京市朝阳区新源西里东街10-1-602",dobMonth:8,dobDay:19,onboard:new Date("2022-01-10T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-07-10T00:00:00.000Z"),"3y":new Date("2025-01-10T00:00:00.000Z"),"5y":new Date("2027-01-10T00:00:00.000Z"),"10y":new Date("2032-01-10T00:00:00.000Z")}},{cnName:"李雪青",enName:"Xueqing Li",empId:"20076",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"Test Engineer I",manager:"朱天明",gender:"Female",officeId:"C077",email:"xqli@conviva.com",personalEmail:"yinmuma@163.com",mobile:"18608566338",idNumber:"雪青522227199408230068",province:"贵州",city:"铜仁",address:"北京市朝阳区呼家楼街道,环铁北桥东侧，新小区，环博路2号院，3号楼4单元801",dobMonth:7,dobDay:23,onboard:new Date("2022-01-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-07-13T00:00:00.000Z"),"3y":new Date("2025-01-13T00:00:00.000Z"),"5y":new Date("2027-01-13T00:00:00.000Z"),"10y":new Date("2032-01-13T00:00:00.000Z")}},{cnName:"吴西飞",enName:"Xifei Wu",empId:"20077",globalDept:"345 - Data Platform",dept:"China Frondend team",title:"Senior Software Engineer",manager:"许文龙",gender:"Male",officeId:"C078",email:"xfwu@conviva.com",personalEmail:"sduwxf@qq.com",mobile:"15712872803",idNumber:"西飞371581198610091453",province:"山东",city:"聊城",address:"北京市顺义区石园大街九号院三区二号楼一单元1001",dobMonth:9,dobDay:9,onboard:new Date("2022-01-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-07-13T00:00:00.000Z"),"3y":new Date("2025-01-13T00:00:00.000Z"),"5y":new Date("2027-01-13T00:00:00.000Z"),"10y":new Date("2032-01-13T00:00:00.000Z")}},{cnName:"齐晓棠",enName:"Xiaotang Qi",empId:"20088",globalDept:"140- Human Resources",dept:"HR",title:"Recruiter",manager:"胡宁宁（）",gender:"Female",officeId:"C088",email:"xqi@conviva.com",personalEmail:"cico5qiyes@hotmail.com",mobile:"18710219118",idNumber:"晓棠210902198408305527",province:"山东",city:"文登",address:"北京市朝阳区望京博雅国际中心B座301",dobMonth:7,dobDay:30,onboard:new Date("2022-05-09T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-11-09T00:00:00.000Z"),"3y":new Date("2025-05-09T00:00:00.000Z"),"5y":new Date("2027-05-09T00:00:00.000Z"),"10y":new Date("2032-05-09T00:00:00.000Z")}},{cnName:"孙长",enName:"Chang Sun",empId:"20012",globalDept:"345 - Data Platform",dept:"Conviva",title:"Architect (Sr.Staff)",manager:"胡宁宁",gender:"Male",officeId:"C091",email:"csun@conviva.com",personalEmail:"329527176@qq.com",mobile:"18810018622",idNumber:"孙长37020219850422183X",province:"山东",city:"青岛",address:"北京市昌平区回龙观新龙城小区28号楼4单元",dobMonth:3,dobDay:22,onboard:new Date("2022-05-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-11-23T00:00:00.000Z"),"3y":new Date("2023-11-28T00:00:00.000Z"),"5y":new Date("2025-11-28T00:00:00.000Z"),"10y":new Date("2030-11-28T00:00:00.000Z")}},{cnName:"冯保丽",enName:"Baoli Feng",empId:"20091",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"Test Engineer II",manager:"朱天明",gender:"Female",officeId:"C092",email:"blfeng@conviva.com",personalEmail:"2711584818@qq.com",mobile:"18311314369",idNumber:"保丽132201199411206644",province:"河北",city:"邢台",address:"北京市朝阳区奥北南区2-2-1509",dobMonth:10,dobDay:20,onboard:new Date("2022-06-09T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-12-09T00:00:00.000Z"),"3y":new Date("2025-06-09T00:00:00.000Z"),"5y":new Date("2027-06-09T00:00:00.000Z"),"10y":new Date("2032-06-09T00:00:00.000Z")}},{cnName:"谢林",enName:"Lin Xie",empId:"20090",globalDept:"345 - Data Platform",dept:"Platform",title:"Engineering Manager",manager:"Ranjan, Pawas（胡宁宁）",gender:"Male",officeId:"C094",email:"lxie@conviva.com",personalEmail:"iceyett@gmail.com",mobile:"13426235956",idNumber:"谢林51113119791006121X",province:"四川",city:"眉山",address:"北京市海淀区牡丹园东里八号楼五单元501",dobMonth:9,dobDay:6,onboard:new Date("2022-06-20T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-12-20T00:00:00.000Z"),"3y":new Date("2025-06-20T00:00:00.000Z"),"5y":new Date("2027-06-20T00:00:00.000Z"),"10y":new Date("2032-06-20T00:00:00.000Z")}},{cnName:"孙聪",enName:"Cong Sun",empId:"20092",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"Software Engineer II, Backend",manager:"Dylan",gender:"Male",officeId:"C093",email:"congsun@conviva.com",personalEmail:"scong_0620@163.com",mobile:"16619917047",idNumber:"孙聪210105199206205317",province:"辽宁",city:"沈阳",address:"北京市海淀区荣上居1205",dobMonth:5,dobDay:20,onboard:new Date("2022-06-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-12-23T00:00:00.000Z"),"3y":new Date("2025-06-23T00:00:00.000Z"),"5y":new Date("2027-06-23T00:00:00.000Z"),"10y":new Date("2032-06-23T00:00:00.000Z")}},{cnName:"许文龙",enName:"Wenlong Xu",empId:"20093",globalDept:"345 - Data Platform",dept:"China Frondend team",title:"Staff Software Engineer, Frontend",manager:"胡宁宁",gender:"Male",officeId:"C095",email:"wlxu@conviva.com",personalEmail:"xunuoi@163.com",mobile:"18511411387",idNumber:"文龙370785198810284896",province:"山东",city:"青岛",address:"北京北京市顺义区光明街道顺沙路绿港家园5区 2号楼404",dobMonth:9,dobDay:28,onboard:new Date("2022-07-04T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-01-04T00:00:00.000Z"),"3y":new Date("2025-07-04T00:00:00.000Z"),"5y":new Date("2027-07-04T00:00:00.000Z"),"10y":new Date("2032-07-04T00:00:00.000Z")}},{cnName:"余政彦",enName:"Zhengyan Yu",empId:"20096",globalDept:"230 - Product Management",dept:"Product",title:"Senior UX Designer",manager:"Goldfoot, Matthew（）",gender:"Male",officeId:"C097",email:"zhyyu@conviva.com",personalEmail:"noel.fish6@gmail.com",mobile:"13146955681",idNumber:"政彦 08952435（台胞证）",province:"台湾",city:"屏东",address:"北京市顺义区南法信旭辉26街区北区13号楼263房间",dobMonth:5,dobDay:26,onboard:new Date("2022-07-25T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-01-25T00:00:00.000Z"),"3y":new Date("2025-07-25T00:00:00.000Z"),"5y":new Date("2027-07-25T00:00:00.000Z"),"10y":new Date("2032-07-25T00:00:00.000Z")}},{cnName:"刘湃",enName:"Pai Liu",empId:"20098",globalDept:"380 - Content Insights Engineering",dept:"China Frondend team",title:"Engineer, Senior(Frontend)",manager:"许文龙",gender:"Male",officeId:"C100",email:"pailiu@conviva.com",personalEmail:"liupaiabc@126.com",mobile:"18611321204",idNumber:"刘湃210703198808113810",province:"辽宁",city:"锦州",address:"北京市海淀区西二旗智学苑 12-5-201",dobMonth:7,dobDay:11,onboard:new Date("2022-08-01T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-02-01T00:00:00.000Z"),"3y":new Date("2025-08-01T00:00:00.000Z"),"5y":new Date("2027-08-01T00:00:00.000Z"),"10y":new Date("2032-08-01T00:00:00.000Z")}},{cnName:"陈旸",enName:"Yang Chen",empId:"20100",globalDept:"230 - Product Management",dept:"Product",title:"Technical Writer",manager:"Rich Slogar （）",gender:"Male",officeId:"C101",email:"chyang@conviva.com",personalEmail:"byron_chen2014@163.com",mobile:"18132712975",idNumber:"陈旸130633198711300014",province:"河北",city:"保定",address:"北京市昌平区豆各庄新村 23号楼",dobMonth:10,dobDay:30,onboard:new Date("2022-08-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-02-11T00:00:00.000Z"),"3y":new Date("2025-08-11T00:00:00.000Z"),"5y":new Date("2027-08-11T00:00:00.000Z"),"10y":new Date("2032-08-11T00:00:00.000Z")}},{cnName:"赵世栋",enName:"Shidong Zhao",empId:"20103",globalDept:"345 - Data Platform",dept:"Backend  Engineering",title:"Engineer II, Backend",manager:"尉顶",gender:"Male",officeId:"C105",email:"shdzh@conviva.com",personalEmail:"18846067738@163.com",mobile:"18846067738",idNumber:"世栋210282199612048431",province:"辽宁",city:"大连",address:"北京市昌平区立水桥中东路58号院2号楼2单元2402",dobMonth:11,dobDay:4,onboard:new Date("2022-09-05T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-03-05T00:00:00.000Z"),"3y":new Date("2025-09-05T00:00:00.000Z"),"5y":new Date("2027-09-05T00:00:00.000Z"),"10y":new Date("2032-09-05T00:00:00.000Z")}},{cnName:"张佳运",enName:"Jiayun Zhang",empId:"20104",globalDept:"380 - Content Insights Engineering",dept:"China Frondend team",title:"Engineer II, Frontend",manager:"许文龙",gender:"Male",officeId:"C106",email:"jyzhang@conviva.com",personalEmail:"zhangjiayun1994@foxmail.com",mobile:"13260596965",idNumber:"佳运420381199411080038",province:"湖北",city:"十堰",address:"北京市 朝阳区 麦子店街道 枣营北里小区9号楼3单元601室",dobMonth:10,dobDay:8,onboard:new Date("2022-09-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-03-13T00:00:00.000Z"),"3y":new Date("2025-09-13T00:00:00.000Z"),"5y":new Date("2027-09-13T00:00:00.000Z"),"10y":new Date("2032-09-13T00:00:00.000Z")}},{cnName:"贾远哲",enName:"Yuanzhe Jia",empId:"20107",globalDept:"345 - Data Platform",dept:"Data Scientist",title:"Data Scientist",manager:"Daying",gender:"Male",officeId:"C109",email:"yzjia@conviva.com",personalEmail:"1531382475@qq.com",mobile:"15901508035",idNumber:"远哲140105199206130011",province:"北京",city:"北京",address:"北京市丰台区四方景园2区3楼1310号",dobMonth:5,dobDay:13,onboard:new Date("2022-10-10T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-04-10T00:00:00.000Z"),"3y":new Date("2025-10-10T00:00:00.000Z"),"5y":new Date("2027-10-10T00:00:00.000Z"),"10y":new Date("2032-10-10T00:00:00.000Z")}},{cnName:"龚启初",enName:"Qichu Gong",empId:"20108",globalDept:"345 - Data Platform",dept:"TLB",title:"Architect",manager:"胡宁宁",gender:"Male",officeId:"C110",email:"qcgong@conviva.com",personalEmail:"756143229@qq.com",mobile:"15201081394",idNumber:"启初450302198412190015",province:"广西",city:"桂林",address:"北京市海淀区田村路熙湖小区 1-5-301",dobMonth:11,dobDay:19,onboard:new Date("2022-10-17T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-04-17T00:00:00.000Z"),"3y":new Date("2025-10-17T00:00:00.000Z"),"5y":new Date("2027-10-17T00:00:00.000Z"),"10y":new Date("2032-10-17T00:00:00.000Z")}},{cnName:"童旭平",enName:"Xuping Tong",empId:"20109",globalDept:"345 - Data Platform",dept:"Data Scientist",title:"Data Scientist",manager:"Daying",gender:"Male",officeId:"C111",email:"xptong@conviva.com",personalEmail:"m15801628299@163.COM",mobile:"18518642926",idNumber:"旭平131002199107244616",province:"浙江",city:"台州",address:"北京市朝阳区建国路15号院10号楼3单元1502",dobMonth:6,dobDay:24,onboard:new Date("2022-10-18T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-04-18T00:00:00.000Z"),"3y":new Date("2025-10-18T00:00:00.000Z"),"5y":new Date("2027-10-18T00:00:00.000Z"),"10y":new Date("2032-10-18T00:00:00.000Z")}},{cnName:"曹大瀛",enName:"Daying Cao",empId:"20113",globalDept:"345 - Data Platform",dept:"Data Scientist",title:"Data Scientist Manager",manager:"Yan Li（胡宁宁）",gender:"Male",officeId:"C115",email:"dycao@conviva.com",personalEmail:"caodaying@hotmail.com",mobile:"18600219688",idNumber:"大瀛110108198806266034",province:"山东",city:"烟台",address:"北京市海淀区青云里满庭芳园c座2107室",dobMonth:5,dobDay:26,onboard:new Date("2023-03-27T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-09-27T00:00:00.000Z"),"3y":new Date("2026-03-27T00:00:00.000Z"),"5y":new Date("2028-03-27T00:00:00.000Z"),"10y":new Date("2033-03-27T00:00:00.000Z")}},{cnName:"吴迪",enName:"Di Wu",empId:"20114",globalDept:"345 - Data Platform",dept:"EMP",title:"Senior Engineering Manager",manager:"胡宁宁",gender:"Male",officeId:"C116",email:"diwu@conviva.com",personalEmail:"engeue@hotmail.com",mobile:"18611652251",idNumber:"吴迪22020419810626181X",province:"吉林",city:"吉林",address:"北京市顺义区双裕花园西区3号楼3单元202",dobMonth:5,dobDay:26,onboard:new Date("2023-04-03T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-10-03T00:00:00.000Z"),"3y":new Date("2026-04-03T00:00:00.000Z"),"5y":new Date("2028-04-03T00:00:00.000Z"),"10y":new Date("2033-04-03T00:00:00.000Z")}},{cnName:"谭韬",enName:"Tan Tao",empId:"20116",globalDept:"320 - Network Operations",dept:"OPS",title:"Senior DevOps Engineer",manager:"刘晗昭",gender:"Male",officeId:"C118",email:"ttan@conviva.com",personalEmail:"s2.ttan@gmail.com",mobile:"13581821013",idNumber:"谭韬430321198609182233",province:"湖南",city:"湘潭",address:"北京市朝阳区南湖东园一区102号404 谭韬",dobMonth:8,dobDay:18,onboard:new Date("2023-05-08T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-11-08T00:00:00.000Z"),"3y":new Date("2026-05-08T00:00:00.000Z"),"5y":new Date("2028-05-08T00:00:00.000Z"),"10y":new Date("2033-05-08T00:00:00.000Z")}},{cnName:"刘洋",enName:"Yang Liu",empId:"20118",globalDept:"345 - Data Platform",dept:"Senior Data Scientist",title:"Senior Data Scientist",manager:"Daying",gender:"Male",officeId:"C120",email:"yaliu@conviva.com",personalEmail:"365130021@qq.com",mobile:"13301054503",idNumber:"刘洋37120219881006241X",province:"山东",city:"济南",address:"北京邮电大学北家属区24号楼6单元602",dobMonth:9,dobDay:6,onboard:new Date("2023-08-01T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-02-01T00:00:00.000Z"),"3y":new Date("2026-08-01T00:00:00.000Z"),"5y":new Date("2028-08-01T00:00:00.000Z"),"10y":new Date("2033-08-01T00:00:00.000Z")}},{cnName:"陈俊文",enName:"Junwen Chen",empId:"20119",globalDept:"345 - Data Platform",dept:"Frontend Engineer",title:"Software Engineer",manager:"许文龙",gender:"Male",officeId:"C121",email:"jwchen@conviva.com",personalEmail:"chenjunwen186@gmail.com",mobile:"15766278749",idNumber:"陈俊文445281199505094337",province:"广东",city:"普宁",address:"广东省深圳市宝安区松岗楼岗路宝利豪庭1栋金荔苑09A",dobMonth:4,dobDay:9,onboard:new Date("2023-08-07T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-02-07T00:00:00.000Z"),"3y":new Date("2026-08-07T00:00:00.000Z"),"5y":new Date("2028-08-07T00:00:00.000Z"),"10y":new Date("2033-08-07T00:00:00.000Z")}},{cnName:"吴昌",enName:"Chang Wu",empId:"20120",globalDept:"345 - Data Platform",dept:"Platform",title:"Senior Software Engineer",manager:"谢林",gender:"Male",officeId:"C122",email:"cwu@conviva.com",personalEmail:"vico.wu1989@gmail.com",mobile:"13269202703",idNumber:"吴昌429001198908027676",province:"湖北",city:"随州",address:"北京市顺义区翠竹新村一区26号楼三单元602",dobMonth:7,dobDay:2,onboard:new Date("2023-09-25T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-03-25T00:00:00.000Z"),"3y":new Date("2026-09-25T00:00:00.000Z"),"5y":new Date("2028-09-25T00:00:00.000Z"),"10y":new Date("2033-09-25T00:00:00.000Z")}},{cnName:"王澍",enName:"Shu Wang",empId:"20124",globalDept:"345 - Data Platform",dept:"TLB",title:"Senior Software Engineer",manager:"王小平",gender:"Male",officeId:"C126",email:"shwang@conviva.com",personalEmail:"wsmithril@gmail.com",mobile:"15010947595",idNumber:"王澍110101198710222016",province:"北京",city:"北京",address:"北京市昌平区天通东苑3区10楼7门302 15010947595",dobMonth:9,dobDay:22,onboard:new Date("2023-12-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-06-11T00:00:00.000Z"),"3y":new Date("2026-12-11T00:00:00.000Z"),"5y":new Date("2028-12-11T00:00:00.000Z"),"10y":new Date("2033-12-11T00:00:00.000Z")}},{cnName:"尉顶",enName:"Ding Wei",empId:"20125",globalDept:"345 - Data Platform",dept:"Backend",title:"Engineering Manager",manager:"胡宁宁",gender:"Male",officeId:"C127",email:"dwei@conviva.com",personalEmail:"ding.wei.lycium@gmail.com",mobile:"15840921473",idNumber:"尉顶142724198705113733",province:"山西",city:"运城",address:"尉顶15840921473，通州区翠屏北里西区9号楼2单元242室",dobMonth:4,dobDay:11,onboard:new Date("2023-12-18T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-06-18T00:00:00.000Z"),"3y":new Date("2026-12-18T00:00:00.000Z"),"5y":new Date("2028-12-18T00:00:00.000Z"),"10y":new Date("2033-12-18T00:00:00.000Z")}},{cnName:"刘晗昭",enName:"Harvey Liu",empId:"20127",globalDept:"320 - Network Operations",dept:"OPS",title:"DevOps Manager",manager:"Ken Peng（胡宁宁）",gender:"Male",officeId:"C129",email:"hliu@conviva.com",personalEmail:"wenzizone@126.com",mobile:"18601108081",idNumber:"晗昭110102198103080454",province:"河北",city:"定兴",address:"北京市西城区鼓楼西大街后海夹道10号",dobMonth:2,dobDay:8,onboard:new Date("2024-01-15T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-07-15T00:00:00.000Z"),"3y":new Date("2027-01-15T00:00:00.000Z"),"5y":new Date("2029-01-15T00:00:00.000Z"),"10y":new Date("2034-01-15T00:00:00.000Z")}},{cnName:"孙奥",enName:"Ao Sun",empId:"20129",globalDept:"340 - Infrastructure Platform",dept:"Gateway（EMP）",title:"Senior Software Engineer",manager:"Swaraj Yadav(尉顶)",gender:"Female",officeId:"C131",email:"asun@conviva.com",personalEmail:"805238550@qq.com",mobile:"19542703271",idNumber:"孙奥340103199207193529",province:"安徽",city:"合肥",address:"北京市朝阳区公园五号22号楼915",dobMonth:6,dobDay:19,onboard:new Date("2024-04-22T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-10-22T00:00:00.000Z"),"3y":new Date("2027-04-22T00:00:00.000Z"),"5y":new Date("2029-04-22T00:00:00.000Z"),"10y":new Date("2034-04-22T00:00:00.000Z")}},{cnName:"郝欣然",enName:"Xinran Hao",empId:"20133",globalDept:"345 - Data Platform",dept:"EMP",title:"Staff Software Engnieer",manager:"Dylan",gender:"Male",officeId:"C135",email:"xrhao@conviva.com",personalEmail:"andrewhao108@yahoo.com",mobile:"18611411756",idNumber:"欣然110105198810086117",province:"北京",city:"北京",address:"北京市海淀区阜成路36号西钓鱼台嘉园1号楼4单元701号",dobMonth:9,dobDay:8,onboard:new Date("2024-06-24T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-12-24T00:00:00.000Z"),"3y":new Date("2027-06-24T00:00:00.000Z"),"5y":new Date("2029-06-24T00:00:00.000Z"),"10y":new Date("2034-06-24T00:00:00.000Z")}},{cnName:"万铎",enName:"Duo Wan",empId:"20135",globalDept:"285 - Customer Support",dept:"Sales（DS）",title:"Senior Product Support Engineer",manager:"Aniruddha Vyawahar(Daying)",gender:"Female",officeId:"C137",email:"dwan@conviva.com",personalEmail:"1314lanjian@gmail.com",mobile:"15600564726",idNumber:"万铎210502198211140923",province:"辽宁",city:"本溪",address:"北京市朝阳区北苑家园绣菊园南区19号楼180",dobMonth:10,dobDay:14,onboard:new Date("2024-07-18T00:00:00.000Z"),milestoneDates:{reg:new Date("2025-01-18T00:00:00.000Z"),"3y":new Date("2027-07-18T00:00:00.000Z"),"5y":new Date("2029-07-18T00:00:00.000Z"),"10y":new Date("2034-07-18T00:00:00.000Z")}},{cnName:"熊雨佳",enName:"Yujia Xiong",empId:"20137",globalDept:"345 - Data Platform",dept:"DS",title:"Data Scientist",manager:"Daying",gender:"Female",officeId:"C139",email:"yjxiong@conviva.com",personalEmail:"carolinexiong9@gmail.com",mobile:"18612761020",idNumber:"熊雨佳610102199810200024",province:"四川",city:"成都",address:"北京市朝阳区南湖南路9号C1203",dobMonth:9,dobDay:20,onboard:new Date("2024-09-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2025-03-23T00:00:00.000Z"),"3y":new Date("2027-09-23T00:00:00.000Z"),"5y":new Date("2029-09-23T00:00:00.000Z"),"10y":new Date("2034-09-23T00:00:00.000Z")}},{cnName:"袁也",enName:"Ye Yuan",empId:"",globalDept:"",dept:"Data Platform",title:"Software Engineer",manager:"谢林",gender:"Male",officeId:"C141",email:"yyuan@conviva.com",personalEmail:"kryst4lskyxx@gmail.com",mobile:"13320895726",idNumber:"袁也510703200007250218",province:"四川",city:"绵阳",address:"北京市朝阳区东湖街道上京新航线306号楼2单元15层1505",dobMonth:6,dobDay:25,onboard:new Date("2025-06-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2025-12-23T00:00:00.000Z"),"3y":new Date("2028-06-23T00:00:00.000Z"),"5y":new Date("2030-06-23T00:00:00.000Z"),"10y":new Date("2035-06-23T00:00:00.000Z")}},{cnName:"刘宇杰",enName:"Emma Liu",empId:"",globalDept:"",dept:"Customer Support",title:"Product Support Engineer",manager:"Aniruddha Vyawahare(Daying)",gender:"Female",officeId:"C143",email:"emliu@conviva.com",personalEmail:"15326160216@163.com",mobile:"15326160216",idNumber:"宇杰232126199003120580",province:"辽宁",city:"大连",address:"北京市顺义区天竺镇府前一街32号院内D栋乐乎青年社区5010",dobMonth:2,dobDay:12,onboard:new Date("2025-08-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-02-11T00:00:00.000Z"),"3y":new Date("2028-08-11T00:00:00.000Z"),"5y":new Date("2030-08-11T00:00:00.000Z"),"10y":new Date("2035-08-11T00:00:00.000Z")}},{cnName:"杨健",enName:"James Yang",empId:"",globalDept:"",dept:"Frontend Engineer",title:"Software Engineer II",manager:"许文龙",gender:"Male",officeId:"C144",email:"jyang@conviva.com",personalEmail:"willispyoung@gmail.com",mobile:"13691433649",idNumber:"杨健340826199704140834",province:"安徽",city:"安庆",address:"北京市昌平区天通苑南街道溪城家园西区1号楼2单元202",dobMonth:3,dobDay:14,onboard:new Date("2025-10-20T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-04-20T00:00:00.000Z"),"3y":new Date("2028-10-20T00:00:00.000Z"),"5y":new Date("2030-10-20T00:00:00.000Z"),"10y":new Date("2035-10-20T00:00:00.000Z")}},{cnName:"张莹",enName:"Christine Zhang",empId:"",globalDept:"",dept:"HR",title:"Director, HR",manager:"Lenietta(胡宁宁)",gender:"Female",officeId:"C145",email:"czhang@conviva.com",personalEmail:"christinezhang@outlook.com",mobile:"13801038491",idNumber:"张莹110108197610284228",province:"北京",city:"北京",address:"北京市朝阳区望京东园7区15号楼1502",dobMonth:9,dobDay:28,onboard:new Date("2026-01-19T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-07-19T00:00:00.000Z"),"3y":new Date("2029-01-19T00:00:00.000Z"),"5y":new Date("2031-01-19T00:00:00.000Z"),"10y":new Date("2036-01-19T00:00:00.000Z")}},{cnName:"梅玫",enName:"Mei Mei",empId:"",globalDept:"",dept:"Product",title:"Senior Staff Product Designer",manager:"Joel Goldfoot()",gender:"Female",officeId:"C146",email:"mmei@conviva.com",personalEmail:"ameimei623@gmail.com",mobile:"15821281608",idNumber:"梅玫110102198506233064",province:"北京",city:"北京",address:"北京市宣武区四平园小区8号楼808",dobMonth:5,dobDay:23,onboard:new Date("2026-03-30T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-09-30T00:00:00.000Z"),"3y":new Date("2029-03-30T00:00:00.000Z"),"5y":new Date("2031-03-30T00:00:00.000Z"),"10y":new Date("2036-03-30T00:00:00.000Z")}},{cnName:"程书哲",enName:"Shuzhe Cheng",empId:"Con002",globalDept:"345 - Data Platform",dept:"Backend Engineering",title:"Big Data Engineer",manager:"尉顶",gender:"Male",officeId:"20220330",email:"szcheng@conviva.com",personalEmail:"",mobile:"18237609905",idNumber:"程书哲411522199611276334",province:"",city:"",address:"",dobMonth:10,dobDay:27,onboard:new Date("2022-03-30T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-09-30T00:00:00.000Z"),"3y":new Date("2025-03-30T00:00:00.000Z"),"5y":new Date("2027-03-30T00:00:00.000Z"),"10y":new Date("2032-03-30T00:00:00.000Z")}},{cnName:"潘洪安",enName:"Hongan Pan",empId:"20052",globalDept:"345 - Data Platform",dept:"Platform",title:"大数据开发工程师(Staff)",manager:"谢林",gender:"Male",officeId:"C053",email:"hpan@conviva.com",personalEmail:"phadyc@126.com",mobile:"15724739429",idNumber:"洪安362522198711015010",province:"江西",city:"抚州",address:"北京市朝阳区石佛营东里126号院日月东华小区3号楼",dobMonth:10,dobDay:1,onboard:new Date("2024-03-14T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-09-14T00:00:00.000Z"),"3y":new Date("2027-03-14T00:00:00.000Z"),"5y":new Date("2029-03-14T00:00:00.000Z"),"10y":new Date("2034-03-14T00:00:00.000Z")}}];
+let employees = [{cnName:"胡宁宁",enName:"Ningning Hu",empId:"10346",globalDept:"Enginnering",dept:"Conviva",title:"总经理",manager:"",gender:"Male",officeId:"C001",email:"",personalEmail:"",mobile:"15701233144",idNumber:"宁宁320311197604271218",province:"山东",city:"曹县",address:"北京市朝阳区望京国风北京609-3-602",dobMonth:3,dobDay:27,onboard:new Date("2017-07-24T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-01-24T00:00:00.000Z"),"3y":new Date("2020-07-24T00:00:00.000Z"),"5y":new Date("2022-07-24T00:00:00.000Z"),"10y":new Date("2027-07-24T00:00:00.000Z")}},{cnName:"李大超",enName:"Dachao Li",empId:"20004",globalDept:"380 - Content Insights Engineering",dept:"China Frondend team",title:"IOS高级前端开发工程师",manager:"吴迪",gender:"Male",officeId:"C005",email:"",personalEmail:"",mobile:"18511870285",idNumber:"大超412727198807132016",province:"河南",city:"周口",address:"北京市昌平区北七家镇名佳花园3区58号楼4单元",dobMonth:6,dobDay:13,onboard:new Date("2017-09-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-03-11T00:00:00.000Z"),"3y":new Date("2020-09-11T00:00:00.000Z"),"5y":new Date("2022-09-11T00:00:00.000Z"),"10y":new Date("2027-09-11T00:00:00.000Z")}},{cnName:"杨展",enName:"Zhan Yang",empId:"20005",globalDept:"345 - Data Platform",dept:"China Frondend team",title:"高级前端开发工程师",manager:"许文龙",gender:"Male",officeId:"C006",email:"",personalEmail:"",mobile:"18610864576",idNumber:"杨展141027199309130018",province:"山西",city:"临汾",address:"北京市朝阳区北京建工双合家园C区4号楼",dobMonth:8,dobDay:13,onboard:new Date("2017-11-27T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-05-27T00:00:00.000Z"),"3y":new Date("2020-11-27T00:00:00.000Z"),"5y":new Date("2022-11-27T00:00:00.000Z"),"10y":new Date("2027-11-27T00:00:00.000Z")}},{cnName:"朱天明",enName:"Tianming Zhu",empId:"20017",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"高级软件测试工程师",manager:"胡宁宁",gender:"Male",officeId:"C017",email:"",personalEmail:"",mobile:"13718606560",idNumber:"天明32021119830313071X",province:"江苏",city:"无锡",address:"北京市朝阳区枣营北里36号楼",dobMonth:2,dobDay:13,onboard:new Date("2018-10-22T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-04-22T00:00:00.000Z"),"3y":new Date("2021-10-22T00:00:00.000Z"),"5y":new Date("2023-10-22T00:00:00.000Z"),"10y":new Date("2028-10-22T00:00:00.000Z")}},{cnName:"王超",enName:"Chao Wang",empId:"20020",globalDept:"385 - Social Insights Engineering",dept:"China Frondend team",title:"前端工程师",manager:"许文龙",gender:"Male",officeId:"C020",email:"",personalEmail:"mattwg@163.com",mobile:"15601376228",idNumber:"王超231083199010086713",province:"吉林",city:"农安",address:"北京市西城区宣武门东大街22号楼3门",dobMonth:9,dobDay:8,onboard:new Date("2018-12-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-06-13T00:00:00.000Z"),"3y":new Date("2021-12-13T00:00:00.000Z"),"5y":new Date("2023-12-13T00:00:00.000Z"),"10y":new Date("2028-12-13T00:00:00.000Z")}},{cnName:"郭江",enName:"Jiang Guo",empId:"20021",globalDept:"380 - Content Insights Engineering",dept:"China Frondend team",title:"高级前端工程师",manager:"许文龙",gender:"Male",officeId:"C022",email:"",personalEmail:"guo493@163.com",mobile:"15101155132",idNumber:"郭江370784198512093817",province:"山东",city:"潍坊",address:"北京市海淀区海淀嘉郡4号楼3单元",dobMonth:11,dobDay:9,onboard:new Date("2019-01-02T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-07-02T00:00:00.000Z"),"3y":new Date("2022-01-02T00:00:00.000Z"),"5y":new Date("2024-01-02T00:00:00.000Z"),"10y":new Date("2029-01-02T00:00:00.000Z")}},{cnName:"杨懿",enName:"Yi Yang",empId:"20025",globalDept:"230 - Product Management",dept:"Product",title:"产品设计师",manager:"胡宁宁(Goldfoot, Matthew)",gender:"Female",officeId:"C025",email:"",personalEmail:"18810375466@163.com",mobile:"18810375466",idNumber:"杨懿420111199211104023",province:"湖北",city:"武汉",address:"北京市朝阳区瞰都嘉园3号楼",dobMonth:10,dobDay:10,onboard:new Date("2019-01-14T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-07-14T00:00:00.000Z"),"3y":new Date("2022-01-14T00:00:00.000Z"),"5y":new Date("2024-01-14T00:00:00.000Z"),"10y":new Date("2029-01-14T00:00:00.000Z")}},{cnName:"徐仙子",enName:"Sarah Xu",empId:"20028",globalDept:"230 - Product Management",dept:"Product",title:"产品经理",manager:"胡宁宁(Jose)",gender:"Female",officeId:"C028",email:"",personalEmail:"18001153201@163.com",mobile:"18001153201",idNumber:"仙子370684198812290083",province:"黑龙江",city:"加格达奇",address:"北京市朝阳区定福家园南里三号院一号楼二单元",dobMonth:11,dobDay:29,onboard:new Date("2019-03-25T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-09-25T00:00:00.000Z"),"3y":new Date("2022-03-25T00:00:00.000Z"),"5y":new Date("2024-03-25T00:00:00.000Z"),"10y":new Date("2029-03-25T00:00:00.000Z")}},{cnName:"林博",enName:"Bo Lin",empId:"20032",globalDept:"345 - Data Platform",dept:"Backend  Engineering",title:"软件开发工程师（全栈）",manager:"尉顶",gender:"Male",officeId:"C032",email:"",personalEmail:"implipala@gmail.com",mobile:"18611852805",idNumber:"林博44058319880118453X",province:"广东",city:"汕头",address:"北京市朝阳区青年路青年汇佳园4号楼",dobMonth:0,dobDay:18,onboard:new Date("2019-04-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-10-23T00:00:00.000Z"),"3y":new Date("2022-04-23T00:00:00.000Z"),"5y":new Date("2024-04-23T00:00:00.000Z"),"10y":new Date("2029-04-23T00:00:00.000Z")}},{cnName:"杨东晓",enName:"Dongxiao Yang",empId:"20036",globalDept:"345 - Data Platform",dept:"Platform",title:"高级大数据开发",manager:"谢林",gender:"Male",officeId:"C036",email:"",personalEmail:"821785057@qq.com",mobile:"18866997376",idNumber:"东晓370612198710032516",province:"山东",city:"烟台",address:"北京市昌平区东小口肿瘤医院宿舍4单元3号楼",dobMonth:9,dobDay:3,onboard:new Date("2019-06-10T00:00:00.000Z"),milestoneDates:{reg:new Date("2019-12-10T00:00:00.000Z"),"3y":new Date("2022-06-10T00:00:00.000Z"),"5y":new Date("2024-06-10T00:00:00.000Z"),"10y":new Date("2029-06-10T00:00:00.000Z")}},{cnName:"王巍",enName:"Wei Wang",empId:"20042",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"高级后端开发工程师",manager:"吴迪",gender:"Male",officeId:"C043",email:"",personalEmail:"ww045004120@163.com",mobile:"15210986560",idNumber:"王巍150204198702151811",province:"内蒙",city:"包头",address:"北京市西城区柳巷15号9门",dobMonth:1,dobDay:15,onboard:new Date("2019-08-05T00:00:00.000Z"),milestoneDates:{reg:new Date("2020-02-05T00:00:00.000Z"),"3y":new Date("2022-08-05T00:00:00.000Z"),"5y":new Date("2024-08-05T00:00:00.000Z"),"10y":new Date("2029-08-05T00:00:00.000Z")}},{cnName:"马晓睿",enName:"Xiaorui Ma",empId:"20044",globalDept:"335 - Program Management",dept:"Product-TPM",title:"高级项目经理",manager:"胡宁宁（Aditya）",gender:"Female",officeId:"C045",email:"",personalEmail:"xr.ma.tokyo@gmail.com",mobile:"18611648820",idNumber:"晓睿110106197303023324",province:"湖北",city:"武汉",address:"北京市朝阳区拂林园16",dobMonth:2,dobDay:2,onboard:new Date("2019-10-21T00:00:00.000Z"),milestoneDates:{reg:new Date("2020-04-21T00:00:00.000Z"),"3y":new Date("2022-10-21T00:00:00.000Z"),"5y":new Date("2024-10-21T00:00:00.000Z"),"10y":new Date("2029-10-21T00:00:00.000Z")}},{cnName:"袁志强",enName:"Zhiqiang Yuan",empId:"20046",globalDept:"320 - Network Operations",dept:"OPS",title:"运维工程师",manager:"刘晗昭",gender:"Male",officeId:"C047",email:"",personalEmail:"yuanzq426@163.com",mobile:"18601203134",idNumber:"志强230123199004262870",province:"黑龙江",city:"哈尔滨",address:"北京市丰台区东罗园2号楼6单元",dobMonth:3,dobDay:26,onboard:new Date("2020-03-02T00:00:00.000Z"),milestoneDates:{reg:new Date("2020-09-02T00:00:00.000Z"),"3y":new Date("2023-03-02T00:00:00.000Z"),"5y":new Date("2025-03-02T00:00:00.000Z"),"10y":new Date("2030-03-02T00:00:00.000Z")}},{cnName:"李忠芯",enName:"Zhongxin Li",empId:"20050",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"测试工程师",manager:"朱天明",gender:"Female",officeId:"C051",email:"",personalEmail:"13021212972@163.com",mobile:"13021212972",idNumber:"忠芯612422199008196666",province:"陕西",city:"安康",address:"北京市丰台区马家堡角门16号院1号楼1单元",dobMonth:7,dobDay:19,onboard:new Date("2020-08-03T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-02-03T00:00:00.000Z"),"3y":new Date("2023-08-03T00:00:00.000Z"),"5y":new Date("2025-08-03T00:00:00.000Z"),"10y":new Date("2030-08-03T00:00:00.000Z")}},{cnName:"仝嘉亮",enName:"Jialiang Tong",empId:"20054",globalDept:"385 - Social Insights Engineering",dept:"China Frondend team",title:"前端工程师",manager:"许文龙",gender:"Male",officeId:"C055",email:"",personalEmail:"rememhe@outlook.com",mobile:"17338131094",idNumber:"嘉亮120102199503310614",province:"河北",city:"石家庄",address:"北京市顺义区满庭芳嘉园 7 号楼 1 单元",dobMonth:2,dobDay:31,onboard:new Date("2020-11-04T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-05-04T00:00:00.000Z"),"3y":new Date("2023-11-04T00:00:00.000Z"),"5y":new Date("2025-11-04T00:00:00.000Z"),"10y":new Date("2030-11-04T00:00:00.000Z")}},{cnName:"章胜国",enName:"Shengguo Zhang",empId:"20055",globalDept:"345 - Data Platform",dept:"Backend  Engineering",title:"后端工程师 (Staff)",manager:"尉顶",gender:"Male",officeId:"C056",email:"",personalEmail:"samozihu@qq.com",mobile:"15210265026",idNumber:"胜国342921198310220234",province:"安徽",city:"池州",address:"北京市西城区双槐里小区4号楼7单元",dobMonth:9,dobDay:22,onboard:new Date("2020-11-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-05-23T00:00:00.000Z"),"3y":new Date("2023-11-23T00:00:00.000Z"),"5y":new Date("2025-11-23T00:00:00.000Z"),"10y":new Date("2030-11-23T00:00:00.000Z")}},{cnName:"孙振",enName:"Zhen Sun",empId:"20056",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"高级测试工程师",manager:"朱天明",gender:"Female",officeId:"C057",email:"",personalEmail:"sunzhen1110@163.com",mobile:"18669739636",idNumber:"孙振371523198709204426",province:"山东",city:"聊城",address:"北京市朝阳区望京阳光自如寓",dobMonth:8,dobDay:20,onboard:new Date("2020-11-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-05-23T00:00:00.000Z"),"3y":new Date("2023-11-23T00:00:00.000Z"),"5y":new Date("2025-11-23T00:00:00.000Z"),"10y":new Date("2030-11-23T00:00:00.000Z")}},{cnName:"张婧媛",enName:"Jingyuan Zhang",empId:"10343",globalDept:"Global reporting",dept:"Platform",title:"大数据开发工程师",manager:"谢林（Jibin）",gender:"Female",officeId:"10343",email:"",personalEmail:"",mobile:"18613673966",idNumber:"婧媛370802199111072121",province:"山东",city:"济宁",address:"北京市丰台区亚林西公租房3单元1号楼",dobMonth:10,dobDay:7,onboard:new Date("2017-07-17T00:00:00.000Z"),milestoneDates:{reg:new Date("2018-01-17T00:00:00.000Z"),"3y":new Date("2020-07-17T00:00:00.000Z"),"5y":new Date("2022-07-17T00:00:00.000Z"),"10y":new Date("2027-07-17T00:00:00.000Z")}},{cnName:"段梦杰",enName:"Mengjie Duan",empId:"20060",globalDept:"130 - Facilities",dept:"HR",title:"人事行政专员",manager:"张莹",gender:"Female",officeId:"C061",email:"",personalEmail:"1010599629@qq.com",mobile:"17600379629",idNumber:"梦杰411281199311250523",province:"河南",city:"义马市",address:"北京市昌平区回龙观龙腾苑6区25号楼",dobMonth:10,dobDay:25,onboard:new Date("2021-03-01T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-09-01T00:00:00.000Z"),"3y":new Date("2024-03-01T00:00:00.000Z"),"5y":new Date("2026-03-01T00:00:00.000Z"),"10y":new Date("2031-03-01T00:00:00.000Z")}},{cnName:"王丽",enName:"Li Wang",empId:"20062",globalDept:"345 - Data Platform",dept:"TLB",title:"测试工程师",manager:"朱天明",gender:"Female",officeId:"C063",email:"",personalEmail:"wl7555699@126.com",mobile:"18210500616",idNumber:"王丽231083198607296823",province:"黑龙江",city:"牡丹江市",address:"北京市朝阳区望京西苑3区328号楼",dobMonth:6,dobDay:29,onboard:new Date("2021-03-29T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-09-29T00:00:00.000Z"),"3y":new Date("2024-03-29T00:00:00.000Z"),"5y":new Date("2026-03-29T00:00:00.000Z"),"10y":new Date("2031-03-29T00:00:00.000Z")}},{cnName:"王骞赐",enName:"Qianci Wang",empId:"20063",globalDept:"345 - Data Platform",dept:"EMP",title:"Software engineer",manager:"吴迪",gender:"Male",officeId:"C064",email:"",personalEmail:"wangqianci@126.com",mobile:"18092862706",idNumber:"骞赐612501199311144539",province:"陕西",city:"商洛",address:"北京市朝阳区定福家园三号院一号楼三单元",dobMonth:10,dobDay:14,onboard:new Date("2021-04-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-10-13T00:00:00.000Z"),"3y":new Date("2024-04-13T00:00:00.000Z"),"5y":new Date("2026-04-13T00:00:00.000Z"),"10y":new Date("2031-04-13T00:00:00.000Z")}},{cnName:"兰菊",enName:"Ju Lan",empId:"20064",globalDept:"385 - Social Insights Engineering",dept:"China Frondend team",title:"Test engineer",manager:"朱天明",gender:"Female",officeId:"C065",email:"",personalEmail:"1127667312@qq.com",mobile:"13980093431",idNumber:"兰菊510129199612140020",province:"四川",city:"成都",address:"北京市海淀区学院路街道西王庄小区17号楼3单元",dobMonth:11,dobDay:14,onboard:new Date("2021-04-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2021-10-13T00:00:00.000Z"),"3y":new Date("2024-04-13T00:00:00.000Z"),"5y":new Date("2026-04-13T00:00:00.000Z"),"10y":new Date("2031-04-13T00:00:00.000Z")}},{cnName:"肖禅",enName:"Chan Xiao",empId:"20067",globalDept:"385 - Social Insights Engineering",dept:"China Frondend team",title:"Senior Frontend Engineer",manager:"许文龙",gender:"Male",officeId:"C068",email:"",personalEmail:"",mobile:"13718023787",idNumber:"肖禅420984199405044753",province:"湖北",city:"孝感",address:"北京市朝阳区将台路芳园里9号楼1单元2楼",dobMonth:4,dobDay:4,onboard:new Date("2021-07-08T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-01-08T00:00:00.000Z"),"3y":new Date("2024-07-08T00:00:00.000Z"),"5y":new Date("2026-07-08T00:00:00.000Z"),"10y":new Date("2031-07-08T00:00:00.000Z")}},{cnName:"张鸥",enName:"Ou Zhang",empId:"20068",globalDept:"345 - Data Platform",dept:"TLB",title:"Senior Software Engineer",manager:"尉顶",gender:"Female",officeId:"C069",email:"",personalEmail:"",mobile:"13810008871",idNumber:"张欧210104198604043164",province:"辽宁",city:"沈阳",address:"北京市朝阳区来广营北路88号院5号楼4单元",dobMonth:3,dobDay:4,onboard:new Date("2021-07-15T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-01-15T00:00:00.000Z"),"3y":new Date("2024-07-15T00:00:00.000Z"),"5y":new Date("2026-07-15T00:00:00.000Z"),"10y":new Date("2031-07-15T00:00:00.000Z")}},{cnName:"单姗",enName:"Shan Shan",empId:"20072",globalDept:"140- Human Resources",dept:"HR",title:"HR Generalist",manager:"张莹",gender:"Female",officeId:"C073",email:"",personalEmail:"18842612330@163.com",mobile:"18842612330",idNumber:"单姗21020219920601172X",province:"山东",city:"青岛",address:"北京市朝阳区枣营南里5号楼",dobMonth:5,dobDay:1,onboard:new Date("2021-11-08T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-05-08T00:00:00.000Z"),"3y":new Date("2024-11-08T00:00:00.000Z"),"5y":new Date("2026-11-08T00:00:00.000Z"),"10y":new Date("2031-11-08T00:00:00.000Z")}},{cnName:"吴雅荣",enName:"Yarong Wu",empId:"20073",globalDept:"345 - Data Platform",dept:"Backend  Engineering",title:"Test Engineer",manager:"朱天明",gender:"Female",officeId:"C074",email:"",personalEmail:"2390126672@qq.com",mobile:"13293516075",idNumber:"雅荣142233199602030541",province:"山西",city:"忻州",address:"北京市朝阳区崔各庄镇来广营北路88号院东洲家园",dobMonth:1,dobDay:3,onboard:new Date("2021-11-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-05-23T00:00:00.000Z"),"3y":new Date("2024-11-23T00:00:00.000Z"),"5y":new Date("2026-11-23T00:00:00.000Z"),"10y":new Date("2031-11-23T00:00:00.000Z")}},{cnName:"王琳",enName:"Lin Wang",empId:"20075",globalDept:"335 - Program Management",dept:"Product-TPM",title:"Technical Program Manager",manager:"马晓睿",gender:"Female",officeId:"C076",email:"",personalEmail:"linwang0919@hotmai.com",mobile:"18518361085",idNumber:"王琳110228198909190045",province:"北京",city:"北京",address:"北京市朝阳区新源西里东街10-1-602",dobMonth:8,dobDay:19,onboard:new Date("2022-01-10T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-07-10T00:00:00.000Z"),"3y":new Date("2025-01-10T00:00:00.000Z"),"5y":new Date("2027-01-10T00:00:00.000Z"),"10y":new Date("2032-01-10T00:00:00.000Z")}},{cnName:"李雪青",enName:"Xueqing Li",empId:"20076",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"Test Engineer I",manager:"朱天明",gender:"Female",officeId:"C077",email:"",personalEmail:"yinmuma@163.com",mobile:"18608566338",idNumber:"雪青522227199408230068",province:"贵州",city:"铜仁",address:"北京市朝阳区呼家楼街道,环铁北桥东侧，新小区，环博路2号院，3号楼4单元801",dobMonth:7,dobDay:23,onboard:new Date("2022-01-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-07-13T00:00:00.000Z"),"3y":new Date("2025-01-13T00:00:00.000Z"),"5y":new Date("2027-01-13T00:00:00.000Z"),"10y":new Date("2032-01-13T00:00:00.000Z")}},{cnName:"吴西飞",enName:"Xifei Wu",empId:"20077",globalDept:"345 - Data Platform",dept:"China Frondend team",title:"Senior Software Engineer",manager:"许文龙",gender:"Male",officeId:"C078",email:"",personalEmail:"sduwxf@qq.com",mobile:"15712872803",idNumber:"西飞371581198610091453",province:"山东",city:"聊城",address:"北京市顺义区石园大街九号院三区二号楼一单元1001",dobMonth:9,dobDay:9,onboard:new Date("2022-01-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-07-13T00:00:00.000Z"),"3y":new Date("2025-01-13T00:00:00.000Z"),"5y":new Date("2027-01-13T00:00:00.000Z"),"10y":new Date("2032-01-13T00:00:00.000Z")}},{cnName:"齐晓棠",enName:"Xiaotang Qi",empId:"20088",globalDept:"140- Human Resources",dept:"HR",title:"Recruiter",manager:"张莹",gender:"Female",officeId:"C088",email:"",personalEmail:"cico5qiyes@hotmail.com",mobile:"18710219118",idNumber:"晓棠210902198408305527",province:"山东",city:"文登",address:"北京市朝阳区望京博雅国际中心B座301",dobMonth:7,dobDay:30,onboard:new Date("2022-05-09T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-11-09T00:00:00.000Z"),"3y":new Date("2025-05-09T00:00:00.000Z"),"5y":new Date("2027-05-09T00:00:00.000Z"),"10y":new Date("2032-05-09T00:00:00.000Z")}},{cnName:"孙长",enName:"Chang Sun",empId:"20012",globalDept:"345 - Data Platform",dept:"Conviva",title:"Architect (Sr.Staff)",manager:"胡宁宁",gender:"Male",officeId:"C091",email:"",personalEmail:"329527176@qq.com",mobile:"18810018622",idNumber:"孙长37020219850422183X",province:"山东",city:"青岛",address:"北京市昌平区回龙观新龙城小区28号楼4单元",dobMonth:3,dobDay:22,onboard:new Date("2022-05-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-11-23T00:00:00.000Z"),"3y":new Date("2023-11-28T00:00:00.000Z"),"5y":new Date("2025-11-28T00:00:00.000Z"),"10y":new Date("2030-11-28T00:00:00.000Z")}},{cnName:"冯保丽",enName:"Baoli Feng",empId:"20091",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"Test Engineer II",manager:"朱天明",gender:"Female",officeId:"C092",email:"",personalEmail:"2711584818@qq.com",mobile:"18311314369",idNumber:"保丽132201199411206644",province:"河北",city:"邢台",address:"北京市朝阳区奥北南区2-2-1509",dobMonth:10,dobDay:20,onboard:new Date("2022-06-09T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-12-09T00:00:00.000Z"),"3y":new Date("2025-06-09T00:00:00.000Z"),"5y":new Date("2027-06-09T00:00:00.000Z"),"10y":new Date("2032-06-09T00:00:00.000Z")}},{cnName:"谢林",enName:"Lin Xie",empId:"20090",globalDept:"345 - Data Platform",dept:"Platform",title:"Engineering Manager",manager:"胡宁宁（Pawas）",gender:"Male",officeId:"C094",email:"",personalEmail:"iceyett@gmail.com",mobile:"13426235956",idNumber:"谢林51113119791006121X",province:"四川",city:"眉山",address:"北京市海淀区牡丹园东里八号楼五单元501",dobMonth:9,dobDay:6,onboard:new Date("2022-06-20T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-12-20T00:00:00.000Z"),"3y":new Date("2025-06-20T00:00:00.000Z"),"5y":new Date("2027-06-20T00:00:00.000Z"),"10y":new Date("2032-06-20T00:00:00.000Z")}},{cnName:"孙聪",enName:"Cong Sun",empId:"20092",globalDept:"380 - Content Insights Engineering",dept:"EMP",title:"Software Engineer II, Backend",manager:"吴迪",gender:"Male",officeId:"C093",email:"",personalEmail:"scong_0620@163.com",mobile:"16619917047",idNumber:"孙聪210105199206205317",province:"辽宁",city:"沈阳",address:"北京市海淀区荣上居1205",dobMonth:5,dobDay:20,onboard:new Date("2022-06-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-12-23T00:00:00.000Z"),"3y":new Date("2025-06-23T00:00:00.000Z"),"5y":new Date("2027-06-23T00:00:00.000Z"),"10y":new Date("2032-06-23T00:00:00.000Z")}},{cnName:"许文龙",enName:"Wenlong Xu",empId:"20093",globalDept:"345 - Data Platform",dept:"China Frondend team",title:"Staff Software Engineer, Frontend",manager:"胡宁宁",gender:"Male",officeId:"C095",email:"",personalEmail:"xunuoi@163.com",mobile:"18511411387",idNumber:"文龙370785198810284896",province:"山东",city:"青岛",address:"北京北京市顺义区光明街道顺沙路绿港家园5区 2号楼404",dobMonth:9,dobDay:28,onboard:new Date("2022-07-04T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-01-04T00:00:00.000Z"),"3y":new Date("2025-07-04T00:00:00.000Z"),"5y":new Date("2027-07-04T00:00:00.000Z"),"10y":new Date("2032-07-04T00:00:00.000Z")}},{cnName:"余政彦",enName:"Zhengyan Yu",empId:"20096",globalDept:"230 - Product Management",dept:"Product",title:"Senior UX Designer",manager:"胡宁宁（Goldfoot, Matthew）",gender:"Male",officeId:"C097",email:"",personalEmail:"noel.fish6@gmail.com",mobile:"13146955681",idNumber:"政彦 08952435（台胞证）",province:"台湾",city:"屏东",address:"北京市顺义区南法信旭辉26街区北区13号楼263房间",dobMonth:5,dobDay:26,onboard:new Date("2022-07-25T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-01-25T00:00:00.000Z"),"3y":new Date("2025-07-25T00:00:00.000Z"),"5y":new Date("2027-07-25T00:00:00.000Z"),"10y":new Date("2032-07-25T00:00:00.000Z")}},{cnName:"刘湃",enName:"Pai Liu",empId:"20098",globalDept:"380 - Content Insights Engineering",dept:"China Frondend team",title:"Engineer, Senior(Frontend)",manager:"许文龙",gender:"Male",officeId:"C100",email:"",personalEmail:"liupaiabc@126.com",mobile:"18611321204",idNumber:"刘湃210703198808113810",province:"辽宁",city:"锦州",address:"北京市海淀区西二旗智学苑 12-5-201",dobMonth:7,dobDay:11,onboard:new Date("2022-08-01T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-02-01T00:00:00.000Z"),"3y":new Date("2025-08-01T00:00:00.000Z"),"5y":new Date("2027-08-01T00:00:00.000Z"),"10y":new Date("2032-08-01T00:00:00.000Z")}},{cnName:"陈旸",enName:"Yang Chen",empId:"20100",globalDept:"230 - Product Management",dept:"Product",title:"Technical Writer",manager:"胡宁宁（Rich Slogar）",gender:"Male",officeId:"C101",email:"",personalEmail:"byron_chen2014@163.com",mobile:"18132712975",idNumber:"陈旸130633198711300014",province:"河北",city:"保定",address:"北京市昌平区豆各庄新村 23号楼",dobMonth:10,dobDay:30,onboard:new Date("2022-08-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-02-11T00:00:00.000Z"),"3y":new Date("2025-08-11T00:00:00.000Z"),"5y":new Date("2027-08-11T00:00:00.000Z"),"10y":new Date("2032-08-11T00:00:00.000Z")}},{cnName:"赵世栋",enName:"Shidong Zhao",empId:"20103",globalDept:"345 - Data Platform",dept:"Backend  Engineering",title:"Engineer II, Backend",manager:"尉顶",gender:"Male",officeId:"C105",email:"",personalEmail:"18846067738@163.com",mobile:"18846067738",idNumber:"世栋210282199612048431",province:"辽宁",city:"大连",address:"北京市昌平区立水桥中东路58号院2号楼2单元2402",dobMonth:11,dobDay:4,onboard:new Date("2022-09-05T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-03-05T00:00:00.000Z"),"3y":new Date("2025-09-05T00:00:00.000Z"),"5y":new Date("2027-09-05T00:00:00.000Z"),"10y":new Date("2032-09-05T00:00:00.000Z")}},{cnName:"张佳运",enName:"Jiayun Zhang",empId:"20104",globalDept:"380 - Content Insights Engineering",dept:"China Frondend team",title:"Engineer II, Frontend",manager:"许文龙",gender:"Male",officeId:"C106",email:"",personalEmail:"zhangjiayun1994@foxmail.com",mobile:"13260596965",idNumber:"佳运420381199411080038",province:"湖北",city:"十堰",address:"北京市 朝阳区 麦子店街道 枣营北里小区9号楼3单元601室",dobMonth:10,dobDay:8,onboard:new Date("2022-09-13T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-03-13T00:00:00.000Z"),"3y":new Date("2025-09-13T00:00:00.000Z"),"5y":new Date("2027-09-13T00:00:00.000Z"),"10y":new Date("2032-09-13T00:00:00.000Z")}},{cnName:"贾远哲",enName:"Yuanzhe Jia",empId:"20107",globalDept:"345 - Data Platform",dept:"Data Scientist",title:"Data Scientist",manager:"曹大瀛",gender:"Male",officeId:"C109",email:"",personalEmail:"1531382475@qq.com",mobile:"15901508035",idNumber:"远哲140105199206130011",province:"北京",city:"北京",address:"北京市丰台区四方景园2区3楼1310号",dobMonth:5,dobDay:13,onboard:new Date("2022-10-10T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-04-10T00:00:00.000Z"),"3y":new Date("2025-10-10T00:00:00.000Z"),"5y":new Date("2027-10-10T00:00:00.000Z"),"10y":new Date("2032-10-10T00:00:00.000Z")}},{cnName:"龚启初",enName:"Qichu Gong",empId:"20108",globalDept:"345 - Data Platform",dept:"TLB",title:"Architect",manager:"胡宁宁",gender:"Male",officeId:"C110",email:"",personalEmail:"756143229@qq.com",mobile:"15201081394",idNumber:"启初450302198412190015",province:"广西",city:"桂林",address:"北京市海淀区田村路熙湖小区 1-5-301",dobMonth:11,dobDay:19,onboard:new Date("2022-10-17T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-04-17T00:00:00.000Z"),"3y":new Date("2025-10-17T00:00:00.000Z"),"5y":new Date("2027-10-17T00:00:00.000Z"),"10y":new Date("2032-10-17T00:00:00.000Z")}},{cnName:"童旭平",enName:"Xuping Tong",empId:"20109",globalDept:"345 - Data Platform",dept:"Data Scientist",title:"Data Scientist",manager:"曹大瀛",gender:"Male",officeId:"C111",email:"",personalEmail:"m15801628299@163.COM",mobile:"18518642926",idNumber:"旭平131002199107244616",province:"浙江",city:"台州",address:"北京市朝阳区建国路15号院10号楼3单元1502",dobMonth:6,dobDay:24,onboard:new Date("2022-10-18T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-04-18T00:00:00.000Z"),"3y":new Date("2025-10-18T00:00:00.000Z"),"5y":new Date("2027-10-18T00:00:00.000Z"),"10y":new Date("2032-10-18T00:00:00.000Z")}},{cnName:"曹大瀛",enName:"Daying Cao",empId:"20113",globalDept:"345 - Data Platform",dept:"Data Scientist",title:"Data Scientist Manager",manager:"胡宁宁（Yan Li）",gender:"Male",officeId:"C115",email:"",personalEmail:"caodaying@hotmail.com",mobile:"18600219688",idNumber:"大瀛110108198806266034",province:"山东",city:"烟台",address:"北京市海淀区青云里满庭芳园c座2107室",dobMonth:5,dobDay:26,onboard:new Date("2023-03-27T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-09-27T00:00:00.000Z"),"3y":new Date("2026-03-27T00:00:00.000Z"),"5y":new Date("2028-03-27T00:00:00.000Z"),"10y":new Date("2033-03-27T00:00:00.000Z")}},{cnName:"吴迪",enName:"Di Wu",empId:"20114",globalDept:"345 - Data Platform",dept:"EMP",title:"Senior Engineering Manager",manager:"胡宁宁",gender:"Male",officeId:"C116",email:"",personalEmail:"engeue@hotmail.com",mobile:"18611652251",idNumber:"吴迪22020419810626181X",province:"吉林",city:"吉林",address:"北京市顺义区双裕花园西区3号楼3单元202",dobMonth:5,dobDay:26,onboard:new Date("2023-04-03T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-10-03T00:00:00.000Z"),"3y":new Date("2026-04-03T00:00:00.000Z"),"5y":new Date("2028-04-03T00:00:00.000Z"),"10y":new Date("2033-04-03T00:00:00.000Z")}},{cnName:"谭韬",enName:"Tan Tao",empId:"20116",globalDept:"320 - Network Operations",dept:"OPS",title:"Senior DevOps Engineer",manager:"刘晗昭",gender:"Male",officeId:"C118",email:"",personalEmail:"s2.ttan@gmail.com",mobile:"13581821013",idNumber:"谭韬430321198609182233",province:"湖南",city:"湘潭",address:"北京市朝阳区南湖东园一区102号404 谭韬",dobMonth:8,dobDay:18,onboard:new Date("2023-05-08T00:00:00.000Z"),milestoneDates:{reg:new Date("2023-11-08T00:00:00.000Z"),"3y":new Date("2026-05-08T00:00:00.000Z"),"5y":new Date("2028-05-08T00:00:00.000Z"),"10y":new Date("2033-05-08T00:00:00.000Z")}},{cnName:"刘洋",enName:"Yang Liu",empId:"20118",globalDept:"345 - Data Platform",dept:"Senior Data Scientist",title:"Senior Data Scientist",manager:"曹大瀛",gender:"Male",officeId:"C120",email:"",personalEmail:"365130021@qq.com",mobile:"13301054503",idNumber:"刘洋37120219881006241X",province:"山东",city:"济南",address:"北京邮电大学北家属区24号楼6单元602",dobMonth:9,dobDay:6,onboard:new Date("2023-08-01T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-02-01T00:00:00.000Z"),"3y":new Date("2026-08-01T00:00:00.000Z"),"5y":new Date("2028-08-01T00:00:00.000Z"),"10y":new Date("2033-08-01T00:00:00.000Z")}},{cnName:"陈俊文",enName:"Junwen Chen",empId:"20119",globalDept:"345 - Data Platform",dept:"Frontend Engineer",title:"Software Engineer",manager:"许文龙",gender:"Male",officeId:"C121",email:"",personalEmail:"chenjunwen186@gmail.com",mobile:"15766278749",idNumber:"陈俊文445281199505094337",province:"广东",city:"普宁",address:"广东省深圳市宝安区松岗楼岗路宝利豪庭1栋金荔苑09A",dobMonth:4,dobDay:9,onboard:new Date("2023-08-07T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-02-07T00:00:00.000Z"),"3y":new Date("2026-08-07T00:00:00.000Z"),"5y":new Date("2028-08-07T00:00:00.000Z"),"10y":new Date("2033-08-07T00:00:00.000Z")}},{cnName:"吴昌",enName:"Chang Wu",empId:"20120",globalDept:"345 - Data Platform",dept:"Platform",title:"Senior Software Engineer",manager:"谢林",gender:"Male",officeId:"C122",email:"",personalEmail:"vico.wu1989@gmail.com",mobile:"13269202703",idNumber:"吴昌429001198908027676",province:"湖北",city:"随州",address:"北京市顺义区翠竹新村一区26号楼三单元602",dobMonth:7,dobDay:2,onboard:new Date("2023-09-25T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-03-25T00:00:00.000Z"),"3y":new Date("2026-09-25T00:00:00.000Z"),"5y":new Date("2028-09-25T00:00:00.000Z"),"10y":new Date("2033-09-25T00:00:00.000Z")}},{cnName:"王澍",enName:"Shu Wang",empId:"20124",globalDept:"345 - Data Platform",dept:"TLB",title:"Senior Software Engineer",manager:"吴迪",gender:"Male",officeId:"C126",email:"",personalEmail:"wsmithril@gmail.com",mobile:"15010947595",idNumber:"王澍110101198710222016",province:"北京",city:"北京",address:"北京市昌平区天通东苑3区10楼7门302 15010947595",dobMonth:9,dobDay:22,onboard:new Date("2023-12-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-06-11T00:00:00.000Z"),"3y":new Date("2026-12-11T00:00:00.000Z"),"5y":new Date("2028-12-11T00:00:00.000Z"),"10y":new Date("2033-12-11T00:00:00.000Z")}},{cnName:"尉顶",enName:"Ding Wei",empId:"20125",globalDept:"345 - Data Platform",dept:"Backend",title:"Engineering Manager",manager:"胡宁宁",gender:"Male",officeId:"C127",email:"",personalEmail:"ding.wei.lycium@gmail.com",mobile:"15840921473",idNumber:"尉顶142724198705113733",province:"山西",city:"运城",address:"尉顶15840921473，通州区翠屏北里西区9号楼2单元242室",dobMonth:4,dobDay:11,onboard:new Date("2023-12-18T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-06-18T00:00:00.000Z"),"3y":new Date("2026-12-18T00:00:00.000Z"),"5y":new Date("2028-12-18T00:00:00.000Z"),"10y":new Date("2033-12-18T00:00:00.000Z")}},{cnName:"刘晗昭",enName:"Harvey Liu",empId:"20127",globalDept:"320 - Network Operations",dept:"OPS",title:"DevOps Manager",manager:"胡宁宁（ Ken Peng）",gender:"Male",officeId:"C129",email:"",personalEmail:"wenzizone@126.com",mobile:"18601108081",idNumber:"晗昭110102198103080454",province:"河北",city:"定兴",address:"北京市西城区鼓楼西大街后海夹道10号",dobMonth:2,dobDay:8,onboard:new Date("2024-01-15T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-07-15T00:00:00.000Z"),"3y":new Date("2027-01-15T00:00:00.000Z"),"5y":new Date("2029-01-15T00:00:00.000Z"),"10y":new Date("2034-01-15T00:00:00.000Z")}},{cnName:"孙奥",enName:"Ao Sun",empId:"20129",globalDept:"340 - Infrastructure Platform",dept:"Gateway（EMP）",title:"Senior Software Engineer",manager:"尉顶",gender:"Female",officeId:"C131",email:"",personalEmail:"805238550@qq.com",mobile:"19542703271",idNumber:"孙奥340103199207193529",province:"安徽",city:"合肥",address:"北京市朝阳区公园五号22号楼915",dobMonth:6,dobDay:19,onboard:new Date("2024-04-22T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-10-22T00:00:00.000Z"),"3y":new Date("2027-04-22T00:00:00.000Z"),"5y":new Date("2029-04-22T00:00:00.000Z"),"10y":new Date("2034-04-22T00:00:00.000Z")}},{cnName:"郝欣然",enName:"Xinran Hao",empId:"20133",globalDept:"345 - Data Platform",dept:"EMP",title:"Staff Software Engnieer",manager:"吴迪",gender:"Male",officeId:"C135",email:"",personalEmail:"andrewhao108@yahoo.com",mobile:"18611411756",idNumber:"欣然110105198810086117",province:"北京",city:"北京",address:"北京市海淀区阜成路36号西钓鱼台嘉园1号楼4单元701号",dobMonth:9,dobDay:8,onboard:new Date("2024-06-24T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-12-24T00:00:00.000Z"),"3y":new Date("2027-06-24T00:00:00.000Z"),"5y":new Date("2029-06-24T00:00:00.000Z"),"10y":new Date("2034-06-24T00:00:00.000Z")}},{cnName:"万铎",enName:"Duo Wan",empId:"20135",globalDept:"285 - Customer Support",dept:"Sales（DS）",title:"Senior Product Support Engineer",manager:"曹大瀛（Aniruddha Vyawahar)",gender:"Female",officeId:"C137",email:"",personalEmail:"1314lanjian@gmail.com",mobile:"15600564726",idNumber:"万铎210502198211140923",province:"辽宁",city:"本溪",address:"北京市朝阳区北苑家园绣菊园南区19号楼180",dobMonth:10,dobDay:14,onboard:new Date("2024-07-18T00:00:00.000Z"),milestoneDates:{reg:new Date("2025-01-18T00:00:00.000Z"),"3y":new Date("2027-07-18T00:00:00.000Z"),"5y":new Date("2029-07-18T00:00:00.000Z"),"10y":new Date("2034-07-18T00:00:00.000Z")}},{cnName:"熊雨佳",enName:"Yujia Xiong",empId:"20137",globalDept:"345 - Data Platform",dept:"DS",title:"Data Scientist",manager:"曹大瀛",gender:"Female",officeId:"C139",email:"",personalEmail:"carolinexiong9@gmail.com",mobile:"18612761020",idNumber:"熊雨佳610102199810200024",province:"四川",city:"成都",address:"北京市朝阳区南湖南路9号C1203",dobMonth:9,dobDay:20,onboard:new Date("2024-09-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2025-03-23T00:00:00.000Z"),"3y":new Date("2027-09-23T00:00:00.000Z"),"5y":new Date("2029-09-23T00:00:00.000Z"),"10y":new Date("2034-09-23T00:00:00.000Z")}},{cnName:"袁也",enName:"Ye Yuan",empId:"",globalDept:"",dept:"Data Platform",title:"Software Engineer",manager:"谢林",gender:"Male",officeId:"C141",email:"",personalEmail:"kryst4lskyxx@gmail.com",mobile:"13320895726",idNumber:"袁也510703200007250218",province:"四川",city:"绵阳",address:"北京市朝阳区东湖街道上京新航线306号楼2单元15层1505",dobMonth:6,dobDay:25,onboard:new Date("2025-06-23T00:00:00.000Z"),milestoneDates:{reg:new Date("2025-12-23T00:00:00.000Z"),"3y":new Date("2028-06-23T00:00:00.000Z"),"5y":new Date("2030-06-23T00:00:00.000Z"),"10y":new Date("2035-06-23T00:00:00.000Z")}},{cnName:"刘宇杰",enName:"Emma Liu",empId:"",globalDept:"",dept:"Customer Support",title:"Product Support Engineer",manager:"曹大瀛（Aniruddha Vyawahare)",gender:"Female",officeId:"C143",email:"",personalEmail:"15326160216@163.com",mobile:"15326160216",idNumber:"宇杰232126199003120580",province:"辽宁",city:"大连",address:"北京市顺义区天竺镇府前一街32号院内D栋乐乎青年社区5010",dobMonth:2,dobDay:12,onboard:new Date("2025-08-11T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-02-11T00:00:00.000Z"),"3y":new Date("2028-08-11T00:00:00.000Z"),"5y":new Date("2030-08-11T00:00:00.000Z"),"10y":new Date("2035-08-11T00:00:00.000Z")}},{cnName:"杨健",enName:"James Yang",empId:"",globalDept:"",dept:"Frontend Engineer",title:"Software Engineer II",manager:"许文龙",gender:"Male",officeId:"C144",email:"",personalEmail:"willispyoung@gmail.com",mobile:"13691433649",idNumber:"杨健340826199704140834",province:"安徽",city:"安庆",address:"北京市昌平区天通苑南街道溪城家园西区1号楼2单元202",dobMonth:3,dobDay:14,onboard:new Date("2025-10-20T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-04-20T00:00:00.000Z"),"3y":new Date("2028-10-20T00:00:00.000Z"),"5y":new Date("2030-10-20T00:00:00.000Z"),"10y":new Date("2035-10-20T00:00:00.000Z")}},{cnName:"张莹",enName:"Christine Zhang",empId:"",globalDept:"",dept:"HR",title:"Director, HR",manager:"胡宁宁（Lenietta）",gender:"Female",officeId:"C145",email:"",personalEmail:"christinezhang@outlook.com",mobile:"13801038491",idNumber:"张莹110108197610284228",province:"北京",city:"北京",address:"北京市朝阳区望京东园7区15号楼1502",dobMonth:9,dobDay:28,onboard:new Date("2026-01-19T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-07-19T00:00:00.000Z"),"3y":new Date("2029-01-19T00:00:00.000Z"),"5y":new Date("2031-01-19T00:00:00.000Z"),"10y":new Date("2036-01-19T00:00:00.000Z")}},{cnName:"梅玫",enName:"Mei Mei",empId:"",globalDept:"",dept:"Product",title:"Senior Staff Product Designer",manager:"胡宁宁（Joel）",gender:"Female",officeId:"C146",email:"",personalEmail:"ameimei623@gmail.com",mobile:"15821281608",idNumber:"梅玫110102198506233064",province:"北京",city:"北京",address:"北京市宣武区四平园小区8号楼808",dobMonth:5,dobDay:23,onboard:new Date("2026-03-30T00:00:00.000Z"),milestoneDates:{reg:new Date("2026-09-30T00:00:00.000Z"),"3y":new Date("2029-03-30T00:00:00.000Z"),"5y":new Date("2031-03-30T00:00:00.000Z"),"10y":new Date("2036-03-30T00:00:00.000Z")}},{cnName:"程书哲",enName:"Shuzhe Cheng",empId:"Con002",globalDept:"345 - Data Platform",dept:"Backend Engineering",title:"Big Data Engineer",manager:"尉顶",gender:"Male",officeId:"20220330",email:"",personalEmail:"",mobile:"18237609905",idNumber:"程书哲411522199611276334",province:"",city:"",address:"",dobMonth:10,dobDay:27,onboard:new Date("2022-03-30T00:00:00.000Z"),milestoneDates:{reg:new Date("2022-09-30T00:00:00.000Z"),"3y":new Date("2025-03-30T00:00:00.000Z"),"5y":new Date("2027-03-30T00:00:00.000Z"),"10y":new Date("2032-03-30T00:00:00.000Z")}},{cnName:"潘洪安",enName:"Hongan Pan",empId:"20052",globalDept:"345 - Data Platform",dept:"Platform",title:"大数据开发工程师(Staff)",manager:"谢林",gender:"Male",officeId:"C053",email:"",personalEmail:"phadyc@126.com",mobile:"15724739429",idNumber:"洪安362522198711015010",province:"江西",city:"抚州",address:"北京市朝阳区石佛营东里126号院日月东华小区3号楼",dobMonth:10,dobDay:1,onboard:new Date("2024-03-14T00:00:00.000Z"),milestoneDates:{reg:new Date("2024-09-14T00:00:00.000Z"),"3y":new Date("2027-03-14T00:00:00.000Z"),"5y":new Date("2029-03-14T00:00:00.000Z"),"10y":new Date("2034-03-14T00:00:00.000Z")}}];
 let currentBdayMonth = new Date().getMonth(); // 0-based
 let currentBdayYear  = new Date().getFullYear();
 
@@ -965,8 +1002,9 @@ function isSecondMondayOfMonth(date) {
 }
 
 function goToday() {
-  const china = getChinaToday ? getChinaToday() : new Date();
-  document.getElementById('checkDate').value = china.toISOString().split('T')[0];
+  var d = new Date();
+  var todayStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  document.getElementById('checkDate').value = todayStr;
   renderToday();
 }
 
@@ -1004,12 +1042,18 @@ function renderToday() {
 
   if (!totalPeople) { listEl.innerHTML='<div class="empty">🎉 No reminders today</div>'; return; }
 
+
   let html = '';
+
+  var batchBirthdayBtns = '<button class="btn btn-green" onclick="batchCongratulateToday()" style="font-size:11px;padding:3px 10px">💬 Wish All</button>' +
+    '<button class="btn" onclick="batchNotifyManagersToday()" style="font-size:11px;padding:3px 10px;border-color:#2e6da4;color:#2e6da4">📢 All Managers</button>';
+  var batchMilestoneBtns = '<button class="btn btn-green" onclick="batchCongratulateToday()" style="font-size:11px;padding:3px 10px">💬 Congratulate All</button>' +
+    '<button class="btn" onclick="batchNotifyManagersToday()" style="font-size:11px;padding:3px 10px;border-color:#2e6da4;color:#2e6da4">📢 All Managers</button>';
 
   // Birthday section
   if (bdHits.length) {
     html += `<div class="card">
-      <div class="section-title" style="color:#c2185b">🎂 ${"Today's Birthdays"}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between"><div class="section-title" style="color:#c2185b;margin-bottom:0">🎂 ${"Today's Birthdays"}</div><div style="display:flex;gap:6px"><button class="btn btn-green" onclick="batchCongratulateToday()" style="font-size:11px;padding:3px 10px">💬 Wish All</button><button class="btn" onclick="batchNotifyManagersToday()" style="font-size:11px;padding:3px 10px;border-color:#2e6da4;color:#2e6da4">📢 All Managers</button></div></div>
       ${bdHits.map(emp=>{
         const idx = employees.indexOf(emp);
         return `<div class="emp-row">
@@ -1020,7 +1064,7 @@ function renderToday() {
             <div class="emp-info">${[emp.dept,emp.title].filter(Boolean).join(' · ')}</div>
           </div>
           <div class="badges">
-            <span class="badge b-bday">🎂 生快乐</span>
+            <span class="badge b-bday">🎂 Happy Birthday</span>
             <button class="slack-btn" onclick="openSlackByIdx(${idx},'birthday')">💬 Wish Employee</button>
             ${emp.manager?`<button class="slack-btn manager" onclick="openSlackByIdx(${idx},'birthday_mgr')">${'👔 Notify Manager'}</button>`:''}
           </div>
@@ -1032,7 +1076,7 @@ function renderToday() {
   // Milestone section
   if (mHits.length) {
     html += `<div class="card">
-      <div class="section-title">🏆 Today's Milestones</div>
+      <div style="display:flex;align-items:center;justify-content:space-between"><div class="section-title" style="margin-bottom:0">🏆 Today's Milestones</div><div style="display:flex;gap:6px"><button class="btn btn-green" onclick="batchCongratulateToday()" style="font-size:11px;padding:3px 10px">💬 Congratulate All</button><button class="btn" onclick="batchNotifyManagersToday()" style="font-size:11px;padding:3px 10px;border-color:#2e6da4;color:#2e6da4">📢 All Managers</button></div></div>
       ${mHits.map(h=>{
         const empJson = JSON.stringify(h.emp).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
         return `<div class="emp-row">
@@ -1059,9 +1103,9 @@ function renderToday() {
 
 
 function getChinaToday() {
-  // Returns a Date object whose UTC year/month/day == China local date
-  var d = new Date(new Date().getTime() + 8 * 3600000);
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  // Returns today as a UTC-midnight Date (for consistent comparison)
+  var d = new Date();
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
 }
 
 function getWeekRange(refDate) {
@@ -1088,12 +1132,18 @@ function showTab(t) {
   document.getElementById('tab-'+t).classList.add('active');
   const navEl = document.getElementById('nav-'+t);
   if (navEl) navEl.classList.add('active');
-  if (t==='today')   renderToday();
+  if (t==='today')    renderToday();
   if (t==='meeting')  renderMeeting();
-  if (t==='export')  updateExportPanel();
-  if (t==='weekly')  { _weekOffset = 0; renderWeek(); }
+  if (t==='export')   updateExportPanel();
+  if (t==='weekly')   { _weekOffset = 0; renderWeek(); }
   if (t==='birthday') goCurrentBdayYear();
   if (t==='monthly')  goCurrentMonthlyMonth();
+  if (t==='org' || t==='orgchart') {
+    // Reset D3 state so it re-fits when tab becomes visible
+    if (_orgD3 && _orgD3.svg) { _orgD3.isFirst = true; }
+    renderOrgChart();
+  }
+  updateStaticLabels();
 }
 
 function showMilestoneTab(key) {
@@ -1321,7 +1371,7 @@ function renderWeek() {
   listEl.innerHTML = days.map(day => {
     const isToday  = day.date.toDateString() === todayStr;
     const isFriday = day.date.getDay() === 5;
-    const dateLabel = day.date.toLocaleDateString('zh-CN', {month:'long', day:'numeric'});
+    const dateLabel = day.date.toLocaleDateString('en-US', {month:'short', day:'numeric'});
     const weekday   = weekdayNames[day.date.getDay()];
     const dayTotal  = day.mHits.length;
 
@@ -1332,6 +1382,10 @@ function renderWeek() {
         </div>
         ${isFriday ? '<span style="font-size:11px;background:#fff8ed;color:#92400e;border:1px solid #fbbf24;border-radius:20px;padding:2px 8px;font-weight:600">📋 Fri会议</span>' : ''}
         <span style="font-size:12px;color:var(--gray-mid);margin-left:4px">${dayTotal} 人</span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="btn btn-green" onclick="batchCongratulateWeek()" style="font-size:11px;padding:3px 10px">💬 Congratulate All</button>
+          <button class="btn" onclick="batchNotifyManagersWeek()" style="font-size:11px;padding:3px 10px;border-color:#2e6da4;color:#2e6da4">📢 All Managers</button>
+        </div>
       </div>
       ${day.mHits.map(h => {
         const idx = employees.indexOf(h.emp);
@@ -1353,7 +1407,8 @@ function renderWeek() {
       }).join('')}
     </div>`;
   }).join('');
-}
+
+  }
 
 function sendWeekEmail() {
   const to = document.getElementById('emailTo').value || 'mduan@conviva.com';
@@ -1517,8 +1572,9 @@ function renderMonthly() {
     }
   }
 
-  listEl.innerHTML = `<div class="card">
-    <div class="section-title">🎂 ${monthNames[_monthlyMonth]} Birthday List (${bdEmps.length} people)</div>
+  
+  listEl.innerHTML =  `<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div class="section-title" style="margin-bottom:0">🎂 ${monthNames[_monthlyMonth]} Birthday List (${bdEmps.length} people)</div><div style="display:flex;gap:6px"><button class="btn btn-green" onclick="batchCongratulateMonthly()" style="font-size:11px;padding:3px 10px">💬 Wish All</button><button class="btn" onclick="batchNotifyManagersMonthly()" style="font-size:11px;padding:3px 10px;border-color:#2e6da4;color:#2e6da4">📢 All Managers</button></div></div>
     ${bdEmps.map(emp => {
       const dayStr = (_monthlyMonth + 1) + '/' + emp.dobDay + '';
       const idx = employees.indexOf(emp);
@@ -2024,7 +2080,7 @@ function exportWithData() {
   html = html.replace('let employees = [];', 'let employees = ' + empJs + ';');
 
   // 注入 init
-  html = html.replace('goCurrentMilestoneMonth();\n', 'goCurrentMilestoneMonth();\nif(employees.length){showUploadResult(employees,"Data pre-loaded");updateBadges();}\n');
+  html = html.replace('goCurrentMilestoneMonth();\n', 'goCurrentMilestoneMonth();\nif(employees.length){showUploadResult(employees,"Data pre-loaded");updateBadges();;renderOrgChart();}\n');
 
   // 把Meeting Notes数据也注入到导出文件
   try {
@@ -2303,6 +2359,7 @@ function renderMeeting() {
     '<button class="btn btn-green" id="meeting-save-btn" onclick="meetingSave()">' + '💾 Save' + '</button>' +
     '<button class="btn" onclick="meetingDelete()" style="color:#e74c3c;border-color:#e74c3c">' + '🗑 Delete This Week' + '</button>' +
     '<span id="meeting-autosave-hint" style="font-size:12px;color:var(--gray-mid);margin-left:8px"></span>' +
+    '<span id="meeting-sync-time" style="font-size:11px;color:#aaa;margin-left:auto"></span>' +
     '</div>' +
     '</div>';
 }
@@ -2411,6 +2468,12 @@ function setSyncStatus(state, msg) {
   if (!el) return;
   el.className = state;
   if (txt) txt.textContent = msg;
+  // Update meeting page sync time
+  var mt = document.getElementById('meeting-sync-time');
+  if (mt && state === 'synced') {
+    var now = new Date();
+    mt.textContent = 'Last synced: ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+  }
 }
 
 var _jsonpCount = 0;
@@ -3017,6 +3080,454 @@ function exportToExcel() {
 
 
 
+
+// ════════════════════════════════════════════
+// 🏢 Org Chart Module
+// ════════════════════════════════════════════
+
+var _orgZoom = 1.0;
+
+function orgZoom(delta) {
+  _orgZoom = Math.max(0.3, Math.min(2.0, _orgZoom + delta));
+  var inner = document.getElementById('org-chart-inner');
+  if (inner) inner.style.transform = 'scale(' + _orgZoom + ')';
+}
+
+function orgResetZoom() {
+  _orgZoom = 1.0;
+  var inner = document.getElementById('org-chart-inner');
+  if (inner) inner.style.transform = 'scale(1)';
+}
+
+// ═══════════════════════════════════════════════════════
+// ORG CHART  –  D3.js tree (matches reference design)
+// ═══════════════════════════════════════════════════════
+
+var _orgD3 = {
+  svg: null, scene: null, linkLayer: null, nodeLayer: null,
+  root: null, zoomBeh: null, isFirst: true,
+  CW: 180, CH: 64, HH: 26, RX: 7
+};
+
+function renderOrgChart() {
+  if (!employees.length) {
+    var sb = document.getElementById('org-sbar');
+    if (sb) sb.textContent = 'No employee data.';
+    return;
+  }
+
+  var svgEl = document.getElementById('org-svg');
+  if (!svgEl || typeof d3 === 'undefined') return;
+
+  // Init D3 zoom only once (not on every renderOrgChart call)
+  if (!_orgD3.svg || _orgD3.svg.node() !== svgEl) {
+    _orgD3.linkLayer = null;
+    _orgD3.nodeLayer = null;
+    _orgD3.isFirst = true;
+    _orgD3.svg = d3.select(svgEl);
+    _orgD3.scene = _orgD3.svg.select('#org-scene');
+    _orgD3.scene.selectAll('*').remove();
+    _orgD3.zoomBeh = d3.zoom()
+      .scaleExtent([0.04, 2.5])
+      .on('zoom', function(e) { _orgD3.scene.attr('transform', e.transform); });
+    _orgD3.svg.call(_orgD3.zoomBeh);
+    _orgD3.svg.style('cursor', 'grab');
+  } else if (_orgD3.isFirst) {
+    // Tab was re-opened: clear scene and re-render fresh
+    _orgD3.linkLayer = null;
+    _orgD3.nodeLayer = null;
+    _orgD3.scene.selectAll('*').remove();
+    // Re-bind zoom (clears any stale state)
+    _orgD3.svg.call(_orgD3.zoomBeh);
+  }
+
+  function norm(s){ return (s||'').replace(/[(（][^)）]*/g,'').replace(/[)）]/g,'').trim(); }
+
+  // Build parent map from employees array
+  var empById = {}; // use index as id
+  var nameMap = {};
+  employees.forEach(function(e, i) {
+    empById[i] = e;
+    var en = norm(e.enName||''), cn = norm(e.cnName||'');
+    if (en) nameMap[en] = i;
+    if (cn) nameMap[cn] = i;
+  });
+
+  // Build D3 stratify data
+  var data = employees.map(function(e, i) {
+    var mgrName = norm(e.manager||'');
+    var parentIdx = (mgrName && nameMap[mgrName] !== undefined && nameMap[mgrName] !== i)
+      ? nameMap[mgrName] : null;
+    return {
+      id: String(i),
+      parentId: parentIdx !== null ? String(parentIdx) : null,
+      emp: e
+    };
+  });
+
+  // Find root(s) — nodes with no parent
+  var hasParent = {};
+  data.forEach(function(d) { if (d.parentId !== null) hasParent[d.id] = true; });
+  var rootNodes = data.filter(function(d) { return !hasParent[d.id]; });
+
+  // If multiple roots, create a virtual root
+  if (rootNodes.length > 1) {
+    data.push({ id: '__root__', parentId: null, emp: { enName:'Company', cnName:'', title:'', dept:'', manager:'' } });
+    rootNodes.forEach(function(r) { r.parentId = '__root__'; });
+  }
+
+  var stratify = d3.stratify().id(function(d){ return d.id; }).parentId(function(d){ return d.parentId; });
+  try {
+    _orgD3.root = stratify(data);
+  } catch(e) {
+    console.error('D3 stratify error:', e);
+    return;
+  }
+
+  // Sort: nodes with children first, then by name
+  _orgD3.root.sort(function(a, b) {
+    var aHasKids = !!(a.children || a._children);
+    var bHasKids = !!(b.children || b._children);
+    if (aHasKids && !bHasKids) return -1;
+    if (!aHasKids && bHasKids) return 1;
+    return (a.data.emp.enName||a.data.emp.cnName||'').localeCompare(b.data.emp.enName||b.data.emp.cnName||'');
+  });
+
+  // Count headcount
+  _orgD3.root.each(function(d) { d._hc = d.descendants().length - 1; });
+
+  // Sort children: nodes with descendants first, then leaf nodes
+  _orgD3.root.each(function(d) {
+    if (d.children) {
+      d.children.sort(function(a, b) {
+        var aHasKids = (a.children || a._children) ? 1 : 0;
+        var bHasKids = (b.children || b._children) ? 1 : 0;
+        return bHasKids - aHasKids; // descending: has kids = 1 first
+      });
+    }
+  });
+
+  // Collapse depth >= 2 by default on first load
+  if (_orgD3.isFirst) {
+    _orgD3.root.descendants().forEach(function(d) {
+      if (d.depth >= 2 && d.children) { d._children = d.children; d.children = null; }
+    });
+  }
+
+  _orgOrgUpdate(_orgD3.root);
+}
+
+function _orgOrgUpdate(src) {
+  var o = _orgD3;
+  var CW = o.CW, CH = o.CH, HH = o.HH, RX = o.RX;
+
+  var treeLayout = d3.tree()
+    .nodeSize([CW + 60, CH + 100])
+    .separation(function(a, b) {
+      // Give more space between nodes that are not siblings
+      return a.parent === b.parent ? 1 : 1.4;
+    });
+  treeLayout(o.root);
+
+  var nodes = o.root.descendants().filter(function(d){ return d.id !== '__root__'; });
+  var links = o.root.links().filter(function(l){ return l.source.id !== '__root__' && l.target.id !== '__root__'; });
+
+  var sb = document.getElementById('org-sbar');
+  if (sb) sb.innerHTML = '<b>' + nodes.length + '</b> shown · <b>' + employees.length + '</b> total';
+
+  if (!o.linkLayer) {
+    o.linkLayer = o.scene.insert('g', ':first-child');
+    o.nodeLayer = o.scene.append('g');
+  }
+
+  // Links
+  function lpath(d) {
+    var sx = d.source.x, sy = d.source.y + CH / 2 + 2;
+    var tx = d.target.x, ty = d.target.y - CH / 2 - 2;
+    var my = ty - 20;
+    return 'M' + sx + ',' + sy + ' V' + my + ' H' + tx + ' V' + ty;
+  }
+
+  var lsel = o.linkLayer.selectAll('path.org-link').data(links, function(d){ return d.target.id; });
+  lsel.enter().append('path').attr('class', 'org-link')
+    .attr('fill','none').attr('stroke','#C9D3DD').attr('stroke-width',1.5)
+    .attr('d', lpath)
+    .merge(lsel).transition().duration(300).attr('d', lpath);
+  lsel.exit().remove();
+
+  // Nodes
+  var nsel = o.nodeLayer.selectAll('g.org-node').data(nodes, function(d){ return d.id; });
+
+  var enter = nsel.enter().append('g').attr('class', 'org-node')
+    .attr('transform', function(d){ return 'translate(' + (src ? src.x : d.x) + ',' + (src ? src.y : d.y) + ')'; })
+    .style('cursor', 'pointer')
+    .on('click', function(e, d){ e.stopPropagation(); _orgToggleNode(d); })
+    .on('mouseover', function(e, d){ _orgShowTip(e, d); })
+    .on('mouseout', function(){ _orgHideTip(); });
+
+  enter.each(function(d) {
+    var g = d3.select(this);
+    var emp = d.data.emp;
+    var isL1 = d.depth === 1 || (d.depth === 0 && d.id !== '__root__');
+    var hasK = !!(d.children || d._children);
+    var region = _orgRegion(emp);
+    var color = _orgColor(region);
+    var initials = ((emp.enName||emp.cnName||'?').split(' ').map(function(w){ return w[0]||''; }).join('').slice(0,2)).toUpperCase();
+
+    // Outer glow border for L1 nodes
+    if (isL1) {
+      g.append('rect').attr('x',-CW/2-2).attr('y',-CH/2-2).attr('width',CW+4).attr('height',CH+4)
+        .attr('rx',RX+1).attr('fill','none').attr('stroke','#9CDC00').attr('stroke-width',2);
+    }
+
+    // Card background
+    g.append('rect').attr('x',-CW/2).attr('y',-CH/2).attr('width',CW).attr('height',CH)
+      .attr('rx',RX).attr('fill','#001B2D')
+      .attr('filter','url(#org-sh' + (isL1?'2':'') + ')')
+      .attr('stroke','#1a3a5a').attr('stroke-width',1);
+
+    // Dark header bar
+    g.append('rect').attr('x',-CW/2).attr('y',-CH/2).attr('width',CW).attr('height',HH)
+      .attr('rx',0).attr('fill','#001B2D');
+    // Fix corners on header
+    g.append('rect').attr('x',-CW/2).attr('y',-CH/2).attr('width',CW).attr('height',RX).attr('fill','#001B2D');
+
+    // Green left accent bar on header
+    g.append('rect').attr('x',-CW/2).attr('y',-CH/2).attr('width', isL1?5:3).attr('height',HH).attr('fill','#9CDC00');
+
+    // Avatar circle
+    g.append('circle').attr('cx',-CW/2+18).attr('cy',-CH/2+HH/2).attr('r',9).attr('fill',color);
+    g.append('text').attr('x',-CW/2+18).attr('y',-CH/2+HH/2+3.5)
+      .attr('text-anchor','middle').attr('fill','white').attr('font-size','7').attr('font-weight','700')
+      .attr('font-family','sans-serif').text(initials);
+
+    // Name
+    var nameStr = (emp.enName||emp.cnName||'').split(' ').slice(0,2).join(' ');
+    if (nameStr.length > 15) nameStr = nameStr.slice(0,14) + '…';
+    g.append('text').attr('x',-CW/2+32).attr('y',-CH/2+HH/2+4)
+      .attr('fill','white').attr('font-size','9').attr('font-weight','600').attr('font-family','sans-serif')
+      .text(nameStr);
+
+    // Headcount badge
+    if (d._hc > 0) {
+      var hcStr = String(d._hc + 1); // self + descendants
+      var hbw = Math.max(18, hcStr.length * 7 + 8);
+      var hbx = CW/2 - 6 - hbw, hby = -CH/2 + (HH-13)/2;
+      g.append('rect').attr('x',hbx).attr('y',hby).attr('width',hbw).attr('height',13).attr('rx',6.5).attr('fill','#9CDC00');
+      g.append('text').attr('x',hbx+hbw/2).attr('y',hby+9.5).attr('text-anchor','middle')
+        .attr('fill','#001B2D').attr('font-size','7').attr('font-weight','700').attr('font-family','sans-serif').text(hcStr);
+    }
+
+    // Title
+    var titleStr = (emp.title||'');
+    if (titleStr.length > 28) titleStr = titleStr.slice(0,27) + '…';
+    g.append('text').attr('x',-CW/2+7).attr('y',-CH/2+HH+12)
+      .attr('fill','#7eb8f7').attr('font-size','8').attr('font-family','sans-serif').text(titleStr);
+
+    // Dept tag
+    var dept = (emp.dept||emp.globalDept||'');
+    if (dept) {
+      var dw = Math.min(120, dept.length * 5 + 14);
+      g.append('rect').attr('x',-CW/2+6).attr('y',-CH/2+HH+18).attr('width',dw).attr('height',12).attr('rx',6)
+        .attr('fill',color+'33').attr('stroke',color).attr('stroke-width',0.6);
+      g.append('text').attr('x',-CW/2+12).attr('y',-CH/2+HH+27)
+        .attr('fill','#fff').attr('font-size','7').attr('font-weight','600').attr('font-family','sans-serif')
+        .text(dept.length > 18 ? dept.slice(0,17)+'…' : dept);
+    }
+
+    // Toggle +/- button
+    if (hasK) {
+      g.append('circle').attr('class','org-tog-c').attr('cx',0).attr('cy',CH/2+1).attr('r',9).attr('fill','#9CDC00');
+      g.append('text').attr('class','org-tog-t').attr('x',0).attr('y',CH/2+5.5)
+        .attr('text-anchor','middle').attr('fill','#001B2D').attr('font-size','13').attr('font-weight','700')
+        .attr('font-family','sans-serif').text(d.children ? '−' : '+');
+    }
+  });
+
+  var all = enter.merge(nsel);
+  all.transition().duration(320).attr('transform', function(d){ return 'translate(' + d.x + ',' + d.y + ')'; });
+  all.select('.org-tog-t').text(function(d){ return d.children ? '−' : '+'; });
+  all.select('.org-tog-c').attr('fill', function(d){ return d.children ? '#7bce3a' : '#9CDC00'; });
+
+  nsel.exit().transition().duration(260)
+    .attr('transform','translate(' + (src?src.x:0) + ',' + (src?src.y:0) + ')').remove();
+
+  // Auto-fit on first render - wait until element is visible
+  if (o.isFirst) {
+    o.isFirst = false;
+    function doFit() {
+      var svgNode = o.svg.node();
+      var sw = svgNode.clientWidth, sh = svgNode.clientHeight;
+      // If element not visible yet, retry
+      if (!sw || !sh) { setTimeout(doFit, 100); return; }
+      var b = o.scene.node().getBBox();
+      if (!b.width || !b.height) { setTimeout(doFit, 100); return; }
+      var sc = Math.min(0.9, Math.min(sw / b.width, sh / b.height) * 0.82);
+      var tx = sw/2 - sc * (b.x + b.width/2);
+      var ty = sh * 0.06 - sc * b.y;
+      o.svg.call(o.zoomBeh.transform, d3.zoomIdentity.translate(tx, ty).scale(sc));
+    }
+    setTimeout(doFit, 150);
+  }
+}
+
+function _orgToggleNode(d) {
+  if (d.children) { d._children = d.children; d.children = null; }
+  else if (d._children) { d.children = d._children; d._children = null; }
+  _orgOrgUpdate(d);
+}
+
+function _orgRegion(emp) {
+  var officeId = (emp.officeId||'').toUpperCase();
+  if (officeId.startsWith('C') || (emp.city||'').includes('北京')) return 'CHN';
+  return 'CHN'; // all China office employees
+}
+
+function _orgColor(region) {
+  var map = {CHN:'#D95040',USA:'#4A90D9',IND:'#F0A030',GBR:'#9B59B6',ESP:'#E8793A',ARE:'#1ABC9C',CAN:'#3498DB'};
+  return map[region] || '#7bce3a';
+}
+
+
+
+function _orgShowTip(e, d) {
+  var tip = document.getElementById('org-tip');
+  if (!tip) { tip = document.createElement('div'); tip.id='org-tip';
+    Object.assign(tip.style, {position:'fixed',background:'#001B2D',color:'white',padding:'10px 14px',
+      borderRadius:'9px',fontSize:'11px',lineHeight:'1.8',pointerEvents:'none',opacity:'0',
+      transition:'opacity .15s',borderLeft:'3px solid #9CDC00',maxWidth:'240px',zIndex:'100'});
+    document.body.appendChild(tip); }
+  var emp = d.data.emp;
+  var kc = (d.children||d._children||[]).length;
+  var html = '<b>'+(emp.enName||emp.cnName)+'</b><br>'+(emp.title||'')+'<br>';
+  if (emp.dept) html += '📁 '+(emp.dept)+'<br>';
+  if (emp.email) html += '✉ '+emp.email+'<br>';
+  if (emp.manager) html += '<span style="opacity:.6">↑ '+emp.manager+'</span><br>';
+  if (kc) html += '<span style="color:#9CDC00">👥 '+kc+' direct report'+(kc>1?'s':'')+'</span>';
+  tip.innerHTML = html;
+  tip.style.opacity = '1';
+  tip.style.left = (e.clientX+16)+'px';
+  tip.style.top = (e.clientY-10)+'px';
+}
+
+function _orgHideTip() {
+  var tip = document.getElementById('org-tip');
+  if (tip) tip.style.opacity = '0';
+}
+
+function orgDoSearch(q) {
+  if (!_orgD3.nodeLayer) return;
+  var sq = q.toLowerCase().trim();
+  _orgD3.nodeLayer.selectAll('g.org-node').style('opacity', function(d) {
+    if (!sq) return 1;
+    var emp = d.data.emp;
+    var match = (emp.enName||'').toLowerCase().includes(sq) ||
+                (emp.cnName||'').toLowerCase().includes(sq) ||
+                (emp.title||'').toLowerCase().includes(sq);
+    return match ? 1 : 0.12;
+  });
+}
+
+function orgExpandAll() {
+  if (!_orgD3.root) return;
+  _orgD3.root.descendants().forEach(function(d){ if(d._children){d.children=d._children;d._children=null;} });
+  _orgOrgUpdate(_orgD3.root);
+}
+
+function orgCollapseAll() {
+  if (!_orgD3.root) return;
+  _orgD3.root.descendants().forEach(function(d){ if(d.depth>=1&&d.children){d._children=d.children;d.children=null;} });
+  _orgOrgUpdate(_orgD3.root);
+}
+
+function orgResetView() {
+  _orgD3.isFirst = true;
+  _orgD3.svg = null;
+  renderOrgChart();
+}
+
+function orgToggle(i){ }
+function orgSelect(i){ }
+
+
+
+// ════════════════════════════════════════════
+// 💬 Batch Action Functions
+// ════════════════════════════════════════════
+
+function getBatchEmployees(context) {
+  var date = new Date(document.getElementById('checkDate').value + 'T00:00:00Z');
+  var result = [];
+
+  if (context === 'today') {
+    employees.forEach(function(emp, idx) {
+      var ms = getMilestonesOnDate(emp, date);
+      if (ms.length) result.push({emp: emp, idx: idx, type: ms[0].key, label: ms[0].label});
+    });
+    employees.forEach(function(emp, idx) {
+      if (emp.dobMonth === date.getUTCMonth() && emp.dobDay === date.getUTCDate()) {
+        result.push({emp: emp, idx: idx, type: 'birthday', label: 'Birthday'});
+      }
+    });
+  } else if (context === 'week') {
+    var parts = getMeetingWeekMonday(0).split('-');
+    var mon = new Date(Date.UTC(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2])));
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(mon.getTime() + i * 86400000);
+      employees.forEach(function(emp, idx) {
+        var ms = getMilestonesOnDate(emp, d);
+        if (ms.length) result.push({emp: emp, idx: idx, type: ms[0].key, label: ms[0].label});
+      });
+    }
+  } else if (context === 'monthly') {
+    var now = new Date();
+    employees.forEach(function(emp, idx) {
+      if (emp.dobMonth === now.getMonth() && emp.dobDay != null) {
+        result.push({emp: emp, idx: idx, type: 'birthday', label: 'Birthday'});
+      }
+    });
+  }
+  return result;
+}
+
+
+function batchCongratulateToday() { batchCongratulate('today'); }
+function batchNotifyManagersToday() { batchNotifyManagers('today'); }
+function batchCongratulateWeek() { batchCongratulate('week'); }
+function batchNotifyManagersWeek() { batchNotifyManagers('week'); }
+function batchCongratulateMonthly() { batchCongratulate('monthly'); }
+function batchNotifyManagersMonthly() { batchNotifyManagers('monthly'); }
+
+function batchCongratulate(context) {
+  var emps = getBatchEmployees(context);
+  if (!emps.length) { alert('No employees to congratulate.'); return; }
+  var messages = emps.map(function(item) {
+    var emp = item.emp;
+    var tpl = MSG_TEMPLATES[item.type] || MSG_TEMPLATES['birthday'];
+    return (emp.enName||emp.cnName) + ' (' + (emp.email||'no email') + '):\n' + (tpl ? tpl(emp) : '');
+  }).join('\n\n---\n\n');
+  var preview = 'Congratulate ' + emps.length + ' employee(s):\n\n' +
+    emps.map(function(item) { return '• ' + (item.emp.enName||item.emp.cnName) + ' — ' + item.label; }).join('\n') +
+    '\n\nClick OK to open Slack for the first employee.';
+  if (confirm(preview)) {
+    openSlackByIdx(emps[0].idx, emps[0].type);
+  }
+}
+
+function batchNotifyManagers(context) {
+  var emps = getBatchEmployees(context);
+  var withMgr = emps.filter(function(item) { return item.emp.manager; });
+  if (!withMgr.length) { alert('No managers to notify.'); return; }
+  var preview = 'Notify managers for ' + withMgr.length + ' employee(s):\n\n' +
+    withMgr.map(function(item) {
+      return '• ' + (item.emp.enName||item.emp.cnName) + ' → Manager: ' + item.emp.manager;
+    }).join('\n') +
+    '\n\nClick OK to open Slack for the first manager.';
+  if (confirm(preview)) {
+    openSlackByIdx(withMgr[0].idx, withMgr[0].type + '_mgr');
+  }
+}
+
 // Init
 
 // Update milestone section label with current year
@@ -3029,15 +3540,15 @@ function exportToExcel() {
     el.setAttribute('data-zh', yr + ' Milestones');
   }
 })();
-// Use China time (UTC+8) for initial date
-var _chinaDate = new Date(new Date().getTime() + 8 * 3600000);
-var _chinaInit = _chinaDate.getUTCFullYear() + '-' +
-  String(_chinaDate.getUTCMonth()+1).padStart(2,'0') + '-' +
-  String(_chinaDate.getUTCDate()).padStart(2,'0');
+// Use local date (user is in Beijing/China)
+var _today = new Date();
+var _chinaInit = _today.getFullYear() + '-' +
+  String(_today.getMonth()+1).padStart(2,'0') + '-' +
+  String(_today.getDate()).padStart(2,'0');
 document.getElementById('checkDate').value = _chinaInit;
 goCurrentMonth();
 goCurrentMilestoneMonth();
-if(employees.length){showUploadResult(employees,"Data pre-loaded");updateBadges();}
+if(employees.length){showUploadResult(employees,'Data pre-loaded');updateBadges();renderOrgChart();}
 // Auto-write current month birthdays to 2nd week meeting on startup
 (function() {
   var now = new Date();
@@ -3143,10 +3654,9 @@ while True:
     <div style="font-size:12px;color:var(--gray-mid);margin-top:10px">💡 Replace your_app_password with the app password provided by Santhosh and run directly</div>
   </div>`;
 }
-</script>
-<!-- __HR_INJECT_HERE_v2__ -->
-</body>
-</htmlfunction parseEmployees(data) {
+
+
+function parseEmployees(data) {
   const XLSX_COLS = {
     empId:    'Employee ID',
     globalDept: 'Global-Department',
@@ -3270,855 +3780,7 @@ while True:
   }
   return emps;
 }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Poppins', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-    background: var(--gray-200);
-    color: var(--gray-text);
-    min-height: 100vh;
-  }
 
-  /* ── HEADER ── */
-  .header {
-    background: var(--gray-text);
-    padding: 0 32px;
-    display: flex;
-    align-items: center;
-    height: 56px;
-    gap: 12px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header-logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .logo-dot {
-    width: 28px;
-    height: 28px;
-    background: var(--green);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .logo-dot svg { width: 16px; height: 16px; }
-  .header-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: #fff;
-    letter-spacing: 0.2px;
-  }
-  .header-sub {
-    font-size: 11px;
-    color: var(--gray-600);
-    margin-left: 4px;
-    font-weight: 400;
-  }
-  .header-pill {
-    margin-left: auto;
-    background: rgba(156,220,0,0.15);
-    border: 1px solid rgba(156,220,0,0.3);
-    color: var(--green);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-
-  /* ── LAYOUT ── */
-  .layout { display: flex; min-height: calc(100vh - 56px); }
-
-  /* ── SIDEBAR ── */
-  .sidebar {
-    width: 200px;
-    flex-shrink: 0;
-    background: #fff;
-    border-right: 1px solid var(--gray-400);
-    padding: 20px 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    height: calc(100vh - 56px);
-    overflow-y: auto;
-    position: sticky;
-    top: 0;
-  }
-  .sidebar-section {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--gray-600);
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    padding: 12px 20px 4px;
-  }
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--gray-mid);
-    cursor: pointer;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-    border-left: 3px solid transparent;
-    transition: all 0.15s;
-  }
-  .nav-item:hover { background: var(--gray-100); color: var(--gray-text); }
-  .nav-item.active {
-    background: #f0fae0;
-    color: var(--green-deeper);
-    border-left-color: var(--green);
-    font-weight: 600;
-  }
-  .nav-icon { font-size: 15px; width: 18px; text-align: center; flex-shrink: 0; }
-  .nav-badge {
-    margin-left: auto;
-    background: var(--green);
-    color: var(--gray-text);
-    font-size: 10px;
-    font-weight: 700;
-    border-radius: 10px;
-    padding: 1px 6px;
-    min-width: 18px;
-    text-align: center;
-    pointer-events: none;
-  }
-  .nav-divider { height: 1px; background: var(--gray-200); margin: 8px 16px; }
-
-  /* ── MAIN CONTENT ── */
-  .main { flex: 1; padding: 28px 32px; min-width: 0; }
-  .page-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--gray-text);
-    margin-bottom: 4px;
-  }
-  .page-sub {
-    font-size: 12px;
-    color: var(--gray-mid);
-    margin-bottom: 24px;
-  }
-
-  /* ── PANELS ── */
-  .panel { display: none; }
-  .panel.active { display: block; }
-
-  /* ── CARDS ── */
-  .card {
-    background: #fff;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--gray-400);
-    padding: 20px 24px;
-    margin-bottom: 16px;
-  }
-  .card-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--gray-mid);
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-bottom: 14px;
-  }
-
-  /* ── UPLOAD ── */
-  .upload-area {
-    border: 2px dashed var(--gray-400);
-    border-radius: var(--radius-lg);
-    padding: 48px 32px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: #fff;
-    display: block;
-  }
-  .upload-area:hover { border-color: var(--green); background: #f7fde6; }
-  .upload-icon-wrap {
-    width: 64px; height: 64px;
-    background: #f0fae0;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 14px;
-  }
-  .upload-icon-wrap svg { width: 28px; height: 28px; color: var(--green-deeper); }
-  .upload-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-  .upload-hint { font-size: 12px; color: var(--gray-mid); }
-
-  /* ── STATS ── */
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-  .stat {
-    background: #fff;
-    border: 1px solid var(--gray-400);
-    border-radius: var(--radius-md);
-    padding: 16px;
-    text-align: center;
-  }
-  .stat-num { font-size: 28px; font-weight: 700; line-height: 1; color: var(--gray-text); }
-  .stat-num.alert { color: var(--green-deeper); }
-  .stat-label { font-size: 11px; color: var(--gray-mid); margin-top: 4px; font-weight: 500; }
-
-  /* ── EMP ROWS ── */
-  .emp-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--gray-200);
-  }
-  .emp-row:last-child { border-bottom: none; }
-  .avatar {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: #f0fae0;
-    border: 1.5px solid var(--green);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 700;
-    color: var(--green-deeper);
-    flex-shrink: 0;
-  }
-  .avatar-pink {
-    background: #fce8f2;
-    border-color: var(--pink);
-    color: var(--pink);
-  }
-  .emp-name { font-weight: 600; font-size: 14px; color: var(--gray-text); }
-  .emp-en { font-size: 12px; color: var(--gray-mid); margin-top: 1px; }
-  .emp-info { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
-
-  /* ── BADGES ── */
-  .badges { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
-  .badge {
-    display: inline-block; font-size: 11px;
-    padding: 3px 10px; border-radius: 20px;
-    font-weight: 600; white-space: nowrap;
-    font-family: 'Poppins', sans-serif;
-  }
-  .b-reg  { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
-  .b-3y   { background: #eef4ff; color: #1a56c9; border: 1px solid #93b4f5; }
-  .b-5y   { background: #f3efff; color: #5b21b6; border: 1px solid #c4b5fd; }
-  .b-10y  { background: #fff8ed; color: #92400e; border: 1px solid #fbbf24; }
-  .b-bday { background: #fce8f2; color: var(--pink); border: 1px solid #f9a8d4; }
-
-  /* ── DATE BADGE ── */
-  .date-badge {
-    background: var(--gray-100);
-    border: 1px solid var(--gray-400);
-    border-radius: var(--radius-sm);
-    padding: 3px 10px;
-    font-size: 12px;
-    color: var(--gray-mid);
-    font-weight: 500;
-    white-space: nowrap;
-    margin-left: auto;
-  }
-
-  /* ── BUTTONS ── */
-  button.btn {
-    background: #fff;
-    border: 1px solid var(--gray-400);
-    border-radius: var(--radius-sm);
-    padding: 8px 16px;
-    font-size: 13px;
-    cursor: pointer;
-    color: var(--gray-text);
-    font-weight: 500;
-    font-family: 'Poppins', sans-serif;
-    transition: all 0.15s;
-  }
-  button.btn:hover { background: var(--gray-100); border-color: var(--gray-mid); }
-  button.btn-green {
-    background: var(--green);
-    color: var(--gray-text);
-    border-color: var(--green);
-    font-weight: 600;
-  }
-  button.btn-green:hover { background: var(--green-dark); border-color: var(--green-dark); }
-  button.btn-dark {
-    background: var(--gray-text);
-    color: #fff;
-    border-color: var(--gray-text);
-    font-weight: 600;
-  }
-  button.btn-dark:hover { background: #444; }
-  button.btn-pink {
-    background: var(--pink);
-    color: #fff;
-    border-color: var(--pink);
-    font-weight: 600;
-  }
-
-  /* ── CONTROLS ── */
-  .controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-  .controls input[type=date],
-  .controls input[type=number] {
-    border: 1px solid var(--gray-400);
-    border-radius: var(--radius-sm);
-    padding: 7px 10px;
-    font-size: 13px;
-    color: var(--gray-text);
-    background: #fff;
-    font-family: 'Poppins', sans-serif;
-  }
-  .controls label { font-size: 13px; color: var(--gray-mid); font-weight: 500; }
-
-  /* ── MONTH NAV ── */
-  .month-nav {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 20px;
-  }
-  .month-nav-arrow {
-    width: 32px; height: 32px;
-    border: 1px solid var(--gray-400);
-    border-radius: var(--radius-sm);
-    background: #fff;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px;
-    color: var(--gray-mid);
-    transition: all 0.15s;
-  }
-  .month-nav-arrow:hover { border-color: var(--green); color: var(--green-deeper); }
-  .month-display {
-    font-size: 15px;
-    font-weight: 700;
-    min-width: 120px;
-    text-align: center;
-    color: var(--gray-text);
-  }
-
-  /* ── NOTICE ── */
-  .notice {
-    border-radius: var(--radius-md);
-    padding: 12px 16px;
-    font-size: 13px;
-    margin-bottom: 16px;
-    font-weight: 500;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .notice-green { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
-  .notice-info  { background: #eef4ff; color: #1a56c9; border: 1px solid #93b4f5; }
-  .notice-bday  { background: #fce8f2; color: var(--pink); border: 1px solid #f9a8d4; }
-  .notice-success { background: #f0fae0; color: var(--green-deeper); border: 1px solid var(--green); }
-
-  /* ── SETTING ROW ── */
-  .setting-row { margin-bottom: 14px; }
-  .setting-row label { display: block; font-size: 11px; color: var(--gray-mid); margin-bottom: 4px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
-  .setting-row input {
-    width: 100%;
-    border: 1px solid var(--gray-400);
-    border-radius: var(--radius-sm);
-    padding: 9px 12px;
-    font-size: 13px;
-    color: var(--gray-text);
-    font-family: 'Poppins', sans-serif;
-  }
-
-  /* ── EMPTY ── */
-  .empty { text-align: center; padding: 48px; color: var(--gray-600); font-size: 13px; }
-  .empty-icon { font-size: 32px; margin-bottom: 10px; }
-
-  /* ── CODE BLOCK ── */
-  .code-block {
-    background: var(--gray-text);
-    border-radius: var(--radius-md);
-    padding: 16px;
-    font-size: 11.5px;
-    font-family: 'Courier New', monospace;
-    color: #d4f5a0;
-    white-space: pre-wrap;
-    overflow-x: auto;
-    line-height: 1.6;
-  }
-
-  /* ── MODAL ── */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(34,38,41,0.55);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: #fff;
-    border-radius: var(--radius-lg);
-    width: 560px;
-    max-width: 95vw;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.18);
-  }
-  .modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 24px 14px;
-    border-bottom: 1px solid var(--gray-200);
-  }
-  .modal-title { font-size: 15px; font-weight: 700; color: var(--gray-text); }
-  .modal-close {
-    width: 30px; height: 30px;
-    border: none; background: none; cursor: pointer;
-    font-size: 18px; color: var(--gray-mid);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .modal-close:hover { background: var(--gray-200); }
-  .modal-body { padding: 20px 24px; }
-  .modal-footer {
-    padding: 14px 24px;
-    border-top: 1px solid var(--gray-200);
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-  }
-  .msg-target {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 14px;
-  }
-  .msg-target-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--gray-mid);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-    min-width: 52px;
-  }
-  .msg-target-val {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--gray-text);
-    background: var(--gray-100);
-    border: 1px solid var(--gray-400);
-    border-radius: var(--radius-sm);
-    padding: 5px 12px;
-  }
-  .msg-textarea {
-    width: 100%;
-    border: 1px solid var(--gray-400);
-    border-radius: var(--radius-md);
-    padding: 12px 14px;
-    font-size: 13px;
-    font-family: 'Poppins', sans-serif;
-    color: var(--gray-text);
-    resize: vertical;
-    min-height: 130px;
-    line-height: 1.6;
-    transition: border-color 0.15s;
-  }
-  .msg-textarea:focus { outline: none; border-color: var(--green); }
-  .char-hint { font-size: 11px; color: var(--gray-mid); margin-top: 6px; text-align: right; }
-  .slack-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--gray-400);
-    background: #fff;
-    cursor: pointer;
-    color: var(--gray-mid);
-    font-weight: 500;
-    font-family: 'Poppins', sans-serif;
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .slack-btn:hover { border-color: var(--green); color: var(--green-deeper); background: #f7fde6; }
-  .slack-btn.manager { border-color: #b7b9b8; }
-  .slack-btn.manager:hover { border-color: #717372; color: #222629; background: var(--gray-100); }
-  .slack-icon { font-size: 13px; }
-  .tab-btns { display: flex; gap: 4px; margin-bottom: 16px; }
-  .tab-btn {
-    flex: 1; padding: 8px; text-align: center;
-    font-size: 12px; font-weight: 600;
-    border: 1.5px solid var(--gray-400);
-    border-radius: var(--radius-sm);
-    cursor: pointer; background: #fff;
-    color: var(--gray-mid);
-    font-family: 'Poppins', sans-serif;
-    transition: all 0.15s;
-  }
-  .tab-btn.active { border-color: var(--green); background: #f0fae0; color: var(--green-deeper); }
-
-</style>
-</head>
-<body>
-
-<!-- HEADER -->
-<div class="header">
-  <div class="header-logo">
-    <div class="logo-dot">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#222629" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
-      </svg>
-    </div>
-    <span class="header-title">Conviva HR</span>
-    <span class="header-sub">Employee Reminder Tool</span>
-  </div>
-  
-  <div class="header-pill">China Office</div>
-</div>
-
-<!-- LAYOUT -->
-<div class="layout">
-
-  <!-- SIDEBAR -->
-  <nav class="sidebar">
-    <div class="sidebar-section">MEETINGS</div>
-    <button class="nav-item active" onclick="showTab('meeting')" id="nav-meeting">
-      <span class="nav-icon">📋</span> Meeting Notes
-    </button>
-
-    <div class="nav-divider"></div>
-    <div class="sidebar-section">MAIN</div>
-    <button class="nav-item" onclick="showTab('today')" id="nav-today">
-      <span class="nav-icon">🔔</span> Today
-      <span class="nav-badge" id="today-count-badge" style="display:none">0</span>
-    </button>
-    <button class="nav-item" onclick="showTab('weekly')" id="nav-weekly">
-      <span class="nav-icon">📅</span> This Week
-      <span class="nav-badge" id="weekly-count-badge" style="display:none">0</span>
-    </button>
-    <button class="nav-item" onclick="showTab('monthly')" id="nav-monthly">
-      <span class="nav-icon">🎂</span> Monthly Birthdays
-      <span class="nav-badge" id="monthly-count-badge" style="display:none">0</span>
-    </button>
-
-    <div class="nav-divider"></div>
-    <div class="sidebar-section" id="milestones-section-label">MILESTONES</div>
-
-    <button class="nav-item" onclick="showTab('birthday')" id="nav-birthday">
-      <span class="nav-icon">🎂</span> Birthdays
-      <span class="nav-badge" id="bday-count-badge" style="display:none">0</span>
-    </button>
-    <button class="nav-item" onclick="showMilestoneTab('reg')" id="nav-reg">
-      <span class="nav-icon">✅</span> Annual Regularization
-      <span class="nav-badge" id="reg-count-badge" style="display:none">0</span>
-    </button>
-    <button class="nav-item" onclick="showMilestoneTab('3y')" id="nav-3y">
-      <span class="nav-icon">🥉</span> Annual 3-Year
-      <span class="nav-badge" id="3y-count-badge" style="display:none">0</span>
-    </button>
-    <button class="nav-item" onclick="showMilestoneTab('5y')" id="nav-5y">
-      <span class="nav-icon">🥈</span> Annual 5-Year
-      <span class="nav-badge" id="5y-count-badge" style="display:none">0</span>
-    </button>
-    <button class="nav-item" onclick="showMilestoneTab('10y')" id="nav-10y">
-      <span class="nav-icon">🏆</span> Annual 10-Year
-      <span class="nav-badge" id="10y-count-badge" style="display:none">0</span>
-    </button>
-
-    <div class="nav-divider"></div>
-    <div class="sidebar-section">SETTINGS</div>
-    <button class="nav-item" onclick="showTab('upload')" id="nav-upload">
-      <span class="nav-icon">📂</span> Upload Data
-    </button>
-    <button class="nav-item" onclick="showTab('export')" id="nav-export">
-      <span class="nav-icon">📥</span> Download Data
-    </button>
-    <button class="nav-item" onclick="showTab('email')" id="nav-email">
-      <span class="nav-icon">💬</span> Slack Settings
-    </button>
-  </nav>
-
-  <!-- MAIN -->
-  <main class="main">
-
-    <!-- UPLOAD -->
-    <div id="tab-upload" class="panel">
-      <div class="page-title">Upload Employee Data</div>
-      <div class="page-sub" id="sub-upload">Supports Employee_information_list_xxxx.xlsx format</div>
-
-      <label class="upload-area" for="fileInput" id="upload-label">
-        <div class="upload-icon-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-        </div>
-        <div class="upload-title" id="upload-title-text">Click to select employee Excel file</div>
-        <div class="upload-hint" id="upload-hint-text">Drag & drop or click · .xlsx / .xls</div>
-        <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(event)">
-      </label>
-
-      <div id="upload-msg"></div>
-      <div id="preview-area"></div>
-
-      <!-- 员工管理 -->
-      <div id="emp-mgmt-area" style="display:none;margin-top:24px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
-          <div class="section-title" style="margin:0">Employee Management</div>
-          <button class="btn btn-green" onclick="showAddEmpForm()" style="margin-left:auto">➕ Add Employee</button>
-          <input id="emp-search" type="text" placeholder="Search name / dept..." 
-            oninput="renderEmpTable()"
-            style="padding:6px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:13px;width:200px">
-        </div>
-        <!-- Add/Edit form -->
-        <div id="emp-form-wrap" style="display:none;background:#f8fdf2;border:1.5px solid var(--green);border-radius:12px;padding:20px;margin-bottom:20px">
-          <div class="section-title" id="emp-form-title">Add Employee</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-            <div><label style="font-size:12px;color:#666">Chinese Name</label>
-              <input id="ef-cnName" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">English Name *</label>
-              <input id="ef-enName" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Department</label>
-              <input id="ef-dept" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Title</label>
-              <input id="ef-title" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Email</label>
-              <input id="ef-email" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Manager</label>
-              <input id="ef-manager" type="text" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Onboard Date *</label>
-              <input id="ef-onboard" type="date" style="width:100%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box;margin-top:4px"></div>
-            <div><label style="font-size:12px;color:#666">Birthday (MM/DD)</label>
-              <div style="display:flex;gap:8px;margin-top:4px">
-                <input id="ef-dobMonth" type="number" min="1" max="12" placeholder="MM" style="width:50%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box">
-                <input id="ef-dobDay" type="number" min="1" max="31" placeholder="DD" style="width:50%;padding:6px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px;box-sizing:border-box">
-              </div>
-            </div>
-          </div>
-          <input id="ef-editIndex" type="hidden" value="-1">
-          <div style="display:flex;gap:8px;margin-top:16px">
-            <button class="btn btn-green" onclick="saveEmpForm()">💾 Save</button>
-            <button class="btn" onclick="cancelEmpForm()">Cancel</button>
-          </div>
-        </div>
-        <!-- Employee table -->
-        <div id="emp-table-wrap"></div>
-      </div>
-    </div>
-
-    <!-- TODAY -->
-    <div id="tab-today" class="panel">
-      <div class="page-title" id="pt-today">Today's Reminders</div>
-      <div class="page-sub" id="sub-today">Milestones + Birthdays</div>
-      <div class="controls" style="margin-bottom:16px">
-        <label>View date:</label>
-        <input type="date" id="checkDate" onchange="renderToday()">
-        <button class="btn" onclick="goToday()">Today</button>
-      </div>
-      <div id="stats-area"></div>
-      <div id="today-list"></div>
-    </div>
-
-    <!-- BIRTHDAY -->
-    <div id="tab-birthday" class="panel">
-      <div class="page-title">Annual Birthdays</div>
-      <div class="page-sub" id="sub-birthday">View all employee birthdays by month</div>
-      <div class="month-nav">
-        <button class="month-nav-arrow" onclick="changeBdayYear(-1)">◀</button>
-        <div class="month-display" id="month-display"></div>
-        <button class="month-nav-arrow" onclick="changeBdayYear(1)">▶</button>
-        <button class="btn" onclick="goCurrentBdayYear()" style="margin-left:8px">This Year</button>
-  
-      </div>
-      <div id="week2-notice"></div>
-      <div id="birthday-list"></div>
-    </div>
-
-    <!-- MILESTONE MONTH -->
-    <div id="tab-milestone" class="panel">
-      <div class="page-title" id="milestone-page-title">Annual Milestones</div>
-      <div class="page-sub" id="milestone-page-sub"></div>
-      <div class="month-nav">
-        <button class="month-nav-arrow" onclick="changeMilestoneYear(-1)">◀</button>
-        <div class="month-display" id="milestone-month-display"></div>
-        <button class="month-nav-arrow" onclick="changeMilestoneYear(1)">▶</button>
-        <button class="btn" onclick="goCurrentMilestoneYear()" style="margin-left:8px">This Year</button>
-  
-      </div>
-      <div id="milestone-month-list"></div>
-    </div>
-
-    <!-- WEEKLY PANEL -->
-    <div id="tab-weekly" class="panel">
-      <div class="page-title" id="pt-weekly">This Week</div>
-      <div class="page-sub">This week's regularizations and anniversaries (excl. birthdays)</div>
-      <div class="month-nav" style="margin-bottom:16px">
-        <button class="month-nav-arrow" onclick="changeWeek(-1)">◀</button>
-        <div id="week-range-label" style="font-size:14px;font-weight:700;min-width:200px;text-align:center;color:var(--gray-text)"></div>
-        <button class="month-nav-arrow" onclick="changeWeek(1)">▶</button>
-        <button class="btn" onclick="goThisWeek()" style="margin-left:8px">This Week</button>
-      </div>
-      <div id="week-stats-area"></div>
-      <div id="week-list"></div>
-    </div>
-
-    <!-- MONTHLY OVERVIEW -->
-    <div id="tab-monthly" class="panel">
-      <div class="page-title" id="pt-monthly">Monthly Birthdays</div>
-      <div class="page-sub">Employees with birthdays this month</div>
-      <div class="month-nav">
-        <button class="month-nav-arrow" onclick="changeMonthlyMonth(-1)">◀</button>
-        <div class="month-display" id="monthly-month-display"></div>
-        <button class="month-nav-arrow" onclick="changeMonthlyMonth(1)">▶</button>
-        <button class="btn" onclick="goCurrentMonthlyMonth()" style="margin-left:8px">This Month</button>
-      </div>
-      <div id="monthly-stats-area"></div>
-      <div id="monthly-notice"></div>
-      <div id="monthly-list"></div>
-    </div>
-
-    <!-- EXPORT PANEL -->
-    <div id="tab-export" class="panel">
-      <div class="page-title" id="pt-export">Export Tool</div>
-      <div class="page-sub">Generate a version with employee data to share</div>
-      <div id="export-area" class="card" style="border-color:var(--green)">
-        <div style="text-align:center;padding:12px 0">
-          <div style="font-size:48px;margin-bottom:12px">📤</div>
-          <div style="font-size:15px;font-weight:600;color:var(--gray-text);margin-bottom:8px">No data uploaded yet</div>
-          <div style="font-size:13px;color:var(--gray-mid)">Please upload the employee Excel in "Upload Data" first,<br>then come back to export.</div>
-        </div>
-      </div>
-      <div id="export-ready" style="display:none">
-        <div class="card" style="border-color:var(--green);background:#f7fde6">
-          <div style="text-align:center;padding:8px 0 16px">
-            <div style="font-size:48px;margin-bottom:12px">✅</div>
-            <div style="font-size:15px;font-weight:600;color:var(--gray-text);margin-bottom:6px">Data Ready</div>
-            <div style="font-size:13px;color:var(--gray-mid);margin-bottom:6px" id="export-file-info"></div>
-            <div style="font-size:13px;color:var(--gray-mid);margin-bottom:20px">
-              Click the button below to generate a new HTML file.<br>
-              Share this file with colleagues — they can open it in<br>
-              a browser and see all the data,<strong>no re-upload needed.</strong>。
-            </div>
-            <button class="btn btn-green" style="font-size:14px;padding:10px 24px" onclick="exportWithData()">⬇️ Download with Data</button>
-            <div id="export-hint" style="font-size:12px;color:var(--green-deeper);margin-top:10px"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-        <!-- MEETING NOTES -->
-    <div id="tab-meeting" class="panel active">
-      <div class="page-title" id="meeting-page-title">📋 Meeting Notes</div>
-      <div class="page-sub" id="meeting-page-sub">Weekly Friday meeting topics · Editable by everyone · Saved in browser</div>
-
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
-        <button class="btn" onclick="meetingPrevWeek()">◀</button>
-        <div id="meeting-week-label" style="font-size:14px;font-weight:700;min-width:120px;text-align:center"></div>
-        <button class="btn" onclick="meetingNextWeek()">▶</button>
-        <button class="btn" onclick="meetingGoThisWeek()" id="btn-this-week-el" style="margin-left:4px">This Week</button>
-        <button class="btn btn-green" onclick="meetingAutoFill()" id="btn-autofill-el" style="margin-left:auto" id="btn-autofill">🔄 Auto-fill This Week</button>
-        <button class="btn" onclick="meetingNewWeek()" id="btn-new-week-el" style="background:#fff;border:1.5px solid var(--green);color:var(--green-deeper)" id="btn-newweek">➕ New This Week</button>
-      </div>
-
-      <div id="meeting-content">
-        <div class="empty">Select a week or click "New This Week" to start</div>
-      </div>
-    </div>
-
-    <!-- SLACK SETTINGS -->
-    <div id="tab-email" class="panel">
-      <div class="page-title" id="pt-slack">Slack Settings</div>
-      <div class="page-sub" id="sub-slack">${'Configure message templates and reminders'}</div>
-
-      <div class="card">
-        <div class="card-title">How to use</div>
-        <div style="font-size:13px;color:var(--gray-mid);line-height:1.8">
-          On the "Today's Reminders」or "This Week" page, each employee has:<br>
-          <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
-            <button class="slack-btn" style="pointer-events:none">💬 Congratulate/Wish the person</button>
-          </span> — Click to preview and edit, send to the employee<br>
-          <span style="display:inline-flex;align-items:center;gap:4px;margin:4px 0">
-            <button class="slack-btn manager" style="pointer-events:none">${'👔 Notify Manager'}</button>
-          </span> — Click to preview and edit, notify their manager
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Custom Message Templates</div>
-        <div style="font-size:13px;color:var(--gray-mid);margin-bottom:14px">
-          Click any template to edit. Changes apply to this session.
-        </div>
-        <div id="template-editor">
-          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-            <button class="btn" onclick="editTemplate('birthday')" >🎂 Birthday Wish</button>
-            <button class="btn" onclick="editTemplate('reg')"     >🎉 Regularization Congrats</button>
-            <button class="btn" onclick="editTemplate('3y')"      >🥉 '3-Year Congrats'</button>
-            <button class="btn" onclick="editTemplate('5y')"      >🥈 '5-Year Congrats'</button>
-            <button class="btn" onclick="editTemplate('10y')"     >🏆 '10-Year Congrats'</button>
-          </div>
-          <div id="template-edit-area" style="display:none">
-            <div style="font-size:12px;font-weight:600;color:var(--gray-mid);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px" id="template-edit-label"></div>
-            <textarea class="msg-textarea" id="templateTextArea" style="min-height:100px"></textarea>
-            <div style="display:flex;gap:8px;margin-top:10px">
-              <button class="btn btn-green" onclick="saveTemplate()">Save Templates</button>
-              <button class="btn" onclick="resetTemplate()">Reset to Default</button>
-              <button class="btn" onclick="document.getElementById('template-edit-area').style.display='none'">Cancel</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Auto Reminder Script</div>
-        <p style="font-size:13px;color:var(--gray-mid);margin-bottom:12px">
-          Send daily Slack messages to employees and managers. Contact <strong style="color:var(--gray-text)">Santhosh（IT）</strong> to configure Slack Bot Token.
-        </p>
-        <button class="btn btn-dark" onclick="showSlackAutoGuide()">⚙️ View Automation Script</button>
-        <div id="slack-auto-guide" style="margin-top:14px"></div>
-      </div>
-    </div>
-
-  </main>
-
-<!-- SLACK MODAL -->
-<div class="modal-overlay" id="slackModal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="modalTitle">💬 Send Slack Message</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="tab-btns" id="modalTabs" style="display:none">
-        <button class="tab-btn active" id="tabEmployee" onclick="switchMsgTab('employee')">👤 Send to Employee</button>
-        <button class="tab-btn" id="tabManager" onclick="switchMsgTab('manager')">${'👔 Notify Manager'}</button>
-      </div>
-      <div class="msg-target">
-        <span class="msg-target-label">Send to</span>
-        <span class="msg-target-val" id="modalRecipient">—</span>
-      </div>
-      <div class="msg-target" id="modalManagerRow" style="display:none">
-        <span class="msg-target-label">Direct Manager</span>
-        <span class="msg-target-val" id="modalManagerName">—</span>
-      </div>
-      <textarea class="msg-textarea" id="msgText" oninput="updateCharCount(this)" placeholder="Enter message..."></textarea>
-      <div class="char-hint"><span id="charCount">0</span> chars</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-green" onclick="openInSlack()">
-        <span style="font-size:14px">💬</span> Open in Slack
-      </button>
-    </div>
-  </div>
-</div>
-
-</div>
-
-
-<!-- __HR_INJECT_HERE_v2__ -->
+</script>
 </body>
 </html>
