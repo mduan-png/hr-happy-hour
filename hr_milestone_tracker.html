@@ -561,6 +561,7 @@
       <span class="nav-badge" id="monthly-count-badge" style="display:none">0</span>
     </button>
 
+
     <div class="nav-divider"></div>
     <div class="sidebar-section" id="milestones-section-label">MILESTONES</div>
 
@@ -586,10 +587,18 @@
     </button>
 
     <div class="nav-divider"></div>
-    <div class="sidebar-section">SETTINGS</div>
+    <div class="sidebar-section">TOOLS</div>
     <button class="nav-item" onclick="showTab('orgchart')" id="nav-orgchart">
       <span class="nav-icon">🏢</span> Org Chart
     </button>
+    <button class="nav-item" onclick="showTab('renewal')" id="nav-renewal">
+      <span class="nav-icon">📋</span> Contract Renewal
+    </button>
+    <button class="nav-item" onclick="showTab('holiday')" id="nav-holiday">
+      <span class="nav-icon">🎊</span> Holiday Emails
+    </button>
+    <div class="nav-divider"></div>
+    <div class="sidebar-section">SETTINGS</div>
     <button class="nav-item" onclick="showTab('upload')" id="nav-upload">
       <span class="nav-icon">📂</span> Upload Data
     </button>
@@ -868,6 +877,632 @@
         <div id="slack-auto-guide" style="margin-top:14px"></div>
       </div>
     </div>
+    <div id="tab-holiday" class="panel" style="padding:0;height:calc(100vh - 60px);overflow:hidden">
+      <iframe id="holiday-iframe" style="width:100%;height:100%;border:none;display:block"
+        srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;/>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;/>
+<title>Holiday Email Hub · 2026</title>
+<link href=&quot;https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;/>
+<style>
+:root{--g:#91C63E;--dg:#6FA02E;--ch:#2C2E2D;--bd:#DDE5D2;--mu:#8a9880;--bg:#F4F6F1;--wh:#fff;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;font-family:'Poppins',sans-serif;background:var(--bg);color:var(--ch);font-size:14px;}
+.app{display:flex;height:100vh;overflow:hidden;}
+.sb{width:232px;background:var(--ch);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;}
+.sb-top{padding:20px 20px 15px;border-bottom:1px solid rgba(255,255,255,.1);}
+.sb-logo{color:var(--g);font-size:15px;font-weight:700;}
+.sb-sub{color:rgba(255,255,255,.32);font-size:9px;margin-top:4px;line-height:1.6;}
+.sb-src{display:inline-flex;align-items:center;gap:4px;background:rgba(145,198,62,.1);color:rgba(145,198,62,.85);font-size:8.5px;padding:3px 8px;border-radius:20px;margin-top:8px;border:1px solid rgba(145,198,62,.2);}
+.sb-nav{flex:1;padding:12px 0;}
+.sb-lbl{color:rgba(255,255,255,.28);font-size:8.5px;font-weight:600;letter-spacing:1.3px;text-transform:uppercase;padding:0 20px 7px;}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 20px;cursor:pointer;color:rgba(255,255,255,.54);font-size:11.5px;transition:all .12s;border-left:3px solid transparent;user-select:none;}
+.ni:hover{background:rgba(255,255,255,.05);color:#fff;}
+.ni.on{background:rgba(145,198,62,.11);color:var(--g);border-left-color:var(--g);}
+.ni-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.ni-badge{margin-left:auto;background:rgba(145,198,62,.2);color:var(--g);font-size:8.5px;padding:1.5px 7px;border-radius:20px;}
+.sb-foot{padding:13px 20px;border-top:1px solid rgba(255,255,255,.07);}
+.sb-slbl{color:rgba(255,255,255,.27);font-size:8.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;}
+.sb-si{display:flex;align-items:center;gap:6px;font-size:10.5px;color:rgba(255,255,255,.46);padding:2px 0;}
+.sb-sdot{width:5px;height:5px;background:var(--g);border-radius:50%;flex-shrink:0;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--wh);border-bottom:1px solid var(--bd);flex-shrink:0;}
+.prog-wrap{height:3px;background:var(--bd);}
+.prog-fill{height:100%;background:var(--g);transition:width .35s ease;}
+.stabs{display:flex;align-items:center;padding:13px 28px 11px;}
+.st{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:500;color:var(--mu);cursor:pointer;padding-right:18px;user-select:none;transition:color .12s;}
+.st.on{color:var(--ch);}
+.st.done{color:var(--dg);}
+.sc{width:21px;height:21px;border-radius:50%;border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;background:var(--wh);}
+.st.on .sc{border-color:var(--g);background:var(--g);color:#fff;}
+.st.done .sc{border-color:var(--dg);background:var(--dg);color:#fff;}
+.sep{color:var(--bd);margin-right:8px;font-size:14px;}
+.content{flex:1;padding:24px 28px;overflow-y:auto;}
+.ttl{font-size:19px;font-weight:600;margin-bottom:4px;}
+.hint{font-size:12px;color:var(--mu);margin-bottom:20px;line-height:1.55;}
+.card{background:var(--wh);border:1px solid var(--bd);border-radius:10px;padding:17px 20px;margin-bottom:13px;}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.ct{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;}
+.ci{width:24px;height:24px;background:rgba(145,198,62,.14);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.hg{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hc{border:1.5px solid var(--bd);border-radius:9px;padding:13px 14px;cursor:pointer;transition:all .12s;position:relative;}
+.hc:hover{border-color:var(--g);background:rgba(145,198,62,.04);}
+.hc.sel{border-color:var(--g);background:rgba(145,198,62,.08);}
+.hchk{position:absolute;top:10px;right:10px;width:16px;height:16px;border-radius:50%;background:var(--g);display:none;align-items:center;justify-content:center;font-size:9px;color:#fff;}
+.hc.sel .hchk{display:flex;}
+.hn{font-size:12.5px;font-weight:600;}
+.hcn{font-size:10.5px;color:var(--mu);}
+.hd{font-size:11px;color:var(--ch);margin-top:5px;font-weight:500;}
+.hwd{font-size:10px;color:var(--mu);margin-top:1px;}
+.hb{display:inline-block;margin-top:7px;background:rgba(145,198,62,.15);color:var(--dg);font-size:9.5px;padding:2px 9px;border-radius:20px;font-weight:500;}
+.mu-tag{display:inline-block;background:#fef3c7;color:#92400e;font-size:9.5px;padding:2px 8px;border-radius:20px;font-weight:500;margin-left:5px;}
+.info-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+.ib{background:var(--bg);border-radius:8px;padding:11px 13px;}
+.ib-lbl{font-size:10px;color:var(--mu);margin-bottom:3px;}
+.ib-val{font-size:13.5px;font-weight:600;}
+.ib-sub{font-size:10px;color:var(--mu);margin-top:1px;}
+label{font-size:11.5px;font-weight:500;display:block;margin-bottom:5px;}
+input[type=text],input[type=datetime-local],textarea{width:100%;font-family:'Poppins',sans-serif;font-size:12.5px;padding:8px 11px;border:1px solid var(--bd);border-radius:7px;background:var(--wh);color:var(--ch);transition:border-color .12s;}
+input:focus,textarea:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 3px rgba(145,198,62,.1);}
+textarea{resize:vertical;line-height:1.75;font-size:12px;}
+.fg{margin-bottom:13px;}
+.btn{font-family:'Poppins',sans-serif;font-size:12.5px;font-weight:500;padding:8px 17px;border-radius:7px;cursor:pointer;border:1.5px solid var(--bd);background:var(--wh);color:var(--ch);transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
+.btn:hover:not(:disabled){border-color:var(--g);color:var(--dg);}
+.btn:active:not(:disabled){transform:scale(.97);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btnp{background:var(--g);border-color:var(--g);color:#fff;}
+.btnp:hover:not(:disabled){background:var(--dg);border-color:var(--dg);color:#fff;}
+.bsm{padding:6px 13px;font-size:11.5px;}
+.br{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+.stbox{display:flex;align-items:flex-start;gap:8px;font-size:11.5px;padding:9px 13px;border-radius:7px;margin-top:10px;line-height:1.5;}
+.si{background:rgba(145,198,62,.1);color:var(--dg);}
+.se{background:#fef2f2;color:#dc2626;}
+.ss{background:#f0fdf4;color:#16a34a;}
+.shi{background:rgba(145,198,62,.07);border:1.5px solid rgba(145,198,62,.28);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:13px;margin-bottom:13px;}
+.shi-ico{width:38px;height:38px;background:var(--g);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.shi-t{font-size:12.5px;font-weight:600;}
+.shi-s{font-size:11px;color:var(--mu);margin-top:2px;}
+.bbar{padding:13px 28px;border-top:1px solid var(--bd);background:var(--wh);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.bbar-info{font-size:11.5px;color:var(--mu);}
+.sr{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--bd);}
+.sr:last-child{border-bottom:none;}
+.sr-n{font-weight:500;font-size:11.5px;}
+.sr-d{font-size:10.5px;color:var(--mu);margin-top:2px;}
+.pill{font-size:9.5px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.pp{background:rgba(145,198,62,.15);color:var(--dg);}
+.ps{background:#f0fdf4;color:#16a34a;}
+.cd{font-size:11px;color:var(--ch);margin-top:5px;font-weight:500;}
+
+/* ── Approval modal ── */
+#approvalModal{position:fixed;inset:0;background:rgba(44,46,45,.65);display:flex;align-items:center;justify-content:center;z-index:2000;backdrop-filter:blur(3px);}
+#approvalModal.hidden{display:none;}
+.am-box{background:var(--wh);border-radius:14px;width:560px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.22);}
+.am-hdr{padding:20px 24px 16px;border-bottom:1px solid var(--bd);flex-shrink:0;}
+.am-title{font-size:16px;font-weight:600;display:flex;align-items:center;gap:9px;}
+.am-title-ico{width:32px;height:32px;background:rgba(145,198,62,.14);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.am-sub{font-size:11.5px;color:var(--mu);margin-top:3px;}
+.am-body{flex:1;overflow-y:auto;padding:18px 24px;}
+.am-meta{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px;}
+.am-meta-box{background:var(--bg);border-radius:7px;padding:10px 12px;}
+.am-ml{font-size:10px;color:var(--mu);margin-bottom:2px;}
+.am-mv{font-size:12px;font-weight:600;word-break:break-all;}
+.am-preview-lbl{font-size:11px;font-weight:600;color:var(--mu);margin-bottom:6px;letter-spacing:.3px;}
+.am-preview{background:var(--bg);border-radius:8px;padding:12px 14px;font-size:11.5px;line-height:1.75;white-space:pre-wrap;max-height:200px;overflow-y:auto;color:var(--ch);}
+.am-foot{padding:14px 24px;border-top:1px solid var(--bd);display:flex;gap:9px;flex-shrink:0;flex-wrap:wrap;}
+.am-approve{flex:1;background:#EA4335;border-color:#EA4335;color:#fff;font-weight:600;justify-content:center;min-width:150px;}
+.am-approve:hover{background:#c62828;border-color:#c62828;}
+.am-snooze{background:var(--bg);border-color:var(--bd);color:var(--mu);}
+.am-edit{border-color:var(--bd);color:var(--ch);}
+.am-countdown-bar{height:3px;background:var(--bd);border-radius:2px;margin-top:10px;overflow:hidden;}
+.am-countdown-fill{height:100%;background:var(--g);transition:width 1s linear;}
+
+.sb { display: none !important; }
+.app { display: block !important; }
+.main { width: 100% !important; height: 100vh !important; }
+</style>
+</head>
+<body>
+
+<!-- ── Approval Modal ── -->
+<div id=&quot;approvalModal&quot; class=&quot;hidden&quot;>
+  <div class=&quot;am-box&quot;>
+    <div class=&quot;am-hdr&quot;>
+      <div class=&quot;am-title&quot;>
+        <div class=&quot;am-title-ico&quot;>⏰</div>
+        <div>
+          <div>Time to send — please review &amp; approve</div>
+          <div class=&quot;am-sub&quot; id=&quot;am-hol-name&quot;>Holiday Email</div>
+        </div>
+      </div>
+    </div>
+    <div class=&quot;am-body&quot;>
+      <div class=&quot;am-meta&quot;>
+        <div class=&quot;am-meta-box&quot;><div class=&quot;am-ml&quot;>To</div><div class=&quot;am-mv&quot; id=&quot;am-to&quot;>—</div></div>
+        <div class=&quot;am-meta-box&quot;><div class=&quot;am-ml&quot;>Subject</div><div class=&quot;am-mv&quot; id=&quot;am-subj&quot;>—</div></div>
+        <div class=&quot;am-meta-box&quot;><div class=&quot;am-ml&quot;>Scheduled for</div><div class=&quot;am-mv&quot; id=&quot;am-sdt&quot;>—</div></div>
+        <div class=&quot;am-meta-box&quot;><div class=&quot;am-ml&quot;>CC</div><div class=&quot;am-mv&quot; id=&quot;am-cc&quot;>—</div></div>
+      </div>
+      <div class=&quot;am-preview-lbl&quot;>EMAIL PREVIEW</div>
+      <div class=&quot;am-preview&quot; id=&quot;am-preview&quot;></div>
+    </div>
+    <div class=&quot;am-foot&quot;>
+      <button class=&quot;btn am-approve&quot; onclick=&quot;approveAndSend()&quot;>
+        <svg width=&quot;14&quot; height=&quot;14&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; style=&quot;flex-shrink:0&quot;><path d=&quot;M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z&quot; fill=&quot;white&quot;/></svg>
+        ✅ Approve &amp;amp; Open in Gmail
+      </button>
+      <button class=&quot;btn am-edit&quot; onclick=&quot;editFirst()&quot;>✏️ Edit First</button>
+      <button class=&quot;btn am-snooze&quot; onclick=&quot;snoozeApproval()&quot;>⏩ Remind in 1h</button>
+      <button class=&quot;btn am-snooze&quot; onclick=&quot;dismissApproval()&quot;>✕ Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<div class=&quot;app&quot;>
+
+<aside class=&quot;sb&quot;>
+  <div class=&quot;sb-top&quot;>
+    <div class=&quot;sb-logo&quot;>&amp;#127807; Holiday Email Hub</div>
+    <div class=&quot;sb-sub&quot;>2026 Automated Notice System</div>
+    <div class=&quot;sb-src&quot;>&amp;#128279; 国务院办公厅 国办发明电〔2025〕7号</div>
+  </div>
+  <nav class=&quot;sb-nav&quot;>
+    <div class=&quot;sb-lbl&quot;>2026 Holidays</div>
+    <div id=&quot;navEl&quot;></div>
+  </nav>
+  <div class=&quot;sb-foot&quot;>
+    <div class=&quot;sb-slbl&quot;>Scheduled Sends</div>
+    <div id=&quot;sbSched&quot;><span style=&quot;color:rgba(255,255,255,.24);font-size:10.5px;&quot;>No schedules yet</span></div>
+  </div>
+</aside>
+
+<main class=&quot;main&quot;>
+  <div class=&quot;topbar&quot;>
+    <div class=&quot;prog-wrap&quot;><div class=&quot;prog-fill&quot; id=&quot;pf&quot; style=&quot;width:25%&quot;></div></div>
+    <div class=&quot;stabs&quot; id=&quot;stabs&quot;></div>
+  </div>
+  <div class=&quot;content&quot; id=&quot;sc&quot;></div>
+  <div class=&quot;bbar&quot;>
+    <div class=&quot;bbar-info&quot; id=&quot;bi&quot;>Step 1 of 4</div>
+    <div style=&quot;display:flex;gap:9px;&quot;>
+      <button class=&quot;btn&quot; id=&quot;pb&quot; onclick=&quot;prev()&quot;>&amp;#8592; Back</button>
+      <button class=&quot;btn btnp&quot; id=&quot;nb&quot; onclick=&quot;nxt()&quot;>Next &amp;#8594;</button>
+    </div>
+  </div>
+</main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   OFFICIAL 2026 DATA
+   Source: 国务院办公厅关于2026年部分节假日安排的通知
+   国办发明电〔2025〕7号 · 2025-11-04
+   https://www.gov.cn/zhengce/zhengceku/202511/content_7047091.htm
+═══════════════════════════════════════════════════ */
+const HDATA = {
+  newyear:    {
+    name:&quot;New Year's Day&quot;, cn:&quot;元旦&quot;, emoji:&quot;🎊&quot;, banner:&quot;🎊✨🥂✨🎊&quot;,
+    startDate:&quot;2026-01-01&quot;, endDate:&quot;2026-01-03&quot;, totalDays:3, startDay:&quot;Thursday&quot;, endDay:&quot;Saturday&quot;,
+    makeupWork:[&quot;Jan 4 (Sunday)&quot;],
+    culture:`New Year's Day is celebrated on January 1st worldwide, marking the start of the Gregorian calendar year. In China, it has been an official public holiday since 1949. While the Spring Festival (Chinese New Year) remains the most culturally significant new year celebration, January 1st offers a moment for reflection, fresh starts, and shared joy across the country — a modern tradition that bridges China with the global community.`
+  },
+  spring:     {
+    name:&quot;Spring Festival&quot;, cn:&quot;春节&quot;, emoji:&quot;🧧&quot;, banner:&quot;🧧🏮🎆🐴🎆🏮🧧&quot;,
+    startDate:&quot;2026-02-15&quot;, endDate:&quot;2026-02-23&quot;, totalDays:9, startDay:&quot;Sunday&quot;, endDay:&quot;Monday&quot;,
+    makeupWork:[&quot;Feb 14 (Saturday)&quot;,&quot;Feb 28 (Saturday)&quot;],
+    culture:`The Spring Festival (春节, Chūnjié) is the most important traditional holiday in Chinese culture, celebrating the Lunar New Year. Rooted in thousands of years of history, it is a time for family reunions, ancestor veneration, and the welcoming of prosperity and good fortune. Iconic traditions include the giving of red envelopes (红包), dragon and lion dances, elaborate feasts, and spectacular fireworks. In 2024, the Spring Festival was inscribed on the UNESCO Representative List of the Intangible Cultural Heritage of Humanity — a recognition of its profound cultural significance shared by over 1.5 billion people worldwide.`
+  },
+  qingming:   {
+    name:&quot;Qingming Festival&quot;, cn:&quot;清明节&quot;, emoji:&quot;🌿&quot;, banner:&quot;🌿🌸🌱🌸🌿&quot;,
+    startDate:&quot;2026-04-04&quot;, endDate:&quot;2026-04-06&quot;, totalDays:3, startDay:&quot;Saturday&quot;, endDay:&quot;Monday&quot;,
+    makeupWork:[],
+    culture:`The Qingming Festival (清明节, Qīngmíng Jié), also known as Tomb-Sweeping Day, is one of China's most ancient observances, dating back over 2,500 years. Falling in early April when spring is in full bloom, it is a time to honor ancestors by visiting graves, offering food and flowers, and burning incense. Beyond its solemn significance, Qingming is also a joyful celebration of spring — families fly kites, enjoy outdoor walks, and appreciate the blossoming natural world. The festival embodies the Confucian virtues of filial piety and gratitude to those who came before us.`
+  },
+  labour:     {
+    name:&quot;Labour Day&quot;, cn:&quot;劳动节&quot;, emoji:&quot;⭐&quot;, banner:&quot;⭐🌟💼🌟⭐&quot;,
+    startDate:&quot;2026-05-01&quot;, endDate:&quot;2026-05-05&quot;, totalDays:5, startDay:&quot;Friday&quot;, endDay:&quot;Tuesday&quot;,
+    makeupWork:[&quot;May 9 (Saturday)&quot;],
+    culture:`International Labour Day, celebrated on May 1st, honours the dignity of workers and their contributions to society. In China, it has been observed since 1949 as a national holiday recognising the vital role of the working people in building the nation. Over the decades, it has grown into one of China's &quot;Golden Week&quot; holidays — a time for rest, travel, and family gatherings. It serves as both a tribute to the spirit of hard work that drives China's progress and a well-deserved opportunity for all workers to recharge.`
+  },
+  dragonboat: {
+    name:&quot;Dragon Boat Festival&quot;, cn:&quot;端午节&quot;, emoji:&quot;🐉&quot;, banner:&quot;🐉🎋🚣🎋🐉&quot;,
+    startDate:&quot;2026-06-19&quot;, endDate:&quot;2026-06-21&quot;, totalDays:3, startDay:&quot;Friday&quot;, endDay:&quot;Sunday&quot;,
+    makeupWork:[],
+    culture:`The Dragon Boat Festival (端午节, Duānwǔ Jié) falls on the 5th day of the 5th lunar month and is one of China's four major traditional festivals. It commemorates the patriotic poet Qu Yuan (屈原, 340–278 BC), who drowned himself in the Miluo River as an act of protest. Legend holds that villagers raced boats and threw sticky rice dumplings (粽子, zòngzi) into the river to protect his body. Today, thrilling dragon boat races and the sharing of zongzi remain beloved customs. In 2009, the festival was inscribed on the UNESCO Intangible Cultural Heritage list — a testament to its enduring cultural vitality.`
+  },
+  midautumn:  {
+    name:&quot;Mid-Autumn Festival&quot;, cn:&quot;中秋节&quot;, emoji:&quot;🌕&quot;, banner:&quot;🌕🥮🌙🥮🌕&quot;,
+    startDate:&quot;2026-09-25&quot;, endDate:&quot;2026-09-27&quot;, totalDays:3, startDay:&quot;Friday&quot;, endDay:&quot;Sunday&quot;,
+    makeupWork:[],
+    culture:`The Mid-Autumn Festival (中秋节, Zhōngqiū Jié) is celebrated on the 15th day of the 8th lunar month, when the moon is at its fullest and brightest. With origins stretching back over 3,000 years, it is a festival of reunion, gratitude, and poetic wonder. Families gather to admire the full moon, share mooncakes (月饼), and recall the legend of Chang'e, the moon goddess. It is the second most important traditional Chinese holiday after the Spring Festival, and is also celebrated across East and Southeast Asia — a timeless symbol of togetherness that transcends borders.`
+  },
+  national:   {
+    name:&quot;National Day&quot;, cn:&quot;国庆节&quot;, emoji:&quot;🎑&quot;, banner:&quot;🎑🎊❤️🎊🎑&quot;,
+    startDate:&quot;2026-10-01&quot;, endDate:&quot;2026-10-07&quot;, totalDays:7, startDay:&quot;Thursday&quot;, endDay:&quot;Wednesday&quot;,
+    makeupWork:[&quot;Sep 20 (Sunday)&quot;,&quot;Oct 10 (Saturday)&quot;],
+    culture:`National Day (国庆节, Guóqìng Jié) marks the founding of the People's Republic of China on October 1st, 1949. It is the country's most important political and patriotic holiday, celebrated with grand ceremonies, flag-raising events, fireworks, and cultural performances across the nation. The accompanying Golden Week (黄金周) is one of the world's largest annual human migration events, as hundreds of millions of Chinese citizens travel home for family reunions or explore the country's rich landscapes and heritage. It is a proud celebration of China's journey, resilience, and vision for the future.`
+  }
+};
+const HL = Object.entries(HDATA).map(([k,v])=>({k,...v}));
+const STEPS = [&quot;Select Holiday&quot;,&quot;Email Content&quot;,&quot;Recipients&quot;,&quot;Schedule &amp; Send&quot;];
+
+let S = { step:0, hol:null, subj:'', body:'', to:'', cc:'', sdt:'' };
+let scheds = [];
+
+init();
+
+function init(){ rNav(); rStep(); loadScheds(); setInterval(chkDue,60000); setInterval(updateCDs,1000); }
+
+/* ── Nav ── */
+function rNav(){
+  document.getElementById('navEl').innerHTML = HL.map(h=>`
+    <div class=&quot;ni${S.hol?.k===h.k?' on':''}&quot; onclick=&quot;pickH('${h.k}')&quot;>
+      <span class=&quot;ni-dot&quot;></span><span>${h.name}</span>
+      ${S.hol?.k===h.k?'<span class=&quot;ni-badge&quot;>active</span>':''}
+    </div>`).join('');
+}
+function pickH(k){ S.hol=HL.find(x=>x.k===k); S.body=''; S.subj=''; S.step=0; rNav(); rStep(); }
+
+/* ── Steps ── */
+function rStep(){
+  document.getElementById('pf').style.width=((S.step+1)/4*100)+'%';
+  document.getElementById('bi').textContent=`Step ${S.step+1} of 4`;
+  document.getElementById('stabs').innerHTML=STEPS.map((s,i)=>
+    `${i?'<span class=&quot;sep&quot;>›</span>':''}<div class=&quot;st${i===S.step?' on':i<S.step?' done':''}&quot; onclick=&quot;gs(${i})&quot;>
+      <div class=&quot;sc&quot;>${i<S.step?'✓':i+1}</div><span>${s}</span></div>`).join('');
+  document.getElementById('pb').disabled=S.step===0;
+  document.getElementById('nb').textContent=S.step===3?'✉ Open in Gmail':'Next →';
+  [s1,s2,s3,s4][S.step](document.getElementById('sc'));
+}
+
+/* ── Step 1 ── */
+function s1(el){
+  el.innerHTML=`
+    <div class=&quot;ttl&quot;>Which holiday?</div>
+    <div class=&quot;hint&quot;>Official 2026 dates from <strong>国务院办公厅 国办发明电〔2025〕7号</strong> — no API key or internet required.</div>
+    <div class=&quot;hg&quot;>${HL.map(h=>`
+      <div class=&quot;hc${S.hol?.k===h.k?' sel':''}&quot; onclick=&quot;pickH('${h.k}')&quot;>
+        <div class=&quot;hchk&quot;>✓</div>
+        <div style=&quot;font-size:22px;margin-bottom:5px;&quot;>${h.emoji}</div>
+        <div class=&quot;hn&quot;>${h.name}</div>
+        <div class=&quot;hcn&quot;>${h.cn}</div>
+        <div class=&quot;hd&quot;>${fmt(h.startDate)} – ${fmt(h.endDate)}</div>
+        <div class=&quot;hwd&quot;>${h.startDay} → ${h.endDay}</div>
+        <span class=&quot;hb&quot;>${h.totalDays} days</span>${h.makeupWork.length?`<span class=&quot;mu-tag&quot;>+${h.makeupWork.length} makeup</span>`:''}
+      </div>`).join('')}
+    </div><div id=&quot;s1s&quot;></div>`;
+}
+
+/* ── Step 2 ── */
+function s2(el){
+  if(!S.body &amp;&amp; S.hol) genEmail();
+  el.innerHTML=`
+    <div class=&quot;ttl&quot;>Email content</div>
+    <div class=&quot;hint&quot;>Auto-filled from official data — edit freely before sending.</div>
+    ${S.hol?infoRow(S.hol):''}
+    <div class=&quot;card&quot;>
+      <div class=&quot;card-hdr&quot;><div class=&quot;ct&quot;><div class=&quot;ci&quot;>✉</div>Subject line</div></div>
+      <input type=&quot;text&quot; id=&quot;es&quot; value=&quot;${x(S.subj)}&quot; oninput=&quot;S.subj=this.value&quot;/>
+    </div>
+    <div class=&quot;card&quot;>
+      <div class=&quot;card-hdr&quot;>
+        <div class=&quot;ct&quot;><div class=&quot;ci&quot;>📝</div>Email body</div>
+        <button class=&quot;btn bsm&quot; onclick=&quot;genEmail();rStep()&quot;>↺ Reset to template</button>
+      </div>
+      <textarea id=&quot;eb&quot; rows=&quot;16&quot; oninput=&quot;S.body=this.value&quot;>${x(S.body)}</textarea>
+    </div><div id=&quot;s2s&quot;></div>`;
+}
+function infoRow(h){
+  return `<div class=&quot;info-row&quot;>
+    <div class=&quot;ib&quot;><div class=&quot;ib-lbl&quot;>Holiday period</div><div class=&quot;ib-val&quot;>${h.totalDays} days</div><div class=&quot;ib-sub&quot;>${fmt(h.startDate)} – ${fmt(h.endDate)}</div></div>
+    <div class=&quot;ib&quot;><div class=&quot;ib-lbl&quot;>Days of week</div><div class=&quot;ib-val&quot;>${h.startDay.slice(0,3)} – ${h.endDay.slice(0,3)}</div><div class=&quot;ib-sub&quot;>Start → End</div></div>
+    <div class=&quot;ib&quot;><div class=&quot;ib-lbl&quot;>Make-up workdays</div><div class=&quot;ib-val&quot;>${h.makeupWork.length||'None'}</div><div class=&quot;ib-sub&quot;>${h.makeupWork.length?h.makeupWork.join(' / '):'No 补班'}</div></div>
+  </div>`;
+}
+function genEmail(){
+  const h=S.hol; if(!h) return;
+  const mu = h.makeupWork.length ? `\n📌 Make-up Workday(s): ${h.makeupWork.join(', ')}` : '';
+  const sd = h.startDate.replace(/-/g,'/');
+  const ed = h.endDate.replace(/-/g,'/');
+  S.subj = `${h.emoji} 2026 ${h.name} Holiday Notice &amp; Reminders`;
+  S.body =
+`${h.banner}  2026 ${h.name} (${h.cn})  ${h.banner}
+
+Dear Team,
+
+Please be advised of the upcoming 2026 ${h.name} (${h.cn}) holiday schedule as follows:
+
+📅  Holiday Period
+${sd} (${h.startDay}) – ${ed} (${h.endDay}). Total: ${h.totalDays} days ${h.emoji}${mu}
+
+✅  Pre-Holiday Reminders
+To ensure office safety and a smooth holiday, please complete the following before leaving:
+
+  🔌  Switch off all power at your workstation (PCs, monitors, power strips, etc.)
+  💻  Take your laptop home or store it securely if you will remain onsite
+  🔒  The last person leaving the office is responsible for double-checking that all lights are off and windows are securely closed and locked.
+
+📞  Emergency Contacts
+For any urgent matters during the holiday, please contact:
+
+  👤  Mengjie: 17600379629
+  👤  Sharon:  18710219118
+
+🌏  About ${h.name}
+${h.culture}
+
+Thank you for your cooperation, and we hope this holiday brings you joy, rest, and meaningful time with your loved ones.
+
+${h.banner}
+
+Best regards,
+HR &amp; Admin Department`;
+}
+
+/* ── Step 3 ── */
+function s3(el){
+  el.innerHTML=`
+    <div class=&quot;ttl&quot;>Who receives this?</div>
+    <div class=&quot;hint&quot;>Add recipients — email will open directly in <strong>Gmail</strong> with subject and body pre-filled.</div>
+    <div class=&quot;card&quot;>
+      <div class=&quot;fg&quot;><label>To — recipients (comma-separated)</label>
+        <input type=&quot;text&quot; id=&quot;et&quot; value=&quot;${x(S.to)}&quot; oninput=&quot;S.to=this.value&quot; placeholder=&quot;team@company.com, all-staff@company.com&quot;/></div>
+      <div class=&quot;fg&quot;><label>CC (optional)</label>
+        <input type=&quot;text&quot; id=&quot;ec&quot; value=&quot;${x(S.cc)}&quot; oninput=&quot;S.cc=this.value&quot; placeholder=&quot;manager@company.com&quot;/></div>
+    </div>
+    <div class=&quot;stbox si&quot;>&amp;#128274; Fully offline — no API key needed. Email opens directly in your mail app.</div>
+    <div id=&quot;s3s&quot;></div>`;
+}
+
+/* ── Step 4 ── */
+function s4(el){
+  const tw = S.hol ? tw14(S.hol.startDate) : '';
+  const twL = tw ? fmtDt(tw) : '';
+  el.innerHTML=`
+    <div class=&quot;ttl&quot;>Schedule &amp; send</div>
+    <div class=&quot;hint&quot;>Set the send date (recommended: 2 weeks before) — when time arrives, an <strong>approval prompt</strong> will appear so you can review before sending.</div>
+    ${tw?`<div class=&quot;shi&quot;><div class=&quot;shi-ico&quot;>📅</div><div style=&quot;flex:1&quot;>
+      <div class=&quot;shi-t&quot;>Recommended send date — 2 weeks before ${S.hol?.name}</div>
+      <div class=&quot;shi-s&quot;><strong>${twL}</strong></div></div>
+      <button class=&quot;btn bsm btnp&quot; onclick=&quot;use14()&quot;>Use this →</button></div>`:''}
+    <div class=&quot;card&quot;>
+      <div class=&quot;card-hdr&quot;><div class=&quot;ct&quot;><div class=&quot;ci&quot;>⏰</div>Scheduled send time</div></div>
+      <div class=&quot;fg&quot;><label>Send date &amp; time</label>
+        <input type=&quot;datetime-local&quot; id=&quot;sdt&quot; value=&quot;${S.sdt}&quot; oninput=&quot;S.sdt=this.value&quot;/></div>
+      <div class=&quot;br&quot;>
+        <button class=&quot;btn bsm&quot; style=&quot;background:#EA4335;border-color:#EA4335;color:#fff;font-weight:600;&quot; onclick=&quot;openGmail()&quot;>
+          <svg width=&quot;14&quot; height=&quot;14&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; style=&quot;flex-shrink:0&quot;><path d=&quot;M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z&quot; fill=&quot;white&quot;/></svg>
+          Open in Gmail
+        </button>
+        <button class=&quot;btn bsm&quot; onclick=&quot;copyBody()&quot; id=&quot;cpBtn&quot;>📋 Copy Body</button>
+        <button class=&quot;btn bsm&quot; onclick=&quot;saveSched()&quot;>💾 Save Reminder</button>
+        <button class=&quot;btn bsm&quot; onclick=&quot;openMailto()&quot; style=&quot;font-size:10.5px;color:var(--mu);&quot;>Other mail app ↗</button>
+      </div>
+    </div>
+    <div id=&quot;s4s&quot;></div><div id=&quot;sclEl&quot;></div>`;
+  rSchedList(); updateCDs();
+}
+
+function openGmail(){
+  if(!S.subj||!S.body){setSt('s4s','Please complete steps 2 &amp; 3 first.','se');return;}
+  const p = new URLSearchParams();
+  p.set('view','cm'); p.set('fs','1');
+  if(S.to) p.set('to', S.to);
+  if(S.cc) p.set('cc', S.cc);
+  p.set('su', S.subj);
+  p.set('body', S.body);
+  window.open('https://mail.google.com/mail/?' + p.toString(), '_blank');
+  setSt('s4s','✓ Gmail compose window opened — review and click Send.','ss');
+}
+function openMailto(){
+  if(!S.subj||!S.body){setSt('s4s','Please complete steps 2 &amp; 3 first.','se');return;}
+  const to=encodeURIComponent(S.to||'');
+  const cc=S.cc?'&amp;cc='+encodeURIComponent(S.cc):'';
+  window.location.href=`mailto:${to}?subject=${encodeURIComponent(S.subj)}${cc}&amp;body=${encodeURIComponent(S.body)}`;
+  setSt('s4s','Opening default mail app...','ss');
+}
+function copyBody(){
+  if(!S.body){setSt('s4s','Please generate the email first (step 2).','se');return;}
+  const done=()=>{
+    const b=document.getElementById('cpBtn');if(b)b.textContent='✓ Copied!';
+    setSt('s4s','Copied to clipboard!','ss');
+    setTimeout(()=>{if(b)b.textContent='📋 Copy Body';},2500);
+  };
+  if(navigator.clipboard){navigator.clipboard.writeText(S.body).then(done).catch(fallback);}else fallback();
+  function fallback(){const t=document.createElement('textarea');t.value=S.body;t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);done();}
+}
+
+/* ── Scheduling ── */
+function tw14(d){const dt=new Date(d);dt.setDate(dt.getDate()-14);return dt.toISOString().slice(0,16);}
+function use14(){S.sdt=tw14(S.hol.startDate);const e=document.getElementById('sdt');if(e)e.value=S.sdt;}
+function saveSched(){
+  const e=document.getElementById('sdt');if(e)S.sdt=e.value;
+  if(!S.sdt){setSt('s4s','Please pick a date.','se');return;}
+  if(!S.subj||!S.to){setSt('s4s','Please complete steps 2 &amp; 3 first.','se');return;}
+  const key='sched:'+S.hol?.k+':'+Date.now();
+  const it={key,hol:S.hol.name,k:S.hol.k,subj:S.subj,body:S.body,to:S.to,cc:S.cc,sdt:S.sdt,status:'pending'};
+  try{localStorage.setItem(key,JSON.stringify(it));}catch(e){}
+  scheds=[...scheds.filter(s=>s.k!==it.k),it];
+  setSt('s4s',`💾 Reminder saved for ${fmtDt(S.sdt)}. We'll notify you when it's time to send.`,'ss');
+  if('Notification'in window&amp;&amp;Notification.permission==='default') Notification.requestPermission();
+  rSchedList(); uSbS();
+}
+function canSched(k){
+  const it=scheds.find(s=>s.key===k);
+  if(it){try{localStorage.removeItem(it.key);}catch(e){}}
+  scheds=scheds.filter(s=>s.key!==k);
+  rSchedList(); uSbS();
+}
+function sendScheduled(k){
+  const it=scheds.find(s=>s.key===k);if(!it)return;
+  const p = new URLSearchParams();
+  p.set('view','cm'); p.set('fs','1');
+  if(it.to) p.set('to', it.to);
+  if(it.cc) p.set('cc', it.cc);
+  p.set('su', it.subj);
+  p.set('body', it.body);
+  window.open('https://mail.google.com/mail/?' + p.toString(), '_blank');
+  it.status='sent';try{localStorage.setItem(it.key,JSON.stringify(it));}catch(e){}
+  rSchedList(); uSbS();
+}
+function loadScheds(){
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k?.startsWith('sched:')){try{const v=localStorage.getItem(k);if(v)scheds.push(JSON.parse(v));}catch(e){}}
+    }
+    uSbS();
+  }catch(e){}
+}
+function uSbS(){
+  const el=document.getElementById('sbSched');if(!el)return;
+  const p=scheds.filter(s=>s.status==='pending');
+  if(!p.length){el.innerHTML='<span style=&quot;color:rgba(255,255,255,.24);font-size:10.5px;&quot;>No schedules yet</span>';return;}
+  el.innerHTML=p.slice(0,4).map(it=>`
+    <div class=&quot;sb-si&quot;><span class=&quot;sb-sdot&quot;></span>${it.hol} · ${new Date(it.sdt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>`).join('');
+}
+function rSchedList(){
+  const el=document.getElementById('sclEl');if(!el)return;
+  if(!scheds.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class=&quot;card&quot;>
+    <div class=&quot;card-hdr&quot;><div class=&quot;ct&quot;><div class=&quot;ci&quot;>📋</div>Saved reminders</div></div>
+    ${scheds.map(it=>`<div class=&quot;sr&quot;>
+      <div style=&quot;flex:1&quot;>
+        <div class=&quot;sr-n&quot;>${x(it.hol)} <span class=&quot;pill ${it.status==='sent'?'ps':'pp'}&quot;>${it.status}</span></div>
+        <div class=&quot;sr-d&quot;>📅 ${fmtDt(it.sdt)} → ${x(it.to||'—')}</div>
+        <div class=&quot;cd&quot; id=&quot;cd_${it.key.replace(/\W/g,'_')}&quot;></div>
+      </div>
+      <div style=&quot;display:flex;flex-direction:column;gap:5px;margin-left:12px;&quot;>
+        <button class=&quot;btn bsm&quot; onclick=&quot;showApproval(scheds.find(s=>s.key==='${it.key}'))&quot; style=&quot;background:#EA4335;border-color:#EA4335;color:#fff;font-weight:600;font-size:11px;&quot;>✅ Preview &amp; Send</button>
+        <button class=&quot;btn bsm&quot; onclick=&quot;canSched('${it.key}')&quot;>✕ Cancel</button>
+      </div>
+    </div>`).join('')}
+  </div>`;
+  updateCDs();
+}
+/* ── Approval modal state ── */
+let approvalItem = null;
+
+function showApproval(it){
+  approvalItem = it;
+  document.getElementById('am-hol-name').textContent = it.hol + ' Notice';
+  document.getElementById('am-to').textContent = it.to || '—';
+  document.getElementById('am-cc').textContent = it.cc || 'None';
+  document.getElementById('am-subj').textContent = it.subj || '—';
+  document.getElementById('am-sdt').textContent = fmtDt(it.sdt);
+  document.getElementById('am-preview').textContent = it.body || '—';
+  document.getElementById('approvalModal').classList.remove('hidden');
+}
+function hideApproval(){
+  document.getElementById('approvalModal').classList.add('hidden');
+  approvalItem = null;
+}
+function approveAndSend(){
+  const it = approvalItem; if(!it) return;
+  const p = new URLSearchParams();
+  p.set('view','cm'); p.set('fs','1');
+  if(it.to) p.set('to', it.to);
+  if(it.cc) p.set('cc', it.cc);
+  p.set('su', it.subj);
+  p.set('body', it.body);
+  window.open('https://mail.google.com/mail/?' + p.toString(), '_blank');
+  it.status = 'sent';
+  try{localStorage.setItem(it.key, JSON.stringify(it));}catch(e){}
+  hideApproval(); rSchedList(); uSbS();
+}
+function editFirst(){
+  const it = approvalItem; if(!it) return;
+  // Load the item back into the wizard for editing
+  const hol = HL.find(h=>h.k===it.k);
+  if(hol){ S.hol=hol; S.subj=it.subj; S.body=it.body; S.to=it.to; S.cc=it.cc; S.step=1; rNav(); }
+  hideApproval(); rStep();
+}
+function snoozeApproval(){
+  if(!approvalItem) return;
+  // Push the scheduled time 1 hour forward
+  const dt = new Date(approvalItem.sdt);
+  dt.setHours(dt.getHours()+1);
+  approvalItem.sdt = dt.toISOString().slice(0,16);
+  try{localStorage.setItem(approvalItem.key, JSON.stringify(approvalItem));}catch(e){}
+  const idx = scheds.findIndex(s=>s.key===approvalItem.key);
+  if(idx>-1) scheds[idx] = {...approvalItem};
+  hideApproval(); rSchedList(); uSbS();
+}
+function dismissApproval(){ hideApproval(); }
+
+function chkDue(){
+  const now = new Date();
+  for(const it of scheds){
+    if(it.status==='pending' &amp;&amp; new Date(it.sdt) <= now){
+      // Show in-app approval modal
+      showApproval(it);
+      // Also fire browser notification as a secondary nudge
+      if('Notification' in window &amp;&amp; Notification.permission==='granted'){
+        new Notification('✅ Holiday Email Needs Your Approval', {
+          body: `${it.hol} notice for ${it.to} — open the app to review and send.`,
+          icon: 'data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 32 32&quot;><text y=&quot;28&quot; font-size=&quot;28&quot;>🌿</text></svg>'
+        });
+      }
+      break; // Show one at a time
+    }
+  }
+  rSchedList(); uSbS();
+}
+function updateCDs(){
+  const now=new Date();
+  scheds.forEach(it=>{
+    const id='cd_'+it.key.replace(/\W/g,'_');
+    const el=document.getElementById(id);if(!el)return;
+    const diff=new Date(it.sdt)-now;
+    if(diff<=0){el.textContent='⏰ Time to send!';el.style.color='var(--g)';return;}
+    const d=Math.floor(diff/864e5),h=Math.floor((diff%864e5)/36e5),m=Math.floor((diff%36e5)/6e4);
+    el.textContent=`Sends in: ${d?d+'d ':''} ${h}h ${m}m`;
+  });
+}
+
+/* ── Wizard nav ── */
+function gs(i){if(i<=S.step){S.step=i;rStep();}}
+function prev(){if(S.step>0){S.step--;rStep();}}
+function nxt(){
+  if(S.step===3){openGmail();return;}
+  if(S.step===0&amp;&amp;!S.hol){setSt('s1s','Please select a holiday first.','se');return;}
+  if(S.step===1){S.subj=document.getElementById('es')?.value||S.subj;S.body=document.getElementById('eb')?.value||S.body;}
+  if(S.step===2){S.to=document.getElementById('et')?.value||S.to;S.cc=document.getElementById('ec')?.value||S.cc;}
+  S.step++; rStep();
+}
+
+/* ── Utils ── */
+function fmt(d){return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function fmtDt(d){try{return new Date(d).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(e){return d;}}
+function setSt(id,h,c){const e=document.getElementById(id);if(e)e.innerHTML=`<div class=&quot;stbox ${c}&quot;>${h}</div>`;}
+function x(s){return(s||'').replace(/&amp;/g,'&amp;amp;').replace(/</g,'&amp;lt;').replace(/>/g,'&amp;gt;').replace(/&quot;/g,'&amp;quot;');}
+</script>
+</body>
+</html>
+">
+      </iframe>
+    </div>
+    <!-- CONTRACT RENEWAL PANEL -->
+    <div id="tab-renewal" class="panel">
+      <div class="page-title">📋 Contract Renewal</div>
+      <div class="page-sub">Employees reaching 3-year or 6-year milestones — contract renewal required</div>
+
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+        <div style="display:flex;gap:6px">
+          <button class="btn" onclick="renewalSetYear(-1)">◀</button>
+          <span id="renewal-year-label" style="font-size:14px;font-weight:700;padding:0 8px;line-height:32px"></span>
+          <button class="btn" onclick="renewalSetYear(1)">▶</button>
+          <button class="btn" onclick="renewalGoToday()">This Year</button>
+        </div>
+        <div style="margin-left:auto;font-size:12px;color:var(--gray-mid)">
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#4CAF50;margin-right:4px"></span>3-Year &nbsp;
+          <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#2196F3;margin-right:4px"></span>6-Year
+        </div>
+      </div>
+
+      <div id="renewal-list"></div>
+    </div>
 
   </main>
 
@@ -1017,7 +1652,7 @@ function renderToday() {
   const sendBtn = document.getElementById('sendMilestoneBtn');
   if (!employees.length) {
     statsEl.innerHTML=''; listEl.innerHTML=`<div class="empty">${'Please upload employee data first'}</div>`;
-    sendBtn.style.display='none'; return;
+    if(sendBtn) sendBtn.style.display='none'; return;
   }
 
   const mHits  = employees.map(emp=>({emp,ms:getMilestonesOnDate(emp,date)})).filter(h=>h.ms.length);
@@ -1138,6 +1773,7 @@ function showTab(t) {
   if (t==='weekly')   { _weekOffset = 0; renderWeek(); }
   if (t==='birthday') goCurrentBdayYear();
   if (t==='monthly')  goCurrentMonthlyMonth();
+  if (t==='renewal') renderRenewal();
   if (t==='org' || t==='orgchart') {
     // Reset D3 state so it re-fits when tab becomes visible
     if (_orgD3 && _orgD3.svg) { _orgD3.isFirst = true; }
@@ -1799,14 +2435,14 @@ function openSlackModal(emp, type) {
   }
   // Show tabs
   const tabsEl = document.getElementById('modalTabs');
-  tabsEl.style.display = 'flex';
+  if (tabsEl) tabsEl.style.display = 'flex';
   document.getElementById('tabEmployee').classList.add('active');
   document.getElementById('tabManager').classList.remove('active');
 
   // Manager row
   const mgr = emp.manager || '';
   const mgrRow = document.getElementById('modalManagerRow');
-  mgrRow.style.display = mgr ? 'flex' : 'none';
+  if (mgrRow) mgrRow.style.display = mgr ? 'flex' : 'none';
   document.getElementById('modalManagerName').textContent = mgr || 'N/A';
 
   // Set recipient & message for employee tab
@@ -3207,12 +3843,14 @@ function renderOrgChart() {
     }
   });
 
-  // Collapse depth >= 2 by default on first load
-  if (_orgD3.isFirst) {
-    _orgD3.root.descendants().forEach(function(d) {
-      if (d.depth >= 2 && d.children) { d._children = d.children; d.children = null; }
-    });
-  }
+  // Show only depth 0 (root) and depth 1 (direct children)
+  // Collapse depth-1 nodes' children so depth 2+ is hidden
+  _orgD3.root.each(function(d) {
+    if (d.depth === 1 && d.children) {
+      d._children = d.children;
+      d.children = null;
+    }
+  });
 
   _orgOrgUpdate(_orgD3.root);
 }
@@ -3436,7 +4074,10 @@ function orgExpandAll() {
 
 function orgCollapseAll() {
   if (!_orgD3.root) return;
-  _orgD3.root.descendants().forEach(function(d){ if(d.depth>=1&&d.children){d._children=d.children;d.children=null;} });
+  // Collapse back to showing only levels 1 and 2
+  _orgD3.root.descendants().forEach(function(d){
+    if(d.depth>=2&&d.children){d._children=d.children;d.children=null;}
+  });
   _orgOrgUpdate(_orgD3.root);
 }
 
@@ -3528,7 +4169,182 @@ function batchNotifyManagers(context) {
   }
 }
 
+
+// ════════════════════════════════════════════════════════
+// 📋 CONTRACT RENEWAL
+// ════════════════════════════════════════════════════════
+
+var _renewalYear = new Date().getFullYear();
+
+function renewalSetYear(delta) {
+  _renewalYear += delta;
+  renderRenewal();
+}
+function renewalGoToday() {
+  _renewalYear = new Date().getFullYear();
+  renderRenewal();
+}
+
+// Renewal status stored in localStorage keyed by empId+year
+function renewalKey(empId, year) { return 'renewal_' + empId + '_' + year; }
+function getRenewalStatus(empId, year) {
+  try {
+    var v = localStorage.getItem(renewalKey(empId, year));
+    return v ? JSON.parse(v) : { mgr: false, hrd: false, gm: false, done: false };
+  } catch(e) { return { mgr: false, hrd: false, gm: false, done: false }; }
+}
+function renewalToggle(empId, year, key) {
+  var s = getRenewalStatus(empId, year);
+  setRenewalStatus(empId, year, key, !s[key]);
+}
+
+function setRenewalStatus(empId, year, key, val) {
+  var s = getRenewalStatus(empId, year);
+  s[key] = val;
+  try { localStorage.setItem(renewalKey(empId, year), JSON.stringify(s)); } catch(e) {}
+  renderRenewal();
+}
+
+function renderRenewal() {
+  var el = document.getElementById('renewal-list');
+  var lbl = document.getElementById('renewal-year-label');
+  if (!el) return;
+  if (lbl) lbl.textContent = _renewalYear + ' Contract Renewals';
+
+  if (!employees.length) {
+    el.innerHTML = '<div class="empty">No employee data. Please upload Excel first.</div>';
+    return;
+  }
+
+  var monthNames = ['January','February','March','April','May','June',
+                    'July','August','September','October','November','December'];
+
+  // Find all employees whose 3y or 6y anniversary falls in _renewalYear
+  var items = [];
+  employees.forEach(function(emp) {
+    if (!emp.onboard) return;
+    var onboard = emp.onboard instanceof Date ? emp.onboard : new Date(emp.onboard);
+    if (isNaN(onboard)) return;
+    var onYear = onboard.getUTCFullYear();
+    var onMonth = onboard.getUTCMonth();
+    var onDay = onboard.getUTCDate();
+
+    [3, 6].forEach(function(years) {
+      var renewYear = onYear + years;
+      if (renewYear === _renewalYear) {
+        var renewDate = new Date(Date.UTC(renewYear, onMonth, onDay));
+        items.push({
+          emp: emp,
+          years: years,
+          month: onMonth,
+          day: onDay,
+          date: renewDate,
+          dateStr: (onMonth + 1) + '/' + onDay + '/' + renewYear
+        });
+      }
+    });
+  });
+
+  if (!items.length) {
+    el.innerHTML = '<div class="empty">No contract renewals due in ' + _renewalYear + '.</div>';
+    return;
+  }
+
+  // Sort by month then day
+  items.sort(function(a, b) {
+    if (a.month !== b.month) return a.month - b.month;
+    return a.day - b.day;
+  });
+
+  // Group by month
+  var byMonth = {};
+  items.forEach(function(item) {
+    var m = item.month;
+    if (!byMonth[m]) byMonth[m] = [];
+    byMonth[m].push(item);
+  });
+
+  var html = '';
+  Object.keys(byMonth).sort(function(a,b){return a-b;}).forEach(function(m) {
+    var monthItems = byMonth[m];
+    html += '<div class="card" style="margin-bottom:14px">';
+    html += '<div class="section-title" style="margin-bottom:10px">📅 ' + monthNames[m] + ' ' + _renewalYear + ' <span style="font-size:12px;font-weight:400;color:var(--gray-mid)">(' + monthItems.length + ' renewal' + (monthItems.length > 1 ? 's' : '') + ')</span></div>';
+
+    monthItems.forEach(function(item) {
+      var emp = item.emp;
+      var empId = emp.empId || (emp.enName + emp.cnName);
+      var status = getRenewalStatus(empId, _renewalYear);
+      var typeColor = item.years === 3 ? '#4CAF50' : '#2196F3';
+      var typeLabel = item.years === 3 ? '3-Year → 1st Renewal' : '6-Year → Permanent Contract';
+      var isDone = status.done;
+
+      html += '<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-color);flex-wrap:wrap;' + (isDone ? 'opacity:0.6' : '') + '">';
+
+      // Avatar
+      var initials = ((emp.enName||emp.cnName||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2)).toUpperCase();
+      html += '<div style="width:36px;height:36px;border-radius:50%;background:' + typeColor + ';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0">' + initials + '</div>';
+
+      // Info
+      html += '<div style="flex:1;min-width:180px">';
+      html += '<div style="font-size:13px;font-weight:700;color:var(--text-main)">' + (emp.enName||emp.cnName) + (emp.cnName && emp.enName ? ' <span style="font-size:11px;color:var(--gray-mid)">(' + emp.cnName + ')</span>' : '') + '</div>';
+      html += '<div style="font-size:11px;color:var(--gray-mid);margin-top:2px">' + (emp.title||'') + (emp.dept ? ' · ' + emp.dept : '') + '</div>';
+      html += '<div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">';
+      html += '<span style="font-size:10px;background:' + typeColor + '22;color:' + typeColor + ';border:1px solid ' + typeColor + '44;border-radius:20px;padding:2px 8px;font-weight:600">' + typeLabel + '</span>';
+      html += '<span style="font-size:11px;color:var(--gray-mid)">Due: <b style="color:var(--text-main)">' + item.dateStr + '</b></span>';
+      if (emp.manager) html += '<span style="font-size:11px;color:var(--gray-mid)">Manager: ' + emp.manager.replace(/[(（][^)）]*/g,'').replace(/[)）]/g,'').trim() + '</span>';
+      html += '</div></div>';
+
+      // Approval buttons
+      html += '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">';
+      var btns = [
+        { key: 'mgr', label: '👔 Line Manager', color: '#FF9800' },
+        { key: 'hrd', label: '📊 HRD', color: '#9C27B0' },
+        { key: 'gm', label: '🏢 GM', color: '#2196F3' },
+        { key: 'done', label: '✅ Completed', color: '#4CAF50' }
+      ];
+      btns.forEach(function(btn) {
+        var approved = status[btn.key];
+        var bg = approved ? btn.color : 'transparent';
+        var textColor = approved ? '#fff' : btn.color;
+        var border = btn.color;
+        // Use data-* attributes to avoid quote nesting in onclick
+        html += '<button class="renewal-btn"'
+          + ' data-eid=' + JSON.stringify(String(empId))
+          + ' data-year=' + JSON.stringify(String(_renewalYear))
+          + ' data-key=' + JSON.stringify(btn.key)
+          + ' style="border:1.5px solid ' + border + ';background:' + bg + ';color:' + textColor + ';'
+          + 'border-radius:16px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;'
+          + 'white-space:nowrap;transition:all .15s">'
+          + btn.label + (approved ? ' ✓' : '')
+          + '</button>';
+      });
+      html += '</div>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+
+// Renewal button click handler (event delegation)
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('.renewal-btn');
+  if (!btn) return;
+  var empId = btn.getAttribute('data-eid');
+  var year  = parseInt(btn.getAttribute('data-year'));
+  var key   = btn.getAttribute('data-key');
+  if (empId && year && key) renewalToggle(empId, year, key);
+});
+
 // Init
+window.onerror = function(msg, src, line, col, err) {
+  console.error('HR Tool Error at line ' + line + ': ' + msg);
+  if (err && err.stack) console.error(err.stack);
+  return false;
+};
 
 // Update milestone section label with current year
 (function(){
